@@ -15,6 +15,7 @@ import { ChampionshipsPage } from '../competitions/ChampionshipsPage.tsx';
 import { VenuesPage } from '../competitions/VenuesPage.tsx';
 import { AnnouncementsPage } from '../content/AnnouncementsPage.tsx';
 import { CaseDetailPage } from '../discipline/CaseDetailPage.tsx';
+import { DocumentsPage } from '../documents/DocumentsPage.tsx';
 import { DisciplinePage } from '../discipline/DisciplinePage.tsx';
 import { ApiStatus } from '../health/ApiStatus.tsx';
 import { InstitutionPage } from '../institution/InstitutionPage.tsx';
@@ -76,6 +77,7 @@ const SECTIONS: Section[] = [
     // Cualquiera de estos permisos habilita la sección (cada pestaña vuelve a comprobar el suyo).
     permission: 'discipline',
   },
+  { hash: '#/documentos', label: 'Documentos', permission: 'reports:read' },
   {
     hash: '#/noticias',
     label: 'Noticias',
@@ -263,6 +265,9 @@ export function CatalogsApp({
         ) : (
           <DisciplinePage permissions={permissions} />
         ))}
+      {active.hash === '#/documentos' && (
+        <DocumentsPage permissions={permissions} />
+      )}
       {active.hash === '#/noticias' && (
         <AnnouncementsPage permissions={permissions} />
       )}

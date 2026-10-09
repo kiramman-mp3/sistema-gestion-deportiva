@@ -1,3 +1,4 @@
+import { IssuedDocumentsPanel } from '../documents/IssuedDocumentsPanel.tsx';
 import { type FormEvent, useState } from 'react';
 import { ApiError, apiRequest } from '../../api/client.ts';
 import { ConfirmDialog } from '../../components/ConfirmDialog.tsx';
@@ -291,6 +292,13 @@ export function AthleteDetailPage({
               ))}
           </div>
         </>
+      )}
+
+      {can('credentials:issue') && (
+        <IssuedDocumentsPanel
+          athleteId={athleteId}
+          canRevoke={can('credentials:revoke')}
+        />
       )}
 
       <h3>Consentimientos</h3>
