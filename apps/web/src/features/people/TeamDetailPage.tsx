@@ -106,6 +106,11 @@ export function TeamDetailPage({ teamId, permissions }: Props) {
                   >
                     Ver plantilla
                   </button>
+                  {permissions.includes('credentials:issue') && (
+                    <a href={`/api/reports/team-seasons/${s.id}/credentials`}>
+                      Carnés (PDF)
+                    </a>
+                  )}
                 </td>
               </tr>
             ))}

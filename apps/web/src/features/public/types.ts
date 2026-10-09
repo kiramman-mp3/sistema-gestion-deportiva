@@ -329,6 +329,18 @@ export interface PublicResolution {
   }[];
 }
 
+export interface PublicVerification {
+  valid: boolean;
+  kind: 'carne' | 'certificado_inscripcion';
+  label: string;
+  version: number;
+  season: string;
+  issuedAt: string;
+  revokedAt: string | null;
+  holder: string;
+  club: string;
+}
+
 export interface PublicPage<T> {
   items: T[];
   page: number;

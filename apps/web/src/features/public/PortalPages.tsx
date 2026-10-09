@@ -13,6 +13,7 @@ import type {
   PublicInstitution,
   PublicPage,
   PublicResolution,
+  PublicVerification,
 } from './types.ts';
 
 const dateTime = new Intl.DateTimeFormat('es-EC', {
@@ -668,6 +669,83 @@ export function AboutPage({ institution }: { institution: PublicInstitution }) {
         <p className="empty-state">
           La política de privacidad todavía no fue publicada.
         </p>
+      )}
+    </section>
+  );
+}
+
+// ───────────────────── Verificación de documentos ─────────────────────
+
+const VERIFY_KIND: Record<string, string> = {
+  carne: 'Carné de deportista',
+  certificado_inscripcion: 'Certificado de inscripción',
+};
+
+export function VerifyPage({ code }: { code?: string }) {
+  const [typed, setTyped] = useState(code ?? '');
+  const clean = (code ?? '').trim().toUpperCase();
+  const [result, reload] = useFetch<PublicVerification>(
+    clean ? `/public/verify/${encodeURIComponent(clean)}` : null,
+  );
+  return (
+    <section className="portal-section" aria-labelledby="verify-title">
+      <div className="section-header">
+        <h3 id="verify-title">Verificar un documento</h3>
+      </div>
+      <p>
+        Escriba el código de verificación impreso en el carné o certificado (o
+        escanee su código QR) para comprobar que es auténtico y sigue vigente.
+      </p>
+      <form
+        className="filters"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const value = typed.trim().toUpperCase();
+          if (value) window.location.hash = `#/portal/verificar/${value}`;
+        }}
+      >
+        <TextField
+          label="Código de verificación"
+          value={typed}
+          onChange={setTyped}
+          maxLength={16}
+        />
+        <button type="submit" className="primary">
+          Verificar
+        </button>
+      </form>
+      {clean && <LoadState state={result} onRetry={reload} />}
+      {clean && result.kind === 'ready' && (
+        <output
+          className={`championship-card ${result.data.valid ? '' : 'invalid-doc'}`}
+        >
+          <h4>
+            {result.data.valid
+              ? '✔ Documento auténtico y vigente'
+              : '✖ Documento anulado o reemplazado'}
+          </h4>
+          <dl className="detail-list">
+            <dt>Documento</dt>
+            <dd>
+              {VERIFY_KIND[result.data.kind] ?? result.data.kind} ·{' '}
+              {result.data.label} (versión {result.data.version})
+            </dd>
+            <dt>Titular</dt>
+            <dd>{result.data.holder}</dd>
+            <dt>Club</dt>
+            <dd>{result.data.club}</dd>
+            <dt>Temporada</dt>
+            <dd>{result.data.season}</dd>
+            <dt>Emitido</dt>
+            <dd>{dateTime.format(new Date(result.data.issuedAt))}</dd>
+            {result.data.revokedAt && (
+              <>
+                <dt>Anulado</dt>
+                <dd>{dateTime.format(new Date(result.data.revokedAt))}</dd>
+              </>
+            )}
+          </dl>
+        </output>
       )}
     </section>
   );

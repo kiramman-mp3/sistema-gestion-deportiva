@@ -126,6 +126,9 @@ model User {
   announcementsAuthored Announcement[] @relation("AnnouncementAuthor")
   announcementsEdited   Announcement[] @relation("AnnouncementEditor")
 
+  documentsIssued  IssuedDocument[] @relation("DocumentIssuer")
+  documentsRevoked IssuedDocument[] @relation("DocumentRevoker")
+
   @@map("users")
 }
 
@@ -339,6 +342,8 @@ model Season {
   memberships   TeamMembership[]
   championships Championship[]
 
+  issuedDocuments IssuedDocument[]
+
   @@index([status])
   @@map("seasons")
 }
@@ -528,6 +533,8 @@ model Athlete {
 
   incidents EventIncident[]
   sanctions Sanction[]
+
+  issuedDocuments IssuedDocument[]
 
   @@index([clubId])
   @@map("athletes")
@@ -1700,4 +1707,47 @@ model Announcement {
   @@index([updatedById])
   @@index([coverId])
   @@map("announcements")
+}
+
+// ───────────────────── Documentos emitidos: carnés y certificados ─────────────────────
+
+enum IssuedDocumentKind {
+  carne
+  certificado_inscripcion
+
+  @@map("issued_document_kind")
+}
+
+/// Documento oficial emitido a un deportista (carné o certificado). Guarda una copia de lo impreso
+/// (`snapshot`) y un código de verificación público: quien recibe el documento puede comprobar en el
+/// portal que existe, de qué temporada es y si sigue vigente, sin ver más datos de los necesarios.
+model IssuedDocument {
+  id               String             @id @default(uuid(7)) @db.Uuid
+  kind             IssuedDocumentKind
+  /// Número correlativo para el código visible (CAR-000123, CER-000123).
+  serial           Int                @unique @default(autoincrement())
+  athleteId        String             @map("athlete_id") @db.Uuid
+  seasonId         String             @map("season_id") @db.Uuid
+  /// Versión del documento para ese deportista y temporada (se incrementa al reemitir).
+  version          Int                @default(1)
+  verificationCode String             @unique @map("verification_code")
+  /// Lo que se imprimió: nombre, club, equipo, categoría, temporada y número de camiseta.
+  snapshot         Json
+  issuedById       String             @map("issued_by_id") @db.Uuid
+  issuedAt         DateTime           @default(now()) @map("issued_at") @db.Timestamptz(3)
+  revokedAt        DateTime?          @map("revoked_at") @db.Timestamptz(3)
+  revokedById      String?            @map("revoked_by_id") @db.Uuid
+  revokeReason     String?            @map("revoke_reason")
+
+  athlete   Athlete @relation(fields: [athleteId], references: [id], onDelete: Restrict)
+  season    Season  @relation(fields: [seasonId], references: [id], onDelete: Restrict)
+  issuedBy  User    @relation("DocumentIssuer", fields: [issuedById], references: [id], onDelete: Restrict)
+  revokedBy User?   @relation("DocumentRevoker", fields: [revokedById], references: [id], onDelete: Restrict)
+
+  @@unique([athleteId, seasonId, kind, version])
+  @@index([athleteId, seasonId, kind])
+  @@index([issuedById])
+  @@index([revokedById])
+  @@index([seasonId])
+  @@map("issued_documents")
 }
