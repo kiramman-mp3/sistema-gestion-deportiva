@@ -10,6 +10,7 @@ import {
   NewsArticlePage,
   NewsListPage,
   ResolutionsPage,
+  VerifyPage,
 } from './PortalPages.tsx';
 import type { PublicInstitution } from './types.ts';
 
@@ -27,7 +28,8 @@ type PortalRoute =
   | { page: 'noticia'; slug: string }
   | { page: 'clubes' }
   | { page: 'resoluciones' }
-  | { page: 'liga' };
+  | { page: 'liga' }
+  | { page: 'verificar'; code?: string };
 
 /** `#/portal`, `#/portal/noticias/<slug>`, `#/portal/partido/<id>`… */
 export function parsePortalRoute(hash: string): PortalRoute {
@@ -47,6 +49,8 @@ export function parsePortalRoute(hash: string): PortalRoute {
       return { page: 'resoluciones' };
     case 'liga':
       return { page: 'liga' };
+    case 'verificar':
+      return { page: 'verificar', code: param };
     default:
       return { page: 'inicio' };
   }
@@ -169,6 +173,7 @@ export function PublicPortalPage({
       {route.page === 'clubes' && <ClubsPage />}
       {route.page === 'resoluciones' && <ResolutionsPage />}
       {route.page === 'liga' && info && <AboutPage institution={info} />}
+      {route.page === 'verificar' && <VerifyPage code={route.code} />}
 
       <footer className="portal-footer">
         <p>
@@ -184,6 +189,8 @@ export function PublicPortalPage({
         )}
         <p>
           <a href="#/portal/liga">Contacto y política de privacidad</a>
+          {' · '}
+          <a href="#/portal/verificar">Verificar un documento</a>
         </p>
       </footer>
     </div>

@@ -605,7 +605,8 @@ export function FixturesTab({
                                   </td>
                                   {(canManage ||
                                     canSeeAssignments ||
-                                    canReport) && (
+                                    canReport ||
+                                    permissions.includes('reports:read')) && (
                                     <td data-label="Acciones">
                                       {canSeeAssignments && (
                                         <button
@@ -622,6 +623,20 @@ export function FixturesTab({
                                           Designaciones
                                         </button>
                                       )}
+                                      {permissions.includes('reports:read') &&
+                                        permissions.includes(
+                                          'results:read',
+                                        ) && (
+                                          <a
+                                            href={`/api/reports/events/${ev.id}/scoresheet`}
+                                            style={{
+                                              fontSize: '0.75rem',
+                                              marginRight: '0.5rem',
+                                            }}
+                                          >
+                                            Acta PDF
+                                          </a>
+                                        )}
                                       {canReport && (
                                         <button
                                           type="button"
