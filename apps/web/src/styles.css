@@ -442,3 +442,92 @@ button.link {
     display: none;
   }
 }
+
+/* ───────── Administración de usuarios, roles y auditoría ───────── */
+
+.button-link {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  color: var(--primary);
+  text-decoration: none;
+  border: 1px solid var(--primary);
+  border-radius: 0.25rem;
+}
+
+.definition-list {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0 0 1rem;
+}
+
+.definition-list dt {
+  font-weight: 600;
+}
+
+.definition-list dd {
+  margin: 0;
+}
+
+.plain-list {
+  padding-left: 1.25rem;
+}
+
+.plain-list li {
+  margin-bottom: 0.5rem;
+}
+
+.plain-list li button {
+  margin-left: 0.75rem;
+}
+
+.token-box {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 2px solid var(--primary);
+  border-radius: 0.5rem;
+  background: var(--surface);
+}
+
+.token-box input {
+  font-family: ui-monospace, monospace;
+}
+
+.permission-group {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+}
+
+.permission-group legend {
+  padding: 0 0.5rem;
+  font-weight: 700;
+}
+
+.permission {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.permission input {
+  margin-top: 0.3rem;
+}
+
+.detail-label {
+  margin: 0.5rem 0 0.25rem;
+  font-weight: 600;
+}
+
+pre.json {
+  max-width: 100%;
+  margin: 0;
+  padding: 0.5rem;
+  overflow-x: auto;
+  font-size: 0.8125rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+}

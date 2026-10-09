@@ -4,6 +4,7 @@ import { AuditService } from '../audit/audit.service.js';
 import { SUPERADMIN_ROLE } from '../authz/permissions.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { PasswordService } from './password.service.js';
+import { passwordPolicyViolation } from './password-policy.js';
 import { emailSchema, newPasswordSchema } from './schemas.js';
 
 export const bootstrapInputSchema = z.object({
@@ -41,12 +42,8 @@ export class BootstrapService {
       );
     }
     const { email, displayName, password } = parsed.data;
-    const localPart = email.split('@')[0] ?? '';
-    if (localPart.length >= 4 && password.toLowerCase().includes(localPart)) {
-      throw new BootstrapError(
-        'La contraseña no debe contener el nombre de usuario del correo.',
-      );
-    }
+    const violation = passwordPolicyViolation(email, password);
+    if (violation) throw new BootstrapError(violation);
     const passwordHash = await this.passwords.hash(password);
 
     return this.prisma.client.$transaction(async (tx) => {

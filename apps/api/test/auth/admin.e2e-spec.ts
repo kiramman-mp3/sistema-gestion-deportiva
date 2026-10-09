@@ -116,9 +116,11 @@ describe('administración de cuentas, sesiones y roles', () => {
 
     it('no permite desactivar al último superadministrador activo', async () => {
       const root = await superadmin('root@example.com');
+      // Un actor con TODOS los permisos (pero sin el rol superadmin) sí puede gestionar a root
+      const all = (await prisma.permission.findMany()).map((p) => p.code);
       const other = await createUser(prisma, {
         email: 'gestor@example.com',
-        permissions: ['users:update'],
+        permissions: all,
       });
       const s = await login(t, other.email);
       await authed(t, s)
@@ -132,6 +134,27 @@ describe('administración de cuentas, sesiones y roles', () => {
         .patch(`/api/users/${root.id}/status`)
         .send({ status: 'bloqueado', reason: 'motivo' })
         .expect(200);
+    });
+
+    it('un administrador parcial no puede gestionar una cuenta con más privilegios que la suya', async () => {
+      const root = await superadmin('root@example.com');
+      await superadmin('root2@example.com');
+      const partial = await createUser(prisma, {
+        email: 'parcial@example.com',
+        permissions: ['users:update'],
+      });
+      const s = await login(t, partial.email);
+      const res = await authed(t, s)
+        .patch(`/api/users/${root.id}/status`)
+        .send({ status: 'bloqueado', reason: 'motivo' })
+        .expect(403);
+      expect(res.body.message).toBe(
+        'No puede gestionar una cuenta con más privilegios que la suya',
+      );
+      expect(
+        (await prisma.user.findUniqueOrThrow({ where: { id: root.id } }))
+          .status,
+      ).toBe('activo');
     });
 
     it('es idempotente y no audita un cambio que no cambia nada', async () => {

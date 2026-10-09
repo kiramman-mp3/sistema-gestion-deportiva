@@ -60,10 +60,35 @@ export class LoginThrottleService {
 
   /** ¿Puede intentarse un inicio de sesión ahora? */
   async check(email: string, ip: string): Promise<ThrottleResult> {
+    return this.evaluate(this.keys(email, ip));
+  }
+
+  /**
+   * Límite por IP para operaciones públicas con un secreto de un solo uso (p. ej.
+   * canjear un enlace de contraseña). `domain` separa estos contadores de los del login.
+   */
+  async checkIp(domain: string, ip: string): Promise<ThrottleResult> {
+    return this.evaluate([this.ipKey(domain, ip)]);
+  }
+
+  async recordIpFailure(domain: string, ip: string): Promise<void> {
+    const { scope, keyHash } = this.ipKey(domain, ip);
+    await this.prisma.client.loginFailure.create({ data: { scope, keyHash } });
+  }
+
+  private ipKey(domain: string, ip: string): Key {
+    return {
+      scope: 'ip',
+      keyHash: this.hasher.hash(`${domain}:ip`, ip),
+      max: this.env.LOGIN_MAX_FAILURES_PER_IP,
+    };
+  }
+
+  private async evaluate(keys: Key[]): Promise<ThrottleResult> {
     const since = new Date(Date.now() - this.windowMs);
     let worst: Extract<ThrottleResult, { allowed: false }> | undefined;
 
-    for (const { scope, keyHash, max } of this.keys(email, ip)) {
+    for (const { scope, keyHash, max } of keys) {
       const count = await this.prisma.client.loginFailure.count({
         where: { scope, keyHash, createdAt: { gte: since } },
       });
