@@ -207,12 +207,14 @@ export interface StandingRow {
   points: number;
   yellowCards: number;
   redCards: number;
+  buchholz?: number;
 }
 
 export interface StandingsResponse {
   championship: {
     id: string;
     name: string;
+    sportCode?: string;
   };
   rules: {
     pointsWin: number;
