@@ -32,3 +32,8 @@ apps/api/src/generated/
 
 # Grafo generado por graphify
 graphify-out/
+
+# Pruebas end-to-end (Playwright)
+e2e/.storage/
+playwright-report/
+test-results/
