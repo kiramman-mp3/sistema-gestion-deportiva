@@ -1,4 +1,10 @@
 import { useEffect, useState } from 'react';
+import { AuditPage } from '../admin/AuditPage.tsx';
+import { ChangePasswordForm } from '../admin/PasswordForms.tsx';
+import { RoleDetailPage } from '../admin/RoleDetailPage.tsx';
+import { RolesPage } from '../admin/RolesPage.tsx';
+import { UserDetailPage } from '../admin/UserDetailPage.tsx';
+import { UsersPage } from '../admin/UsersPage.tsx';
 import { ApiStatus } from '../health/ApiStatus.tsx';
 import { CatalogAdmin } from './CatalogAdmin.tsx';
 import { categoriesConfig, seasonsConfig, sportsConfig } from './configs.tsx';
@@ -12,6 +18,8 @@ interface Section {
 
 const SECTIONS: Section[] = [
   { hash: '#/', label: 'Inicio' },
+  { hash: '#/usuarios', label: 'Usuarios', permission: 'users:read' },
+  { hash: '#/roles', label: 'Roles y permisos', permission: 'roles:read' },
   {
     hash: '#/deportes',
     label: 'Deportes',
@@ -27,17 +35,28 @@ const SECTIONS: Section[] = [
     label: 'Temporadas',
     permission: seasonsConfig.permissions.read,
   },
+  { hash: '#/auditoria', label: 'Auditoría', permission: 'audit:read' },
+  { hash: '#/cuenta', label: 'Mi cuenta' },
 ];
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function currentHash(): string {
   return window.location.hash || '#/';
 }
 
+const matches = (section: Section, hash: string) =>
+  section.hash === '#/'
+    ? hash === '#/'
+    : hash === section.hash || hash.startsWith(`${section.hash}/`);
+
 /** Navegación y secciones de administración, visibles según los permisos del usuario. */
 export function CatalogsApp({
   permissions,
+  selfId,
 }: {
   permissions: readonly string[];
+  selfId: string;
 }) {
   const [hash, setHash] = useState(currentHash);
 
@@ -50,7 +69,10 @@ export function CatalogsApp({
   const visible = SECTIONS.filter(
     (s) => !s.permission || permissions.includes(s.permission),
   );
-  const active = visible.find((s) => s.hash === hash) ?? visible[0]!;
+  // Una dirección sin permiso (o desconocida) vuelve a Inicio.
+  const active = visible.find((s) => matches(s, hash)) ?? visible[0]!;
+  const detailId = hash.split('/')[2];
+  const hasAdminAccess = visible.some((s) => s.permission);
 
   return (
     <>
@@ -58,10 +80,7 @@ export function CatalogsApp({
         <ul>
           {visible.map((s) => (
             <li key={s.hash}>
-              <a
-                href={s.hash}
-                aria-current={s.hash === active.hash ? 'page' : undefined}
-              >
+              <a href={s.hash} aria-current={s === active ? 'page' : undefined}>
                 {s.label}
               </a>
             </li>
@@ -72,19 +91,39 @@ export function CatalogsApp({
       {active.hash === '#/' && (
         <section aria-labelledby="home-title">
           <h2 id="home-title">Inicio</h2>
-          {visible.length === 1 ? (
-            <p>
-              Su cuenta no tiene permisos de administración de catálogos.
-              Solicite acceso a un administrador de la Liga.
-            </p>
+          {hasAdminAccess ? (
+            <p>Seleccione una sección para administrar la Liga.</p>
           ) : (
             <p>
-              Seleccione una sección para administrar los catálogos de la Liga.
+              Su cuenta no tiene permisos de administración. Solicite acceso a
+              un administrador de la Liga. Mientras tanto puede cambiar su
+              contraseña en «Mi cuenta».
             </p>
           )}
           <ApiStatus />
         </section>
       )}
+      {active.hash === '#/usuarios' &&
+        (detailId && UUID.test(detailId) ? (
+          <UserDetailPage
+            key={detailId}
+            userId={detailId}
+            selfId={selfId}
+            permissions={permissions}
+          />
+        ) : (
+          <UsersPage permissions={permissions} />
+        ))}
+      {active.hash === '#/roles' &&
+        (detailId && UUID.test(detailId) ? (
+          <RoleDetailPage
+            key={detailId}
+            roleId={detailId}
+            permissions={permissions}
+          />
+        ) : (
+          <RolesPage permissions={permissions} />
+        ))}
       {active.hash === '#/deportes' && (
         <CatalogAdmin config={sportsConfig} permissions={permissions} />
       )}
@@ -94,6 +133,8 @@ export function CatalogsApp({
       {active.hash === '#/temporadas' && (
         <CatalogAdmin config={seasonsConfig} permissions={permissions} />
       )}
+      {active.hash === '#/auditoria' && <AuditPage />}
+      {active.hash === '#/cuenta' && <ChangePasswordForm />}
     </>
   );
 }

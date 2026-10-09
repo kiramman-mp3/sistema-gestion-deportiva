@@ -907,20 +907,18 @@ describe('aplicación autenticada', () => {
       within(nav)
         .getAllByRole('link')
         .map((l) => l.textContent),
-    ).toEqual(['Inicio', 'Deportes', 'Temporadas']);
+    ).toEqual(['Inicio', 'Deportes', 'Temporadas', 'Mi cuenta']);
     expect(within(nav).queryByText('Categorías')).not.toBeInTheDocument();
   });
 
   it('sin permisos de catálogo informa cómo proceder, sin pantallas falsas', async () => {
     mockApi({
-      'GET /auth/session': () => json(session(['roles:read'])),
+      'GET /auth/session': () => json(session([])),
       'GET /health': health,
     });
     render(<App />);
     expect(
-      await screen.findByText(
-        /no tiene permisos de administración de catálogos/,
-      ),
+      await screen.findByText(/no tiene permisos de administración/),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole('link', { name: 'Deportes' }),
