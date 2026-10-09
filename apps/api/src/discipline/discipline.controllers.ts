@@ -191,6 +191,12 @@ export class CasesController {
     return this.cases.list(parseOrThrow(caseListQuerySchema, query));
   }
 
+  @RequirePermissions('cases:manage')
+  @Get('reviewers')
+  reviewers() {
+    return this.cases.reviewerCandidates();
+  }
+
   @RequirePermissions('cases:read')
   @Get(':id')
   get(@Param('id') id: string) {
