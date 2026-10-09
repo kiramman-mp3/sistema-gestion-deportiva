@@ -1,0 +1,36 @@
+{
+  "name": "liga-cantonal-quero",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Sistema integral de gestión deportiva de la Liga Cantonal de Quero",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run start:dev -w @liga/api",
+    "dev:web": "npm run dev -w @liga/web",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:integration": "npm run test:integration --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run test:integration && npm run build",
+    "db:backup": "node scripts/backup.js",
+    "db:restore": "node scripts/restore.js"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2"
+  },
+  "overrides": {
+    "mysql2": "3.24.5",
+    "deepmerge-ts": "8.0.2"
+  }
+}

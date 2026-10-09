@@ -1,0 +1,34 @@
+# Dependencias y artefactos de build
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Secretos y configuración local (nunca versionar)
+.env
+.env.*
+!.env.example
+
+# Almacenamiento local de archivos privados
+storage/
+uploads/
+backups/
+
+# Logs, editores y sistema operativo
+*.log
+npm-debug.log*
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Claude Code (configuración local)
+.claude/settings.local.json
+
+# Cliente de Prisma generado (npm run db:generate)
+apps/api/src/generated/
+
+# Grafo generado por graphify
+graphify-out/
