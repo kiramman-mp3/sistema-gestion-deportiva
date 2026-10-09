@@ -1,0 +1,200 @@
+// Esquema base del dominio. Convenciones (ver docs/database.md):
+//  - Identificadores: UUID v7 generados por Prisma (ordenables por tiempo).
+//  - Instantes: timestamptz en UTC. Fechas de calendario (temporadas): date.
+//  - Tablas y columnas en snake_case; modelos y campos en camelCase.
+//  - Sin borrado físico de datos con trazabilidad: se desactivan por estado y
+//    las claves foráneas hacia ellos usan ON DELETE RESTRICT.
+//  - Las restricciones CHECK y los triggers viven en el SQL de cada migración.
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ───────────────────────────── Estados ─────────────────────────────
+
+enum UserStatus {
+  activo
+  inactivo
+  bloqueado
+
+  @@map("user_status")
+}
+
+/// Estado de los catálogos configurables (deportes, categorías).
+enum CatalogStatus {
+  activo
+  inactivo
+
+  @@map("catalog_status")
+}
+
+enum SeasonStatus {
+  borrador
+  activa
+  finalizada
+  archivada
+
+  @@map("season_status")
+}
+
+// ───────────────────── Usuarios, roles y permisos ─────────────────────
+
+model User {
+  id           String     @id @default(uuid(7)) @db.Uuid
+  /// Siempre en minúsculas (CHECK en la migración).
+  email        String     @unique
+  displayName  String     @map("display_name")
+  /// Hash de la contraseña (algoritmo moderno, definido en el módulo de autenticación).
+  passwordHash String     @map("password_hash")
+  status       UserStatus @default(activo)
+  lastLoginAt  DateTime?  @map("last_login_at") @db.Timestamptz(3)
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  roles        UserRole[] @relation("UserRoles")
+  grantedRoles UserRole[] @relation("UserRoleGrantedBy")
+  auditLogs    AuditLog[]
+
+  @@map("users")
+}
+
+model Role {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  /// Identificador estable usado por el código (ej. "superadmin").
+  code        String   @unique
+  name        String
+  description String?
+  /// Los roles de sistema no pueden eliminarse desde la aplicación.
+  isSystem    Boolean  @default(false) @map("is_system")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  permissions RolePermission[]
+  users       UserRole[]
+
+  @@map("roles")
+}
+
+/// Catálogo de permisos. Lo define el código (cada permiso corresponde a una
+/// comprobación en el backend) y se sincroniza con `db:seed`.
+model Permission {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  /// Formato `recurso:acción`, ej. "seasons:create".
+  code        String   @unique
+  description String
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  roles RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String   @map("role_id") @db.Uuid
+  permissionId String   @map("permission_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+/// Asignación de un rol a un usuario. Tiene clave propia para poder añadir
+/// después un alcance organizativo (p. ej. club) sin rehacer la tabla.
+model UserRole {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  roleId      String   @map("role_id") @db.Uuid
+  grantedById String?  @map("granted_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user      User  @relation("UserRoles", fields: [userId], references: [id], onDelete: Restrict)
+  role      Role  @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  grantedBy User? @relation("UserRoleGrantedBy", fields: [grantedById], references: [id], onDelete: Restrict)
+
+  @@unique([userId, roleId])
+  @@index([roleId])
+  @@index([grantedById])
+  @@map("user_roles")
+}
+
+// ───────────────────────────── Auditoría ─────────────────────────────
+
+/// Registro inmutable de operaciones sensibles (un trigger impide UPDATE/DELETE).
+/// `userId` es nulo para acciones del sistema o de actores no autenticados.
+model AuditLog {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  userId         String?  @map("user_id") @db.Uuid
+  /// Operación en formato `recurso.acción`, ej. "result.approve".
+  action         String
+  entityType     String   @map("entity_type")
+  entityId       String?  @map("entity_id")
+  beforeSnapshot Json?    @map("before_snapshot")
+  afterSnapshot  Json?    @map("after_snapshot")
+  reason         String?
+  /// Hash de la IP, nunca la IP en claro.
+  ipHash         String?  @map("ip_hash")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([entityType, entityId])
+  @@index([userId, createdAt])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ───────────────────── Catálogos y temporadas ─────────────────────
+
+model Sport {
+  id        String        @id @default(uuid(7)) @db.Uuid
+  code      String        @unique
+  name      String        @unique
+  status    CatalogStatus @default(activo)
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("sports")
+}
+
+/// Categoría o división institucional (Liga A, Juvenil, Niños…). Se configura
+/// desde el sistema; el rango de edad es opcional porque la Liga aún debe
+/// confirmarlo. No pertenece a un deporte concreto: la relación se establece
+/// en el campeonato.
+model Category {
+  id        String        @id @default(uuid(7)) @db.Uuid
+  code      String        @unique
+  name      String        @unique
+  ageMin    Int?          @map("age_min")
+  ageMax    Int?          @map("age_max")
+  sortOrder Int           @default(0) @map("sort_order")
+  status    CatalogStatus @default(activo)
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("categories")
+}
+
+model Season {
+  id        String       @id @default(uuid(7)) @db.Uuid
+  name      String       @unique
+  startDate DateTime     @map("start_date") @db.Date
+  endDate   DateTime     @map("end_date") @db.Date
+  status    SeasonStatus @default(borrador)
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([status])
+  @@map("seasons")
+}
