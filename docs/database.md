@@ -92,6 +92,8 @@ erDiagram
 | `categories`       | `code` y `name` únicos, `age_min`/`age_max` **opcionales** (CHECK: 0 ≤ min ≤ max ≤ 120), `sort_order`, estado. No pertenece a un deporte.                                                                                                                                                                                                                                      |
 | `seasons`          | `name` único, `start_date`/`end_date` (CHECK `end_date > start_date`), estado `borrador`/`activa`/`finalizada`/`archivada`.                                                                                                                                                                                                                                                    |
 
+> Los catálogos `sports`, `categories` y `seasons` se administran desde la API sin tablas nuevas; ver `catalogs.md`.
+
 ### Qué no se modeló todavía, a propósito
 
 - **Categorías por deporte, género, peso, modalidad:** la Liga no ha confirmado estas reglas (ver `decisions.md`). La relación deporte‑categoría se establecerá en el campeonato; peso y modalidad serán conceptos propios, nunca columnas de `categories`.

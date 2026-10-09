@@ -45,6 +45,7 @@ Cada comprobación también está disponible por separado: `format:check`, `lint
 
 - [`docs/requirements.md`](docs/requirements.md): especificación funcional y técnica.
 - [`docs/authentication.md`](docs/authentication.md): sesiones, cookies, CSRF, permisos, primer superadministrador y auditoría de seguridad.
+- [`docs/catalogs.md`](docs/catalogs.md): administración de deportes, categorías y temporadas (API, permisos, interfaz y reglas).
 - [`docs/database.md`](docs/database.md): esquema, convenciones, migraciones y modelo de participantes.
 - [`docs/decisions.md`](docs/decisions.md): decisiones técnicas, discrepancias y preguntas pendientes para la Liga.
 - [`docs/roadmap.md`](docs/roadmap.md): estado de implementación por fase.
