@@ -14,6 +14,9 @@ const envSchema = z.object({
         .map((origin) => origin.trim())
         .filter(Boolean),
     ),
+  DATABASE_URL: z
+    .string()
+    .regex(/^postgres(ql)?:\/\//, 'debe ser una URL postgresql://'),
 });
 
 export type Env = z.infer<typeof envSchema>;
