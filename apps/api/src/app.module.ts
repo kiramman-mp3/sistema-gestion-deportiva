@@ -12,6 +12,7 @@ import { PeopleModule } from './people/people.module.js';
 import { PublicModule } from './public/public.module.js';
 import { StorageModule } from './storage/storage.module.js';
 import { DocumentsModule } from './documents/documents.module.js';
+import { CompetitionsModule } from './competitions/competitions.module.js';
 import { TeamsModule } from './teams/teams.module.js';
 import { UsersModule } from './users/users.module.js';
 
@@ -30,6 +31,7 @@ import { UsersModule } from './users/users.module.js';
     TeamsModule,
     StorageModule,
     DocumentsModule,
+    CompetitionsModule,
     PublicModule,
   ],
   controllers: [HealthController],
