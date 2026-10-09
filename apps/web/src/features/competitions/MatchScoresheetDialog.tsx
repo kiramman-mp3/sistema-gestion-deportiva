@@ -523,7 +523,7 @@ export function MatchScoresheetDialog({
             </div>
 
             {/* Panel de Aprobación Oficial */}
-            {canApprove && (
+            {canApprove && resultStatus === 'pendiente_revision' && (
               <div
                 style={{
                   border: '1px solid var(--border)',

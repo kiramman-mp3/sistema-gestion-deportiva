@@ -418,3 +418,19 @@ export async function createMatchScenario(
     eventParticipants: event.participants,
   };
 }
+
+/**
+ * Permite que quien registra un acta también la apruebe (parámetro institucional). Las pruebas que
+ * recorren todo el flujo con un solo usuario lo activan; la separación de funciones se prueba aparte.
+ */
+export async function allowSelfApproval(prisma: PrismaClient): Promise<void> {
+  await prisma.institutionSettings.upsert({
+    where: { id: 1 },
+    update: { allowSelfApproval: true },
+    create: {
+      id: 1,
+      name: 'Liga Deportiva Cantonal de Quero',
+      allowSelfApproval: true,
+    },
+  });
+}

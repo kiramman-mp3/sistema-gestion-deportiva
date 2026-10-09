@@ -13,6 +13,7 @@ Una única fila (`institution_settings`, `id = 1`, con restricción `CHECK`). La
 | Portal      | «Quiénes somos», información de contacto, política de privacidad (texto plano)        |
 | Documentos  | presidente, secretario/a y pie de página de los documentos oficiales                  |
 | Publicación | publicar clubes, deportistas, noticias, resoluciones (esta última, apagada de inicio) |
+| Resultados  | permitir que quien registró un acta también la apruebe (apagado de inicio, ver D-72)  |
 
 ## API
 

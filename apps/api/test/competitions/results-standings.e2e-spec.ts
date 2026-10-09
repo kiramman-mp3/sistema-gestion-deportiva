@@ -3,6 +3,7 @@ import { createTestApp, type TestApp } from '../support/app.js';
 import { createTestPrisma, resetDatabase } from '../support/db.js';
 import {
   adminWith,
+  allowSelfApproval,
   authed,
   createClub,
   seedCatalog,
@@ -44,6 +45,7 @@ describe('resultados de fútbol, flujo de actas y tabla de posiciones', () => {
   beforeEach(async () => {
     await resetDatabase(prisma);
     await seedCatalog(prisma);
+    await allowSelfApproval(prisma);
     admin = await adminWith(t, prisma, PERMISSIONS);
 
     const club1 = await createClub(prisma, 'Club Real Quero');
@@ -281,6 +283,7 @@ describe('resultados de fútbol, flujo de actas y tabla de posiciones', () => {
       })
       .expect(200);
 
+    await api().post(`/api/events/${eventId}/result/submit`).expect(201);
     await api()
       .post(`/api/events/${eventId}/result/approve`)
       .send({

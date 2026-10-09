@@ -51,6 +51,7 @@ const TRACKED = [
   'publicAthletes',
   'publicNews',
   'publicResolutions',
+  'allowSelfApproval',
 ] as const;
 
 type Tracked = Record<(typeof TRACKED)[number], string | boolean | null>;

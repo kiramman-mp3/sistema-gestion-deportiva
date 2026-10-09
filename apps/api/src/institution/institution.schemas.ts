@@ -56,6 +56,7 @@ export const updateInstitutionSchema = z.strictObject({
   publicAthletes: z.boolean().optional(),
   publicNews: z.boolean().optional(),
   publicResolutions: z.boolean().optional(),
+  allowSelfApproval: z.boolean().optional(),
 });
 
 export type UpdateInstitutionInput = z.infer<typeof updateInstitutionSchema>;

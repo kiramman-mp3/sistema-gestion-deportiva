@@ -397,6 +397,26 @@ export class ResultsService {
     const previousResult = event.result;
     const newStatus = input.approved ? 'aprobado' : 'rechazado';
 
+    // Solo se revisa lo que alguien envió a revisión: un borrador, o un acta ya resuelta, no se aprueba.
+    if (previousResult.status !== 'pendiente_revision') {
+      throw new ConflictException(
+        'Solo se pueden aprobar o rechazar actas pendientes de revisión',
+      );
+    }
+    // Separación de funciones (§4.5): quien registró el acta no la aprueba, salvo decisión expresa de la Liga.
+    if (previousResult.submittedById === userId) {
+      const institution =
+        await this.prisma.client.institutionSettings.findUnique({
+          where: { id: 1 },
+          select: { allowSelfApproval: true },
+        });
+      if (!institution?.allowSelfApproval) {
+        throw new ForbiddenException(
+          'Quien registró el acta no puede aprobarla ni rechazarla. Solicite la revisión a otra persona',
+        );
+      }
+    }
+
     return this.prisma.client.$transaction(async (tx) => {
       const updated = await tx.result.update({
         where: { id: previousResult.id },
