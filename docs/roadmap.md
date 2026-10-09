@@ -31,9 +31,10 @@ Leyenda: `[x]` hecho · `[ ]` pendiente
 
 ## Fase 3 — Participantes y fútbol piloto
 
-- [ ] Clubes y personas
-- [ ] Deportistas (protección de datos de menores)
-- [ ] Equipos y plantillas
+- [x] Clubes y personas (`clubs-people-teams.md`)
+- [x] Deportistas (protección de datos de menores, consentimientos, perfil público resumido)
+- [x] Equipos y plantillas (un equipo por deporte y temporada, nombre por temporada, transferencia entre temporadas)
+- [ ] Fotos y documentos de inscripción (`feature/registration-documents`: almacenamiento de archivos)
 - [ ] Campeonatos y reglamentos versionados
 - [ ] Inscripciones y elegibilidad
 - [ ] Calendario y programación
@@ -59,4 +60,4 @@ Leyenda: `[x]` hecho · `[ ]` pendiente
 
 ## Siguiente bloque recomendado
 
-`feature/clubs-people`: clubes, personas y deportistas (con protección reforzada de datos de menores) y equipos, siguiendo el ADR‑001 de participantes. Antes de empezar convienen las respuestas de la Liga sobre categorías por deporte, edades y la matriz real de roles (ya se pueden crear roles institucionales desde la interfaz). En paralelo, si la Liga contrata un proveedor de correo, habilitar la recuperación autoservicio y valorar MFA para administradores.
+`feature/registration-documents`: almacenamiento seguro de archivos (fuera de la raíz web, tipo y tamaño validados, nombres aleatorios, acceso autorizado), fotos de deportistas con consentimiento y documentos de inscripción por categoría. Después, campeonatos e inscripciones (ADR‑001). Pendiente de la Liga: edades oficiales por categoría y deporte, excepciones/pases, aval del club de origen en transferencias, matriz real de roles.
