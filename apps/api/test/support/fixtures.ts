@@ -205,3 +205,84 @@ export async function leaderWith(
     await prisma.clubUser.create({ data: { clubId, userId: user.id } });
   return { user, session: await login(t, user.email) };
 }
+
+// ───────────────────── Deporte, temporadas, equipos ─────────────────────
+
+let athleteCounter = 0;
+/** Deportista creado directamente en la base de datos (habilitado por defecto). */
+export async function createAthlete(
+  prisma: PrismaClient,
+  clubId: string,
+  over: {
+    birthDate?: string | null;
+    eligibility?: 'pendiente' | 'habilitado' | 'inhabilitado';
+    status?: 'activo' | 'inactivo';
+    firstName?: string;
+  } = {},
+) {
+  const n = ++athleteCounter;
+  const person = await prisma.person.create({
+    data: {
+      firstName: over.firstName ?? `Jugador${n}`,
+      lastName: `Prueba${n}`,
+      birthDate:
+        over.birthDate === null
+          ? null
+          : new Date(`${over.birthDate ?? '2013-06-15'}T00:00:00.000Z`),
+      status: over.status ?? 'activo',
+    },
+  });
+  return prisma.athlete.create({
+    data: {
+      personId: person.id,
+      clubId,
+      eligibility: over.eligibility ?? 'habilitado',
+    },
+  });
+}
+
+const codeOf = (name: string) =>
+  name
+    .normalize('NFD')
+    .replace(/[^A-Za-z0-9]/g, '')
+    .toLowerCase()
+    .slice(0, 8);
+
+export async function createSport(prisma: PrismaClient, name: string) {
+  return prisma.sport.create({
+    data: { code: codeOf(name), name },
+  });
+}
+
+export async function createCategory(
+  prisma: PrismaClient,
+  name: string,
+  ageMin: number | null = null,
+  ageMax: number | null = null,
+) {
+  return prisma.category.create({
+    data: {
+      code: codeOf(name),
+      name,
+      ageMin,
+      ageMax,
+    },
+  });
+}
+
+export async function createSeason(
+  prisma: PrismaClient,
+  name: string,
+  status: 'borrador' | 'activa' | 'finalizada' | 'archivada' = 'activa',
+  startDate = '2026-01-01',
+  endDate = '2026-12-31',
+) {
+  return prisma.season.create({
+    data: {
+      name,
+      status,
+      startDate: new Date(`${startDate}T00:00:00.000Z`),
+      endDate: new Date(`${endDate}T00:00:00.000Z`),
+    },
+  });
+}
