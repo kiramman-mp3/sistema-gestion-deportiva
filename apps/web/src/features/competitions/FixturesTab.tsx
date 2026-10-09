@@ -12,6 +12,7 @@ import {
   type StageType,
   type Venue,
 } from './types.js';
+import { MatchScoresheetDialog } from './MatchScoresheetDialog.tsx';
 
 interface FixturesTabProps {
   championship: Championship;
@@ -70,6 +71,8 @@ export function FixturesTab({
   const [rescheduleVenueId, setRescheduleVenueId] = useState('');
   const [rescheduleDate, setRescheduleDate] = useState('');
   const [rescheduleReason, setRescheduleReason] = useState('');
+
+  const [scoresheetEvent, setScoresheetEvent] = useState<CompetitionEvent | null>(null);
 
   const handleCreateStage = async (e: FormEvent) => {
     e.preventDefault();
@@ -509,6 +512,13 @@ export function FixturesTab({
                                     <td data-label="Acciones">
                                       <button
                                         type="button"
+                                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', marginRight: '0.5rem' }}
+                                        onClick={() => setScoresheetEvent(ev)}
+                                      >
+                                        Acta / Resultado
+                                      </button>
+                                      <button
+                                        type="button"
                                         style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
                                         onClick={() => {
                                           setReschedulingEvent(ev);
@@ -601,6 +611,18 @@ export function FixturesTab({
             </form>
           </div>
         </dialog>
+      )}
+
+      {scoresheetEvent && (
+        <MatchScoresheetDialog
+          event={scoresheetEvent}
+          permissions={permissions}
+          onClose={() => setScoresheetEvent(null)}
+          onSaved={() => {
+            setScoresheetEvent(null);
+            reloadAll();
+          }}
+        />
       )}
     </div>
   );
