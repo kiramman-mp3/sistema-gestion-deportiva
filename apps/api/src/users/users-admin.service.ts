@@ -1,28 +1,28 @@
 import {
   ConflictException,
-  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { AuditService } from '../audit/audit.service.js';
+import type { AuthContext } from '../auth/auth.types.js';
+import { CredentialTokenService } from '../auth/credential-token.service.js';
 import { SecurityHashService } from '../auth/security-hash.service.js';
 import { SessionService } from '../auth/session.service.js';
-import type { AuthContext } from '../auth/auth.types.js';
 import { SUPERADMIN_ROLE } from '../authz/permissions.js';
-import { PermissionsService } from '../authz/permissions.service.js';
+import { PrivilegesService } from '../authz/privileges.service.js';
 import { PrismaService } from '../database/prisma.service.js';
-import type { Prisma, UserStatus } from '../generated/prisma/client.js';
+import type { UserStatus } from '../generated/prisma/client.js';
 
-type Actor = Pick<AuthContext, 'user' | 'permissions'>;
+type Actor = Pick<AuthContext, 'user'>;
 
 /**
- * Operaciones administrativas sobre cuentas y roles. Cada una se ejecuta y se
- * audita en una única transacción, y aplica reglas de seguridad adicionales a
- * los permisos de ruta:
- *  - nadie modifica su propia cuenta o roles (evita bloqueos y autoescalada);
- *  - solo se asigna o retira un rol cuyos permisos el actor posee todos
- *    (no se puede otorgar lo que no se tiene);
+ * Operaciones que cambian el acceso de una cuenta (estado, sesiones, roles). Cada
+ * una se ejecuta y se audita en una única transacción, tras tomar el bloqueo de
+ * privilegios, y aplica estas reglas además de los permisos de ruta:
+ *  - nadie modifica su propia cuenta ni sus propios roles;
+ *  - no se gestiona una cuenta con más privilegios que la propia;
+ *  - solo se asigna o retira un rol cuyos permisos el actor posee todos;
  *  - nunca puede quedar el sistema sin un superadministrador activo.
  */
 @Injectable()
@@ -31,49 +31,55 @@ export class UsersAdminService {
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(SessionService) private readonly sessions: SessionService,
+    @Inject(CredentialTokenService)
+    private readonly tokens: CredentialTokenService,
     @Inject(SecurityHashService) private readonly hasher: SecurityHashService,
-    @Inject(PermissionsService)
-    private readonly permissions: PermissionsService,
+    @Inject(PrivilegesService) private readonly privileges: PrivilegesService,
   ) {}
 
   async setStatus(
     actor: Actor,
     userId: string,
-    status: UserStatus,
+    status: Exclude<UserStatus, 'pendiente'>,
     reason: string,
     ip: string,
   ): Promise<{ id: string; status: UserStatus; revokedSessions: number }> {
-    if (actor.user.id === userId) {
-      throw new ForbiddenException(
-        'No puede cambiar el estado de su propia cuenta',
-      );
-    }
+    this.privileges.assertNotSelf(
+      actor.user.id,
+      userId,
+      'No puede cambiar el estado de su propia cuenta',
+    );
     return this.prisma.client.$transaction(async (tx) => {
-      await this.lockSuperadminChanges(tx);
+      await this.privileges.lock(tx);
       const target = await tx.user.findUnique({
         where: { id: userId },
-        select: { id: true, status: true },
+        select: { id: true, status: true, passwordHash: true },
       });
       if (!target) throw new NotFoundException('Usuario no encontrado');
+      await this.privileges.assertCanManageUser(tx, actor.user.id, userId);
 
-      if (target.status === status) {
+      if (target.status === status)
         return { id: target.id, status, revokedSessions: 0 };
+      if (status === 'activo' && target.passwordHash === null) {
+        throw new ConflictException(
+          'La cuenta aún no tiene contraseña: genere un enlace de activación para que su titular la establezca',
+        );
       }
       if (status !== 'activo') {
-        await this.assertNotLastSuperadmin(tx, userId);
+        await this.privileges.assertNotLastSuperadmin(tx, userId);
       }
 
       await tx.user.update({ where: { id: userId }, data: { status } });
-      // Una cuenta que deja de estar activa pierde todas sus sesiones al instante.
-      const revokedSessions =
-        status === 'activo'
-          ? 0
-          : await this.sessions.revokeAllForUser(
-              userId,
-              'cuenta_desactivada',
-              tx,
-            );
-
+      let revokedSessions = 0;
+      if (status !== 'activo') {
+        // Una cuenta que deja de estar activa pierde sesiones y enlaces pendientes al instante.
+        revokedSessions = await this.sessions.revokeAllForUser(
+          userId,
+          'cuenta_desactivada',
+          tx,
+        );
+        await this.tokens.revokeOutstanding(tx, userId);
+      }
       await this.audit.record(
         {
           userId: actor.user.id,
@@ -98,11 +104,15 @@ export class UsersAdminService {
     ip: string,
   ): Promise<{ revokedSessions: number }> {
     return this.prisma.client.$transaction(async (tx) => {
+      await this.privileges.lock(tx);
       const target = await tx.user.findUnique({
         where: { id: userId },
         select: { id: true },
       });
       if (!target) throw new NotFoundException('Usuario no encontrado');
+      if (userId !== actor.user.id) {
+        await this.privileges.assertCanManageUser(tx, actor.user.id, userId);
+      }
 
       const revokedSessions = await this.sessions.revokeAllForUser(
         userId,
@@ -131,11 +141,26 @@ export class UsersAdminService {
     roleId: string,
     ip: string,
   ): Promise<void> {
-    this.assertNotSelf(actor, userId);
+    this.privileges.assertNotSelf(
+      actor.user.id,
+      userId,
+      'No puede modificar sus propios roles',
+    );
     await this.prisma.client.$transaction(async (tx) => {
-      await this.lockSuperadminChanges(tx);
-      const { role } = await this.loadTargetAndRole(tx, userId, roleId);
-      await this.assertActorHoldsRolePermissions(tx, actor, roleId);
+      await this.privileges.lock(tx);
+      const user = await tx.user.findUnique({
+        where: { id: userId },
+        select: { id: true },
+      });
+      if (!user) throw new NotFoundException('Usuario no encontrado');
+      const role = await this.privileges.loadRole(tx, roleId);
+      // El actor solo delega lo que posee, permiso por permiso.
+      await this.privileges.assertCovers(
+        tx,
+        actor.user.id,
+        role.permissionCodes,
+        'No puede gestionar un rol con permisos que usted no posee',
+      );
 
       const existing = await tx.userRole.findUnique({
         where: { userId_roleId: { userId, roleId } },
@@ -165,18 +190,33 @@ export class UsersAdminService {
     roleId: string,
     ip: string,
   ): Promise<void> {
-    this.assertNotSelf(actor, userId);
+    this.privileges.assertNotSelf(
+      actor.user.id,
+      userId,
+      'No puede modificar sus propios roles',
+    );
     await this.prisma.client.$transaction(async (tx) => {
-      await this.lockSuperadminChanges(tx);
-      const { role } = await this.loadTargetAndRole(tx, userId, roleId);
-      await this.assertActorHoldsRolePermissions(tx, actor, roleId);
+      await this.privileges.lock(tx);
+      const user = await tx.user.findUnique({
+        where: { id: userId },
+        select: { id: true },
+      });
+      if (!user) throw new NotFoundException('Usuario no encontrado');
+      const role = await this.privileges.loadRole(tx, roleId);
+      await this.privileges.assertCovers(
+        tx,
+        actor.user.id,
+        role.permissionCodes,
+        'No puede gestionar un rol con permisos que usted no posee',
+      );
+      await this.privileges.assertCanManageUser(tx, actor.user.id, userId);
 
       const existing = await tx.userRole.findUnique({
         where: { userId_roleId: { userId, roleId } },
       });
       if (!existing) throw new NotFoundException('El usuario no tiene ese rol');
       if (role.code === SUPERADMIN_ROLE.code) {
-        await this.assertNotLastSuperadmin(tx, userId);
+        await this.privileges.assertNotLastSuperadmin(tx, userId);
       }
 
       await tx.userRole.delete({ where: { id: existing.id } });
@@ -192,88 +232,5 @@ export class UsersAdminService {
         tx,
       );
     });
-  }
-
-  // ───────────────────────── reglas de seguridad ─────────────────────────
-
-  private assertNotSelf(actor: Actor, userId: string): void {
-    if (actor.user.id === userId) {
-      throw new ForbiddenException('No puede modificar sus propios roles');
-    }
-  }
-
-  /** Serializa los cambios que pueden afectar al conjunto de superadministradores. */
-  private async lockSuperadminChanges(
-    tx: Prisma.TransactionClient,
-  ): Promise<void> {
-    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext('liga:superadmin-changes'))`;
-  }
-
-  private async loadTargetAndRole(
-    tx: Prisma.TransactionClient,
-    userId: string,
-    roleId: string,
-  ) {
-    const [user, role] = await Promise.all([
-      tx.user.findUnique({ where: { id: userId }, select: { id: true } }),
-      tx.role.findUnique({
-        where: { id: roleId },
-        select: { id: true, code: true },
-      }),
-    ]);
-    if (!user) throw new NotFoundException('Usuario no encontrado');
-    if (!role) throw new NotFoundException('Rol no encontrado');
-    return { user, role };
-  }
-
-  /**
-   * El actor debe poseer todos los permisos del rol que asigna o retira; así un
-   * administrador parcial no puede crear (ni quitar) superadministradores.
-   * Los permisos se releen dentro de la transacción: no se confía en un valor
-   * leído antes.
-   */
-  private async assertActorHoldsRolePermissions(
-    tx: Prisma.TransactionClient,
-    actor: Actor,
-    roleId: string,
-  ): Promise<void> {
-    const [actorPermissions, rolePermissions] = await Promise.all([
-      this.permissions.forUser(actor.user.id, tx),
-      tx.rolePermission.findMany({
-        where: { roleId },
-        select: { permission: { select: { code: true } } },
-      }),
-    ]);
-    const missing = rolePermissions.filter(
-      (rp) => !actorPermissions.has(rp.permission.code),
-    );
-    if (missing.length > 0) {
-      throw new ForbiddenException(
-        'No puede gestionar un rol con permisos que usted no posee',
-      );
-    }
-  }
-
-  /** Impide dejar el sistema sin ningún superadministrador activo. */
-  private async assertNotLastSuperadmin(
-    tx: Prisma.TransactionClient,
-    userId: string,
-  ): Promise<void> {
-    const isSuperadmin = await tx.userRole.count({
-      where: { userId, role: { code: SUPERADMIN_ROLE.code } },
-    });
-    if (isSuperadmin === 0) return;
-    const others = await tx.user.count({
-      where: {
-        id: { not: userId },
-        status: 'activo',
-        roles: { some: { role: { code: SUPERADMIN_ROLE.code } } },
-      },
-    });
-    if (others === 0) {
-      throw new ConflictException(
-        'Debe existir al menos un superadministrador activo',
-      );
-    }
   }
 }
