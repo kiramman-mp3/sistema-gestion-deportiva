@@ -7,7 +7,11 @@ interface PrintDocumentViewProps {
   onBack: () => void;
 }
 
-export function PrintDocumentView({ kind, id, onBack }: PrintDocumentViewProps) {
+export function PrintDocumentView({
+  kind,
+  id,
+  onBack,
+}: PrintDocumentViewProps) {
   const endpoint =
     kind === 'acta'
       ? `/public/events/${id}/scoresheet`
@@ -66,8 +70,11 @@ function ScoresheetDocument({
   data: ScoresheetPrintData;
   onPrint: () => void;
 }) {
-  const localParticipant = data.participants.find((p) => p.side === 'local') ?? data.participants[0];
-  const awayParticipant = data.participants.find((p) => p.side === 'visitante') ?? data.participants[1];
+  const localParticipant =
+    data.participants.find((p) => p.side === 'local') ?? data.participants[0];
+  const awayParticipant =
+    data.participants.find((p) => p.side === 'visitante') ??
+    data.participants[1];
 
   return (
     <article className="institutional-sheet">
@@ -78,7 +85,9 @@ function ScoresheetDocument({
         <div className="header-text">
           <p className="republic-text">REPÚBLICA DEL ECUADOR</p>
           <h1 className="league-title">{data.documentMetadata.institution}</h1>
-          <p className="affiliation-text">{data.documentMetadata.affiliation}</p>
+          <p className="affiliation-text">
+            {data.documentMetadata.affiliation}
+          </p>
           <p className="location-text">{data.documentMetadata.canton}</p>
           <h2 className="document-subtitle">{data.documentMetadata.title}</h2>
         </div>
@@ -89,17 +98,21 @@ function ScoresheetDocument({
           <strong>Campeonato:</strong> {data.championship.name}
         </div>
         <div className="meta-item">
-          <strong>Deporte / Categoría:</strong> {data.championship.sport} ({data.championship.category})
+          <strong>Deporte / Categoría:</strong> {data.championship.sport} (
+          {data.championship.category})
         </div>
         <div className="meta-item">
           <strong>Etapa / Jornada:</strong> {data.stage} · {data.round}
         </div>
         <div className="meta-item">
-          <strong>Escenario:</strong> {data.venue} {data.venueAddress ? `(${data.venueAddress})` : ''}
+          <strong>Escenario:</strong> {data.venue}{' '}
+          {data.venueAddress ? `(${data.venueAddress})` : ''}
         </div>
         <div className="meta-item">
           <strong>Fecha y hora:</strong>{' '}
-          {data.scheduledAt ? new Date(data.scheduledAt).toLocaleString('es-EC') : 'Por programar'}
+          {data.scheduledAt
+            ? new Date(data.scheduledAt).toLocaleString('es-EC')
+            : 'Por programar'}
         </div>
         <div className="meta-item">
           <strong>Estado oficial:</strong>{' '}
@@ -111,10 +124,13 @@ function ScoresheetDocument({
       <section className="scoresheet-scoreboard" aria-label="Marcador oficial">
         <div className="team-box local">
           <span className="side-label">LOCAL</span>
-          <h3 className="team-name">{localParticipant?.name ?? 'Por definir'}</h3>
+          <h3 className="team-name">
+            {localParticipant?.name ?? 'Por definir'}
+          </h3>
           <p className="team-club">{localParticipant?.clubName}</p>
           <div className="score-display">
-            {localParticipant?.score !== null && localParticipant?.score !== undefined
+            {localParticipant?.score !== null &&
+            localParticipant?.score !== undefined
               ? localParticipant.score
               : '-'}
           </div>
@@ -124,10 +140,13 @@ function ScoresheetDocument({
 
         <div className="team-box away">
           <span className="side-label">VISITANTE</span>
-          <h3 className="team-name">{awayParticipant?.name ?? 'Por definir'}</h3>
+          <h3 className="team-name">
+            {awayParticipant?.name ?? 'Por definir'}
+          </h3>
           <p className="team-club">{awayParticipant?.clubName}</p>
           <div className="score-display">
-            {awayParticipant?.score !== null && awayParticipant?.score !== undefined
+            {awayParticipant?.score !== null &&
+            awayParticipant?.score !== undefined
               ? awayParticipant.score
               : '-'}
           </div>
@@ -151,15 +170,24 @@ function ScoresheetDocument({
             </thead>
             <tbody>
               {data.participants.map((p) => {
-                const scores = data.result?.periodScores?.filter((ps) => ps.score !== undefined) ?? [];
+                const scores =
+                  data.result?.periodScores?.filter(
+                    (ps) => ps.score !== undefined,
+                  ) ?? [];
                 return (
                   <tr key={p.id}>
-                    <td><strong>{p.name}</strong></td>
+                    <td>
+                      <strong>{p.name}</strong>
+                    </td>
                     {[1, 2, 3, 4].map((q) => {
-                      const matchPeriod = scores.find((ps) => ps.periodNumber === q);
+                      const matchPeriod = scores.find(
+                        (ps) => ps.periodNumber === q,
+                      );
                       return <td key={q}>{matchPeriod?.score ?? '-'}</td>;
                     })}
-                    <td><strong>{p.score ?? '-'}</strong></td>
+                    <td>
+                      <strong>{p.score ?? '-'}</strong>
+                    </td>
                   </tr>
                 );
               })}
@@ -187,7 +215,8 @@ function ScoresheetDocument({
                   <td>{fe.minute}&apos;</td>
                   <td>
                     {fe.eventType === 'gol' && '⚽ Gol'}
-                    {fe.eventType === 'tarjeta_amarilla' && '🟨 Tarjeta Amarilla'}
+                    {fe.eventType === 'tarjeta_amarilla' &&
+                      '🟨 Tarjeta Amarilla'}
                     {fe.eventType === 'tarjeta_roja' && '🟥 Tarjeta Roja'}
                     {fe.eventType === 'sustitucion' && '🔄 Sustitución'}
                   </td>
@@ -206,7 +235,9 @@ function ScoresheetDocument({
         <div className="lineups-grid">
           {data.participants.map((p) => (
             <div key={p.id} className="lineup-column">
-              <h5>{p.name} ({p.side.toUpperCase()})</h5>
+              <h5>
+                {p.name} ({p.side.toUpperCase()})
+              </h5>
               <table className="print-table small">
                 <thead>
                   <tr>
@@ -223,12 +254,17 @@ function ScoresheetDocument({
                         <td className="center">{m.jerseyNumber ?? '-'}</td>
                         <td className="code-cell">{m.code}</td>
                         <td>{m.name}</td>
-                        <td className="signature-cell" aria-label="Espacio para firma"></td>
+                        <td
+                          className="signature-cell"
+                          aria-label="Espacio para firma"
+                        ></td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={4} className="empty-cell">Nómina disponible en mesa</td>
+                      <td colSpan={4} className="empty-cell">
+                        Nómina disponible en mesa
+                      </td>
                     </tr>
                   )}
                 </tbody>
@@ -246,8 +282,10 @@ function ScoresheetDocument({
             <p>{data.result.approvalNotes}</p>
           ) : (
             <p className="handwritten-space">
-              __________________________________________________________________________________________<br />
-              __________________________________________________________________________________________<br />
+              __________________________________________________________________________________________
+              <br />
+              __________________________________________________________________________________________
+              <br />
               __________________________________________________________________________________________
             </p>
           )}
@@ -266,7 +304,8 @@ function ScoresheetDocument({
           ))}
         </div>
         <p className="footer-certificate">
-          Certificado oficial emitido por el Sistema de la Liga Cantonal de Quero · Fecha de emisión:{' '}
+          Certificado oficial emitido por el Sistema de la Liga Cantonal de
+          Quero · Fecha de emisión:{' '}
           {new Date(data.documentMetadata.generatedAt).toLocaleString('es-EC')}
         </p>
       </footer>
@@ -289,32 +328,42 @@ function RosterDocument({
         <div className="header-text">
           <p className="republic-text">REPÚBLICA DEL ECUADOR</p>
           <h1 className="league-title">{data.documentMetadata.institution}</h1>
-          <p className="affiliation-text">{data.documentMetadata.affiliation}</p>
+          <p className="affiliation-text">
+            {data.documentMetadata.affiliation}
+          </p>
           <p className="location-text">{data.documentMetadata.canton}</p>
           <h2 className="document-subtitle">{data.documentMetadata.title}</h2>
         </div>
       </header>
 
-      <section className="document-meta-grid" aria-label="Detalle de inscripción">
+      <section
+        className="document-meta-grid"
+        aria-label="Detalle de inscripción"
+      >
         <div className="meta-item">
           <strong>Equipo / Participante:</strong> {data.participant.name}
         </div>
         <div className="meta-item">
           <strong>Club Deportivo:</strong> {data.participant.clubName}{' '}
-          {data.participant.clubSector ? `(${data.participant.clubSector})` : ''}
+          {data.participant.clubSector
+            ? `(${data.participant.clubSector})`
+            : ''}
         </div>
         <div className="meta-item">
           <strong>Campeonato:</strong> {data.championship.name}
         </div>
         <div className="meta-item">
-          <strong>Deporte / Categoría:</strong> {data.championship.sport} ({data.championship.category})
+          <strong>Deporte / Categoría:</strong> {data.championship.sport} (
+          {data.championship.category})
         </div>
         <div className="meta-item">
           <strong>Temporada Oficial:</strong> {data.championship.season}
         </div>
         <div className="meta-item">
           <strong>Estado de Inscripción:</strong>{' '}
-          <span className="status-tag">{data.participant.registrationStatus.toUpperCase()}</span>
+          <span className="status-tag">
+            {data.participant.registrationStatus.toUpperCase()}
+          </span>
         </div>
       </section>
 
@@ -335,11 +384,16 @@ function RosterDocument({
             {data.members.map((m, idx) => (
               <tr key={idx}>
                 <td className="center">{idx + 1}</td>
-                <td className="center"><strong>{m.jerseyNumber ?? '-'}</strong></td>
+                <td className="center">
+                  <strong>{m.jerseyNumber ?? '-'}</strong>
+                </td>
                 <td className="code-cell">{m.code}</td>
                 <td>{m.name}</td>
                 <td className="center">{m.status.toUpperCase()}</td>
-                <td className="signature-cell" aria-label="Espacio para firma"></td>
+                <td
+                  className="signature-cell"
+                  aria-label="Espacio para firma"
+                ></td>
               </tr>
             ))}
           </tbody>
@@ -348,15 +402,19 @@ function RosterDocument({
 
       <section className="legal-commitment-box">
         <p>
-          <strong>Declaración de Buena Fe:</strong> El Club Deportivo avala que los deportistas
-          inscritos cumplen a cabalidad con los reglamentos, estatutos y límites de edad vigentes de la
-          Liga Cantonal de Quero. Cualquier falsedad o adulteración será sancionada conforme al Código
+          <strong>Declaración de Buena Fe:</strong> El Club Deportivo avala que
+          los deportistas inscritos cumplen a cabalidad con los reglamentos,
+          estatutos y límites de edad vigentes de la Liga Cantonal de Quero.
+          Cualquier falsedad o adulteración será sancionada conforme al Código
           Disciplinario de la institución.
         </p>
       </section>
 
       <footer className="institutional-signatures">
-        <div className="signatures-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+        <div
+          className="signatures-grid"
+          style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}
+        >
           {data.signatories.map((sig, idx) => (
             <div key={idx} className="signature-block">
               <div className="signature-line"></div>

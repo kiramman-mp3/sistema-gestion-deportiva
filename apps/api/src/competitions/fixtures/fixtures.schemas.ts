@@ -30,13 +30,10 @@ export const createEventSchema = z
     homeRegistrationId: uuidSchema,
     awayRegistrationId: uuidSchema,
   })
-  .refine(
-    (data) => data.homeRegistrationId !== data.awayRegistrationId,
-    {
-      message: 'El participante local y visitante no pueden ser el mismo',
-      path: ['awayRegistrationId'],
-    },
-  );
+  .refine((data) => data.homeRegistrationId !== data.awayRegistrationId, {
+    message: 'El participante local y visitante no pueden ser el mismo',
+    path: ['awayRegistrationId'],
+  });
 
 export const rescheduleEventSchema = z.object({
   venueId: uuidSchema.optional().nullable(),

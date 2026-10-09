@@ -29,7 +29,9 @@ describe('documentos y fotografías de deportistas', () => {
     0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
     0x49, 0x48, 0x44, 0x52,
   ]);
-  const validPdf = Buffer.from('%PDF-1.4 documento oficial de prueba para la Liga');
+  const validPdf = Buffer.from(
+    '%PDF-1.4 documento oficial de prueba para la Liga',
+  );
 
   const api = () => authed(t, admin.session);
 
@@ -112,7 +114,9 @@ describe('documentos y fotografías de deportistas', () => {
         .attach('file', validPng, 'foto.png');
 
       // 1. Sin publicar ni consentimiento -> 404
-      const res1 = await t.http().get(`/api/public/athletes/${athlete.id}/photo`);
+      const res1 = await t
+        .http()
+        .get(`/api/public/athletes/${athlete.id}/photo`);
       expect(res1.status).toBe(404);
 
       // 2. Con consentimiento pero sin perfil público -> 404
@@ -127,7 +131,9 @@ describe('documentos y fotografías de deportistas', () => {
         },
       });
 
-      const res2 = await t.http().get(`/api/public/athletes/${athlete.id}/photo`);
+      const res2 = await t
+        .http()
+        .get(`/api/public/athletes/${athlete.id}/photo`);
       expect(res2.status).toBe(404);
 
       // 3. Con perfil publicado -> 200 y headers de privacidad
@@ -136,7 +142,9 @@ describe('documentos y fotografías de deportistas', () => {
         data: { publicProfile: true },
       });
 
-      const res3 = await t.http().get(`/api/public/athletes/${athlete.id}/photo`);
+      const res3 = await t
+        .http()
+        .get(`/api/public/athletes/${athlete.id}/photo`);
       expect(res3.status).toBe(200);
       expect(res3.headers['content-type']).toBe('image/png');
       expect(res3.headers['x-robots-tag']).toBe('noindex, nofollow');
@@ -222,7 +230,9 @@ describe('documentos y fotografías de deportistas', () => {
         .attach('file', validPdf, 'cedula.pdf');
 
       const verifyRes = await api()
-        .patch(`/api/athletes/${athlete.id}/documents/${uploadRes.body.id}/verify`)
+        .patch(
+          `/api/athletes/${athlete.id}/documents/${uploadRes.body.id}/verify`,
+        )
         .set('Origin', TEST_ORIGIN)
         .send({ verified: true, reason: 'Validada contra original' });
 
@@ -238,7 +248,10 @@ describe('documentos y fotografías de deportistas', () => {
       expect(dbDoc?.verifiedAt).toBeDefined();
 
       const audit = await prisma.auditLog.findFirst({
-        where: { action: 'athlete.document_verified', entityId: uploadRes.body.id },
+        where: {
+          action: 'athlete.document_verified',
+          entityId: uploadRes.body.id,
+        },
       });
       expect(audit).toBeDefined();
       expect(audit?.reason).toBe('Validada contra original');
@@ -264,7 +277,10 @@ describe('documentos y fotografías de deportistas', () => {
       expect(dbDoc).toBeNull();
 
       const audit = await prisma.auditLog.findFirst({
-        where: { action: 'athlete.document_deleted', entityId: uploadRes.body.id },
+        where: {
+          action: 'athlete.document_deleted',
+          entityId: uploadRes.body.id,
+        },
       });
       expect(audit).toBeDefined();
     });

@@ -48,7 +48,14 @@ export class RegistrationsService {
               include: {
                 athlete: {
                   include: {
-                    person: { select: { id: true, firstName: true, lastName: true, birthDate: true } },
+                    person: {
+                      select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        birthDate: true,
+                      },
+                    },
                     club: { select: { id: true, name: true, shortName: true } },
                   },
                 },
@@ -68,11 +75,18 @@ export class RegistrationsService {
     const filtered = [];
     for (const r of registrations) {
       if (r.participant.team) {
-        if (await this.clubAccess.canAccess(auth, r.participant.team.team.clubId)) {
+        if (
+          await this.clubAccess.canAccess(auth, r.participant.team.team.clubId)
+        ) {
           filtered.push(r);
         }
       } else if (r.participant.individual) {
-        if (await this.clubAccess.canAccess(auth, r.participant.individual.athlete.clubId)) {
+        if (
+          await this.clubAccess.canAccess(
+            auth,
+            r.participant.individual.athlete.clubId,
+          )
+        ) {
           filtered.push(r);
         }
       }
@@ -145,7 +159,10 @@ export class RegistrationsService {
       participantLabel = `${athlete.person.firstName} ${athlete.person.lastName}`;
 
       // Validación de edad según categoría
-      if (athlete.person.birthDate && (champ.category.ageMin !== null || champ.category.ageMax !== null)) {
+      if (
+        athlete.person.birthDate &&
+        (champ.category.ageMin !== null || champ.category.ageMax !== null)
+      ) {
         const refDate = champ.season.startDate;
         const birth = athlete.person.birthDate;
         let age = refDate.getFullYear() - birth.getFullYear();
@@ -164,9 +181,10 @@ export class RegistrationsService {
         }
       }
 
-      const existingPart = await this.prisma.client.individualParticipant.findUnique({
-        where: { athleteId: athlete.id },
-      });
+      const existingPart =
+        await this.prisma.client.individualParticipant.findUnique({
+          where: { athleteId: athlete.id },
+        });
 
       if (existingPart) {
         participantId = existingPart.participantId;
@@ -300,7 +318,8 @@ export class RegistrationsService {
     } catch (error) {
       translateDbError(error, {
         unique: {},
-        inUse: 'No se puede eliminar la inscripción porque ya tiene partidos asignados',
+        inUse:
+          'No se puede eliminar la inscripción porque ya tiene partidos asignados',
       });
     }
   }

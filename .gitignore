@@ -13,6 +13,7 @@ coverage/
 # Almacenamiento local de archivos privados
 storage/
 uploads/
+backups/
 
 # Logs, editores y sistema operativo
 *.log

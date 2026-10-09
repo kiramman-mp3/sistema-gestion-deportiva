@@ -34,4 +34,3 @@ export interface UploadFilePayload {
   size: number;
   buffer: Buffer;
 }
-
