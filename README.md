@@ -42,6 +42,72 @@ npm run verify   # formato, lint, tipos, pruebas unitarias y de integración, bu
 
 Cada comprobación también está disponible por separado: `format:check`, `lint`, `typecheck`, `test`, `test:integration`, `build`. Las pruebas de integración requieren PostgreSQL en marcha y `TEST_DATABASE_URL` (base `*_test`, aislada).
 
+## Pruebas End-to-End (E2E) con Playwright
+
+Las pruebas end-to-end verifican flujos completos en el navegador: autenticación, portal público multipágina, designación y actas de árbitros (D-72), noticias, disciplina y resoluciones, emisión y verificación pública de carnés, reportes PDF y CSV, notificaciones, auditoría de accesibilidad con axe-core y separación de roles RBAC con protección de la privacidad de menores (D-85).
+
+### Puertos y aislamiento de entorno
+
+Para proteger el entorno de desarrollo y evitar colisiones:
+
+- **API E2E**: puerto `3100`.
+- **Web E2E**: puerto `5183`.
+- **Base de datos E2E**: `liga_quero_e2e` (recreada de forma aislada por `e2e/prepare.mjs`, nunca toca la base de desarrollo `liga_quero`).
+
+### Preparación y ejecución
+
+```bash
+# 1. Instalar dependencias
+npm install
+
+# 2. Instalar Chromium para Playwright (en CI o local)
+npx playwright install --with-deps chromium
+
+# 3. Comprobar tipos de las pruebas E2E
+npm run typecheck:e2e
+
+# 4. Preparar la base E2E y ejecutar toda la suite
+npm run test:e2e
+```
+
+### Ejecución con Chrome local
+
+Si en el equipo local no se descargó el Chromium de Playwright por restricciones de red, se puede utilizar el Google Chrome instalado en el sistema:
+
+- **PowerShell (Windows)**:
+  ```powershell
+  $env:E2E_BROWSER="chrome"; npm run test:e2e
+  ```
+- **Bash / Linux / macOS**:
+  ```bash
+  E2E_BROWSER=chrome npm run test:e2e
+  ```
+
+### Ejecutar solo las pruebas con base ya preparada
+
+```bash
+# Toda la suite
+npm run test:e2e:run
+
+# Una especificación concreta (PowerShell con Chrome local):
+$env:E2E_BROWSER="chrome"; npx playwright test e2e/portal.spec.ts
+```
+
+### Informes de pruebas
+
+- **Terminal**: reporte en lista con duración y estado de cada prueba.
+- **Informe HTML**: generado en `playwright-report/index.html`. Para visualizarlo:
+  ```bash
+  npx playwright show-report
+  ```
+- **Artefactos de fallo**: capturas de pantalla y trazas guardadas en `test-results/`.
+
+### Diagnóstico de fallos comunes
+
+- **Fallo al crear la base de datos**: Verifique que PostgreSQL esté corriendo y que `DATABASE_URL` apunte a una instancia donde el usuario tenga privilegios para crear bases de datos (`adminUrl` apunta a `/postgres`).
+- **Error «Executable doesn't exist»**: Indique el Chrome del sistema con `E2E_BROWSER=chrome` o instale Chromium con `npx playwright install chromium`.
+- **Conflicto de puertos**: Si los puertos 3100 o 5183 están ocupados, verifique que no hayan quedado servidores huérfanos antes de iniciar.
+
 ## Documentación
 
 - [`docs/requirements.md`](docs/requirements.md): especificación funcional y técnica.

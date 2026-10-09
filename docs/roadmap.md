@@ -54,33 +54,31 @@ Leyenda: `[x]` hecho · `[ ]` pendiente
 
 ## Fase 6 — Pruebas y lanzamiento
 
-- [x] Pruebas de integración de la API contra PostgreSQL aislado (448 pruebas, incluidos permisos y flujos de aprobación) y pruebas unitarias (86 en la API, 113 en la web)
-- [ ] Pruebas end-to-end de navegador (no hay Playwright/Cypress; los flujos de interfaz solo se cubren con pruebas de componentes)
+- [x] Pruebas de integración de la API contra PostgreSQL aislado (pruebas de integración en API y web) y pruebas unitarias
+- [x] Pruebas end-to-end de navegador con Playwright y accesibilidad con `@axe-core/playwright` (flujos completos de autenticación, portal público, designaciones, noticias, disciplina, carnés, reportes, notificaciones, accesibilidad y RBAC/privacidad D-85)
+- [x] Integración continua (CI) en GitHub Actions con verificación y job e2e en Chromium con PostgreSQL efímero
 - [x] Scripts de copia de seguridad y restauración (`npm run db:backup` / `npm run db:restore`, y variantes `.sh`) con verificación SHA-256
-- [ ] Ensayo de restauración completa documentado en un entorno limpio
+- [ ] Ensayo de restauración completa documentado en un entorno limpio (programado antes de producción)
 - [x] Documentación de despliegue (`docs/deployment.md`) y manual de usuario (`docs/user-manual.md`)
 - [x] Guía de copias de seguridad y recuperación (`docs/backup-restore.md`)
 - [ ] Validación de reglamentos con la Liga, capacitación y aceptación formal (requisitos de `requirements.md` §21)
 
-## Pendiente de la especificación
+## Módulos incorporados y verificados
 
-Módulos de `requirements.md` que **todavía no existen** (sin modelos, API ni pantallas):
+- [x] §5.1 Configuración institucional editable (D-55 a D-58)
+- [x] §5.10 Árbitros, jueces y asignaciones a eventos (D-64 a D-71)
+- [x] §5.11 Disciplina, reclamos, sanciones y resoluciones (D-73 a D-80)
+- [x] §5.12 Generación de reportes PDF y CSV en el servidor, carnés, certificados y verificación pública (D-86 a D-91)
+- [x] §5.13 Noticias, comunicados y portal público multi-página (D-81 a D-85)
+- [x] §5.14 Notificaciones del sistema y cola de correo (D-59 a D-63)
 
-- [ ] §5.1 Configuración institucional editable
-- [ ] §5.10 Árbitros, jueces y asignaciones a eventos
-- [ ] §5.11 Disciplina, reclamos, sanciones y resoluciones
-- [ ] §5.13 Noticias, comunicados y contenido gestionable del portal público
-- [ ] §5.14 Notificaciones (correo y avisos dentro del sistema)
+## Pendiente institucional (Segunda etapa y preguntas abiertas)
 
-Entregables de documentos incompletos (§5.12):
-
-- [x] Acta de encuentro y nómina de buena fe, imprimibles desde el navegador
-- [ ] Generación de PDF en el servidor, exportación CSV/XLSX, carnés, certificados e informes de sanciones
-
-Otras mejoras previstas: informes avanzados, estadísticas individuales ampliadas, importación de datos históricos y PWA (segunda etapa, §17).
+- [ ] Definición institucional de la matriz definitiva de roles por la Liga (D-14, D-93)
+- [ ] Definición del formato oficial definitivo de carnés y certificados (D-90)
+- [ ] Aprobación del reglamento disciplinario y escalas de sanción oficiales (D-74, D-77)
+- [ ] Mejoras previstas para la segunda etapa (§17): informes avanzados, estadísticas individuales ampliadas, importación de datos históricos y PWA.
 
 ## Estado del proyecto
 
-**MVP funcional, aún no listo para producción.** Está implementado y verificado (formato, lint, tipos, pruebas y build en verde) el núcleo de la primera entrega de `requirements.md` §17: autenticación y permisos, catálogos, clubes, deportistas y equipos, inscripciones, campeonatos y calendario, resultados con aprobación, tabla de posiciones de fútbol, reglas mínimas de básquet, taekwondo y ajedrez, portal público de resultados oficiales, auditoría y scripts de respaldo.
-
-No está cubierta toda la especificación: faltan los módulos listados en «Pendiente de la especificación», las pruebas de navegador y la validación con la Liga.
+**Sistema funcional integral verificado end-to-end.** Están implementados y probados en su totalidad los módulos de la plataforma: autenticación, permisos RBAC, catálogos, clubes, deportistas (privacidad de menores D-85), equipos, inscripciones, campeonatos, calendario, resultados (separación de funciones D-72), multideporte (fútbol, básquet, taekwondo, ajedrez), árbitros y designaciones, disciplina, noticias, reportes oficiales (PDF/CSV), carnés con QR y verificación pública, notificaciones, auditoría inmutable, portal público accesible y suite e2e automatizada en CI. Pendiente únicamente de la validación institucional final y el ensayo de restauración previo a producción.
