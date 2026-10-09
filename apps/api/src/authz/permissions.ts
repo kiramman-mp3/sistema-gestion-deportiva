@@ -64,6 +64,9 @@ export const PERMISSIONS = {
   'results:read': 'Consultar resultados y actas',
   'results:manage': 'Registrar y corregir resultados y actas en borrador',
   'results:approve': 'Aprobar, rechazar o anular resultados oficiales',
+  'institution:read': 'Consultar la configuración institucional',
+  'institution:manage':
+    'Modificar los datos institucionales, el logotipo y los parámetros de publicación',
 } as const satisfies Record<string, string>;
 
 export type PermissionCode = keyof typeof PERMISSIONS;
@@ -92,6 +95,7 @@ export const PERMISSION_MODULES = {
   registrations: 'Inscripciones',
   fixtures: 'Calendario',
   results: 'Resultados',
+  institution: 'Institución',
 } as const satisfies Record<string, string>;
 
 /**
