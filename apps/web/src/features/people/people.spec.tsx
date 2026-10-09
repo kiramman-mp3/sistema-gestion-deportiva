@@ -218,7 +218,9 @@ describe('deportistas: listado y alta', () => {
     await userEvent.click(
       screen.getByRole('button', { name: 'Registrar deportista' }),
     );
-    expect(await screen.findByText(/DEP-000001/)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/Se registró a María Pérez \(DEP-000001\)/),
+    ).toBeInTheDocument();
     expect(api.of('POST', '/athletes')[0]!.body).toEqual({
       clubId: CLUB_ID,
       firstName: 'María',
