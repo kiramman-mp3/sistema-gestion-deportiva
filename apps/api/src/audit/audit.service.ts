@@ -19,13 +19,19 @@ export interface AuditEntry {
 /**
  * Escribe en `audit_logs`. Los registros son inmutables (trigger en la base de
  * datos). Nunca incluir contraseñas, tokens ni secretos en los snapshots.
+ *
+ * Política de fallos: en operaciones que cambian estado, `record` se invoca con
+ * la transacción de la propia operación (`tx`), de modo que si la auditoría
+ * falla, la operación se revierte. En denegaciones (p. ej. login fallido) el
+ * llamador decide si registra y cómo gestiona el error.
  */
 @Injectable()
 export class AuditService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
-  async record(entry: AuditEntry) {
-    return this.prisma.client.auditLog.create({
+  async record(entry: AuditEntry, tx?: Prisma.TransactionClient) {
+    const client = tx ?? this.prisma.client;
+    return client.auditLog.create({
       data: {
         userId: entry.userId,
         action: entry.action,
