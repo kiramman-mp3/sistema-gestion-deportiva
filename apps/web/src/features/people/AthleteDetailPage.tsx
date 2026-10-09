@@ -412,13 +412,11 @@ export function AthleteDetailPage({
                     <td data-label="Estado">
                       {doc.verified ? (
                         <span className="badge badge-ok">
-                          Verificado (
-                          {doc.verifiedBy?.displayName ?? 'Oficial'})
+                          Verificado ({doc.verifiedBy?.displayName ?? 'Oficial'}
+                          )
                         </span>
                       ) : (
-                        <span className="badge">
-                          Pendiente de verificación
-                        </span>
+                        <span className="badge">Pendiente de verificación</span>
                       )}
                     </td>
                     <td data-label="Acciones" className="row-actions">
@@ -1019,4 +1017,3 @@ function DocumentUploadForm({
     </form>
   );
 }
-

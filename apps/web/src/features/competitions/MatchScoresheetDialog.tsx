@@ -26,8 +26,11 @@ export function MatchScoresheetDialog({
   const canManage = permissions.includes('results:manage');
   const canApprove = permissions.includes('results:approve');
 
-  const homeParticipant = event.participants.find((p) => p.side === 'local') ?? event.participants[0];
-  const awayParticipant = event.participants.find((p) => p.side === 'visitante') ?? event.participants[1];
+  const homeParticipant =
+    event.participants.find((p) => p.side === 'local') ?? event.participants[0];
+  const awayParticipant =
+    event.participants.find((p) => p.side === 'visitante') ??
+    event.participants[1];
 
   const [homeScore, setHomeScore] = useState<number>(0);
   const [awayScore, setAwayScore] = useState<number>(0);
@@ -35,18 +38,32 @@ export function MatchScoresheetDialog({
   const [resultStatus, setResultStatus] = useState<string>('borrador');
 
   // Incidencia nueva
-  const [newParticipantId, setNewParticipantId] = useState(homeParticipant?.id ?? '');
-  const [newType, setNewType] = useState<'gol' | 'tarjeta_amarilla' | 'tarjeta_roja' | 'sustitucion'>('gol');
+  const [newParticipantId, setNewParticipantId] = useState(
+    homeParticipant?.id ?? '',
+  );
+  const [newType, setNewType] = useState<
+    'gol' | 'tarjeta_amarilla' | 'tarjeta_roja' | 'sustitucion'
+  >('gol');
   const [newMinute, setNewMinute] = useState<number>(1);
   const [newNotes, setNewNotes] = useState('');
 
   // Aprobación
   const [approvalReason, setApprovalReason] = useState('');
   const [approvalNotes, setApprovalNotes] = useState('');
-  const [revisions, setRevisions] = useState<Array<{ id: string; reason: string; changedAt: string; changedBy: { displayName: string } }>>([]);
+  const [revisions, setRevisions] = useState<
+    Array<{
+      id: string;
+      reason: string;
+      changedAt: string;
+      changedBy: { displayName: string };
+    }>
+  >([]);
 
   const [loading, setLoading] = useState(true);
-  const [notice, setNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [notice, setNotice] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
 
   useEffect(() => {
     async function loadResult() {
@@ -58,11 +75,17 @@ export function MatchScoresheetDialog({
             values: Array<{ eventParticipantId: string; score: number }>;
             footballEvents: Array<{
               eventParticipantId: string;
-              eventType: 'gol' | 'tarjeta_amarilla' | 'tarjeta_roja' | 'sustitucion';
+              eventType:
+                'gol' | 'tarjeta_amarilla' | 'tarjeta_roja' | 'sustitucion';
               minute: number;
               notes?: string | null;
             }>;
-            revisions: Array<{ id: string; reason: string; changedAt: string; changedBy: { displayName: string } }>;
+            revisions: Array<{
+              id: string;
+              reason: string;
+              changedAt: string;
+              changedBy: { displayName: string };
+            }>;
           } | null;
         }>(`/events/${event.id}/result`);
 
@@ -72,8 +95,12 @@ export function MatchScoresheetDialog({
             setRevisions(res.result.revisions);
           }
           if (res.result.values) {
-            const hVal = res.result.values.find((v) => v.eventParticipantId === homeParticipant?.id);
-            const aVal = res.result.values.find((v) => v.eventParticipantId === awayParticipant?.id);
+            const hVal = res.result.values.find(
+              (v) => v.eventParticipantId === homeParticipant?.id,
+            );
+            const aVal = res.result.values.find(
+              (v) => v.eventParticipantId === awayParticipant?.id,
+            );
             if (hVal) setHomeScore(hVal.score);
             if (aVal) setAwayScore(aVal.score);
           }
@@ -131,7 +158,10 @@ export function MatchScoresheetDialog({
         },
       });
       setResultStatus('borrador');
-      setNotice({ type: 'success', text: 'Acta guardada en borrador exitosamente.' });
+      setNotice({
+        type: 'success',
+        text: 'Acta guardada en borrador exitosamente.',
+      });
       onSaved();
     } catch (err) {
       setNotice({ type: 'error', text: describeError(err) });
@@ -153,7 +183,10 @@ export function MatchScoresheetDialog({
 
   const handleApprove = async (approved: boolean) => {
     if (!approvalReason.trim()) {
-      setNotice({ type: 'error', text: 'Debe ingresar el motivo de la resolución técnica.' });
+      setNotice({
+        type: 'error',
+        text: 'Debe ingresar el motivo de la resolución técnica.',
+      });
       return;
     }
     try {
@@ -168,7 +201,9 @@ export function MatchScoresheetDialog({
       setResultStatus(approved ? 'aprobado' : 'rechazado');
       setNotice({
         type: 'success',
-        text: approved ? 'Acta oficial aprobada y resultado consolidado.' : 'Acta rechazada.',
+        text: approved
+          ? 'Acta oficial aprobada y resultado consolidado.'
+          : 'Acta rechazada.',
       });
       onSaved();
     } catch (err) {
@@ -190,8 +225,17 @@ export function MatchScoresheetDialog({
 
   return (
     <dialog open className="dialog-backdrop" aria-modal="true">
-      <div className="dialog-content" style={{ maxWidth: '750px', maxHeight: '90vh', overflowY: 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div
+        className="dialog-content"
+        style={{ maxWidth: '750px', maxHeight: '90vh', overflowY: 'auto' }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+          }}
+        >
           <div>
             <h4>Acta de Juego y Resultado Oficial</h4>
             <p className="catalog-intro" style={{ margin: 0 }}>
@@ -203,8 +247,8 @@ export function MatchScoresheetDialog({
               resultStatus === 'aprobado'
                 ? 'badge-ok'
                 : resultStatus === 'pendiente_revision'
-                ? 'badge-warning'
-                : ''
+                  ? 'badge-warning'
+                  : ''
             }`}
           >
             {resultStatus.replace('_', ' ').toUpperCase()}
@@ -213,7 +257,9 @@ export function MatchScoresheetDialog({
 
         {notice && (
           <output
-            className={notice.type === 'error' ? 'catalog-error' : 'catalog-notice'}
+            className={
+              notice.type === 'error' ? 'catalog-error' : 'catalog-notice'
+            }
             style={{ marginTop: '1rem', display: 'block' }}
           >
             {notice.text}
@@ -251,13 +297,26 @@ export function MatchScoresheetDialog({
                     min="0"
                     disabled={!canManage || resultStatus === 'aprobado'}
                     value={homeScore}
-                    onChange={(e) => setHomeScore(Math.max(0, parseInt(e.target.value) || 0))}
-                    style={{ fontSize: '1.75rem', width: '5rem', textAlign: 'center', fontWeight: 'bold' }}
+                    onChange={(e) =>
+                      setHomeScore(Math.max(0, parseInt(e.target.value) || 0))
+                    }
+                    style={{
+                      fontSize: '1.75rem',
+                      width: '5rem',
+                      textAlign: 'center',
+                      fontWeight: 'bold',
+                    }}
                   />
                 </div>
               </div>
 
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--text-muted)' }}>
+              <div
+                style={{
+                  fontSize: '2rem',
+                  fontWeight: 'bold',
+                  color: 'var(--text-muted)',
+                }}
+              >
                 —
               </div>
 
@@ -274,8 +333,15 @@ export function MatchScoresheetDialog({
                     min="0"
                     disabled={!canManage || resultStatus === 'aprobado'}
                     value={awayScore}
-                    onChange={(e) => setAwayScore(Math.max(0, parseInt(e.target.value) || 0))}
-                    style={{ fontSize: '1.75rem', width: '5rem', textAlign: 'center', fontWeight: 'bold' }}
+                    onChange={(e) =>
+                      setAwayScore(Math.max(0, parseInt(e.target.value) || 0))
+                    }
+                    style={{
+                      fontSize: '1.75rem',
+                      width: '5rem',
+                      textAlign: 'center',
+                      fontWeight: 'bold',
+                    }}
                   />
                 </div>
               </div>
@@ -295,12 +361,15 @@ export function MatchScoresheetDialog({
                     <th scope="col">Tipo</th>
                     <th scope="col">Participante</th>
                     <th scope="col">Detalle</th>
-                    {canManage && resultStatus !== 'aprobado' && <th scope="col">Acción</th>}
+                    {canManage && resultStatus !== 'aprobado' && (
+                      <th scope="col">Acción</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
                   {incidents.map((inc, idx) => {
-                    const isHome = inc.eventParticipantId === homeParticipant?.id;
+                    const isHome =
+                      inc.eventParticipantId === homeParticipant?.id;
                     const participantName = isHome
                       ? getName(homeParticipant?.registration)
                       : getName(awayParticipant?.registration);
@@ -314,10 +383,10 @@ export function MatchScoresheetDialog({
                               inc.eventType === 'gol'
                                 ? 'badge-ok'
                                 : inc.eventType === 'tarjeta_amarilla'
-                                ? 'badge-warning'
-                                : inc.eventType === 'tarjeta_roja'
-                                ? 'badge-alert'
-                                : ''
+                                  ? 'badge-warning'
+                                  : inc.eventType === 'tarjeta_roja'
+                                    ? 'badge-alert'
+                                    : ''
                             }`}
                           >
                             {inc.eventType.replace('_', ' ')}
@@ -345,7 +414,11 @@ export function MatchScoresheetDialog({
 
             {/* Agregar incidencia */}
             {canManage && resultStatus !== 'aprobado' && (
-              <form onSubmit={handleAddIncident} className="catalog-form" style={{ marginBottom: '1.5rem' }}>
+              <form
+                onSubmit={handleAddIncident}
+                className="catalog-form"
+                style={{ marginBottom: '1.5rem' }}
+              >
                 <h6>Añadir incidencia</h6>
                 <div className="form-grid">
                   <div className="form-group">
@@ -375,7 +448,11 @@ export function MatchScoresheetDialog({
                       value={newType}
                       onChange={(e) =>
                         setNewType(
-                          e.target.value as 'gol' | 'tarjeta_amarilla' | 'tarjeta_roja' | 'sustitucion',
+                          e.target.value as
+                            | 'gol'
+                            | 'tarjeta_amarilla'
+                            | 'tarjeta_roja'
+                            | 'sustitucion',
                         )
                       }
                     >
@@ -395,7 +472,9 @@ export function MatchScoresheetDialog({
                       max="130"
                       required
                       value={newMinute}
-                      onChange={(e) => setNewMinute(parseInt(e.target.value) || 1)}
+                      onChange={(e) =>
+                        setNewMinute(parseInt(e.target.value) || 1)
+                      }
                     />
                   </div>
 
@@ -417,13 +496,24 @@ export function MatchScoresheetDialog({
             )}
 
             {/* Acciones de vocalía */}
-            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+            <div
+              style={{
+                display: 'flex',
+                gap: '0.75rem',
+                marginBottom: '1.5rem',
+                flexWrap: 'wrap',
+              }}
+            >
               {canManage && resultStatus !== 'aprobado' && (
                 <>
                   <button type="button" onClick={handleSaveDraft}>
                     Guardar borrador
                   </button>
-                  <button type="button" className="primary" onClick={handleSubmitReview}>
+                  <button
+                    type="button"
+                    className="primary"
+                    onClick={handleSubmitReview}
+                  >
                     Enviar a revisión
                   </button>
                 </>
@@ -443,10 +533,13 @@ export function MatchScoresheetDialog({
               >
                 <h5>Dictamen y Aprobación Oficial (Comisión Técnica)</h5>
                 <p style={{ fontSize: '0.875rem' }}>
-                  Al aprobar el acta, el resultado se consolida en la tabla de posiciones y se genera un snapshot inmutable auditado.
+                  Al aprobar el acta, el resultado se consolida en la tabla de
+                  posiciones y se genera un snapshot inmutable auditado.
                 </p>
                 <div className="form-group">
-                  <label htmlFor="app-reason">Motivo reglamentario (obligatorio)</label>
+                  <label htmlFor="app-reason">
+                    Motivo reglamentario (obligatorio)
+                  </label>
                   <input
                     id="app-reason"
                     type="text"
@@ -457,7 +550,9 @@ export function MatchScoresheetDialog({
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="app-notes">Observaciones del dictamen (opcional)</label>
+                  <label htmlFor="app-notes">
+                    Observaciones del dictamen (opcional)
+                  </label>
                   <input
                     id="app-notes"
                     type="text"
@@ -492,7 +587,8 @@ export function MatchScoresheetDialog({
                 <ul style={{ fontSize: '0.875rem', paddingLeft: '1.25rem' }}>
                   {revisions.map((rev) => (
                     <li key={rev.id}>
-                      <strong>{rev.reason}</strong> — Modificado por {rev.changedBy.displayName} el{' '}
+                      <strong>{rev.reason}</strong> — Modificado por{' '}
+                      {rev.changedBy.displayName} el{' '}
                       {new Date(rev.changedAt).toLocaleString('es-EC')}
                     </li>
                   ))}

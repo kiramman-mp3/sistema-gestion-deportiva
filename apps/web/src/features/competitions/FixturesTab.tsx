@@ -38,7 +38,8 @@ export function FixturesTab({
   const stages = stagesState.kind === 'ready' ? stagesState.data : [];
   const events = eventsState.kind === 'ready' ? eventsState.data : [];
   const venues = venuesState.kind === 'ready' ? venuesState.data.items : [];
-  const loading = stagesState.kind === 'loading' || eventsState.kind === 'loading';
+  const loading =
+    stagesState.kind === 'loading' || eventsState.kind === 'loading';
   const error =
     stagesState.kind === 'error'
       ? stagesState.message
@@ -51,28 +52,37 @@ export function FixturesTab({
     reloadEvents();
   };
 
-  const [notice, setNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [notice, setNotice] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
 
   // Modales y formularios
   const [addingStage, setAddingStage] = useState(false);
   const [stageName, setStageName] = useState('');
   const [stageType, setStageType] = useState<StageType>('grupo');
 
-  const [addingRoundStageId, setAddingRoundStageId] = useState<string | null>(null);
+  const [addingRoundStageId, setAddingRoundStageId] = useState<string | null>(
+    null,
+  );
   const [roundName, setRoundName] = useState('');
 
-  const [schedulingRoundId, setSchedulingRoundId] = useState<string | null>(null);
+  const [schedulingRoundId, setSchedulingRoundId] = useState<string | null>(
+    null,
+  );
   const [homeRegId, setHomeRegId] = useState('');
   const [awayRegId, setAwayRegId] = useState('');
   const [eventVenueId, setEventVenueId] = useState('');
   const [eventDate, setEventDate] = useState('');
 
-  const [reschedulingEvent, setReschedulingEvent] = useState<CompetitionEvent | null>(null);
+  const [reschedulingEvent, setReschedulingEvent] =
+    useState<CompetitionEvent | null>(null);
   const [rescheduleVenueId, setRescheduleVenueId] = useState('');
   const [rescheduleDate, setRescheduleDate] = useState('');
   const [rescheduleReason, setRescheduleReason] = useState('');
 
-  const [scoresheetEvent, setScoresheetEvent] = useState<CompetitionEvent | null>(null);
+  const [scoresheetEvent, setScoresheetEvent] =
+    useState<CompetitionEvent | null>(null);
 
   const handleCreateStage = async (e: FormEvent) => {
     e.preventDefault();
@@ -113,7 +123,10 @@ export function FixturesTab({
   const handleScheduleEvent = async (roundId: string, e: FormEvent) => {
     e.preventDefault();
     if (!homeRegId || !awayRegId || homeRegId === awayRegId) {
-      setNotice({ type: 'error', text: 'Seleccione dos participantes distintos' });
+      setNotice({
+        type: 'error',
+        text: 'Seleccione dos participantes distintos',
+      });
       return;
     }
 
@@ -143,7 +156,10 @@ export function FixturesTab({
     e.preventDefault();
     if (!reschedulingEvent) return;
     if (!rescheduleReason.trim()) {
-      setNotice({ type: 'error', text: 'Debe ingresar el motivo de la reprogramación' });
+      setNotice({
+        type: 'error',
+        text: 'Debe ingresar el motivo de la reprogramación',
+      });
       return;
     }
 
@@ -152,7 +168,9 @@ export function FixturesTab({
         method: 'PATCH',
         body: {
           venueId: rescheduleVenueId || null,
-          scheduledAt: rescheduleDate ? new Date(rescheduleDate).toISOString() : null,
+          scheduledAt: rescheduleDate
+            ? new Date(rescheduleDate).toISOString()
+            : null,
           reason: rescheduleReason.trim(),
         },
       });
@@ -183,7 +201,9 @@ export function FixturesTab({
     <div className="tab-panel">
       {notice && (
         <output
-          className={notice.type === 'error' ? 'catalog-error' : 'catalog-notice'}
+          className={
+            notice.type === 'error' ? 'catalog-error' : 'catalog-notice'
+          }
         >
           {notice.text}
           <button
@@ -201,7 +221,8 @@ export function FixturesTab({
         <div>
           <h3>Etapas y Calendario de Partidos</h3>
           <p className="catalog-intro">
-            Organice las fases del campeonato (grupos, playoffs), defina jornadas y programe partidos en escenarios oficiales.
+            Organice las fases del campeonato (grupos, playoffs), defina
+            jornadas y programe partidos en escenarios oficiales.
           </p>
         </div>
         {canManage && !addingStage && (
@@ -216,7 +237,11 @@ export function FixturesTab({
       </div>
 
       {addingStage && (
-        <form onSubmit={handleCreateStage} className="catalog-form" style={{ marginBottom: '1.5rem' }}>
+        <form
+          onSubmit={handleCreateStage}
+          className="catalog-form"
+          style={{ marginBottom: '1.5rem' }}
+        >
           <h4>Crear nueva etapa</h4>
           <div className="form-group">
             <label htmlFor="stage-name">Nombre de la etapa</label>
@@ -237,7 +262,9 @@ export function FixturesTab({
               onChange={(e) => setStageType(e.target.value as StageType)}
             >
               <option value="grupo">{STAGE_TYPE_LABELS.grupo}</option>
-              <option value="eliminatoria">{STAGE_TYPE_LABELS.eliminatoria}</option>
+              <option value="eliminatoria">
+                {STAGE_TYPE_LABELS.eliminatoria}
+              </option>
               <option value="unico">{STAGE_TYPE_LABELS.unico}</option>
             </select>
           </div>
@@ -272,7 +299,11 @@ export function FixturesTab({
       ) : (
         <div className="stages-container">
           {stages.map((stage) => (
-            <div key={stage.id} className="catalog-card" style={{ marginBottom: '2rem' }}>
+            <div
+              key={stage.id}
+              className="catalog-card"
+              style={{ marginBottom: '2rem' }}
+            >
               <div className="catalog-header" style={{ marginBottom: '1rem' }}>
                 <div>
                   <h4>
@@ -332,7 +363,9 @@ export function FixturesTab({
                 </p>
               ) : (
                 stage.rounds.map((round) => {
-                  const roundEvents = events.filter((ev) => ev.round.id === round.id);
+                  const roundEvents = events.filter(
+                    (ev) => ev.round.id === round.id,
+                  );
 
                   return (
                     <div
@@ -369,7 +402,10 @@ export function FixturesTab({
                         <form
                           onSubmit={(e) => handleScheduleEvent(round.id, e)}
                           className="catalog-form"
-                          style={{ marginBottom: '1rem', background: 'var(--surface)' }}
+                          style={{
+                            marginBottom: '1rem',
+                            background: 'var(--surface)',
+                          }}
                         >
                           <h6>Programar partido en {round.name}</h6>
                           <div className="form-grid">
@@ -381,7 +417,9 @@ export function FixturesTab({
                                 value={homeRegId}
                                 onChange={(e) => setHomeRegId(e.target.value)}
                               >
-                                <option value="">Seleccione participante local</option>
+                                <option value="">
+                                  Seleccione participante local
+                                </option>
                                 {approvedRegistrations.map((r) => (
                                   <option key={r.id} value={r.id}>
                                     {getParticipantName(r)}
@@ -398,7 +436,9 @@ export function FixturesTab({
                                 value={awayRegId}
                                 onChange={(e) => setAwayRegId(e.target.value)}
                               >
-                                <option value="">Seleccione participante visitante</option>
+                                <option value="">
+                                  Seleccione participante visitante
+                                </option>
                                 {approvedRegistrations
                                   .filter((r) => r.id !== homeRegId)
                                   .map((r) => (
@@ -410,11 +450,15 @@ export function FixturesTab({
                             </div>
 
                             <div className="form-group">
-                              <label htmlFor="ev-venue">Escenario deportivo</label>
+                              <label htmlFor="ev-venue">
+                                Escenario deportivo
+                              </label>
                               <select
                                 id="ev-venue"
                                 value={eventVenueId}
-                                onChange={(e) => setEventVenueId(e.target.value)}
+                                onChange={(e) =>
+                                  setEventVenueId(e.target.value)
+                                }
                               >
                                 <option value="">Sin escenario asignado</option>
                                 {venues.map((v) => (
@@ -426,7 +470,9 @@ export function FixturesTab({
                             </div>
 
                             <div className="form-group">
-                              <label htmlFor="ev-date">Fecha y hora programada</label>
+                              <label htmlFor="ev-date">
+                                Fecha y hora programada
+                              </label>
                               <input
                                 id="ev-date"
                                 type="datetime-local"
@@ -451,7 +497,13 @@ export function FixturesTab({
                       )}
 
                       {roundEvents.length === 0 ? (
-                        <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                        <p
+                          style={{
+                            margin: 0,
+                            fontSize: '0.875rem',
+                            color: 'var(--text-muted)',
+                          }}
+                        >
                           No hay partidos programados en esta jornada.
                         </p>
                       ) : (
@@ -467,25 +519,47 @@ export function FixturesTab({
                           </thead>
                           <tbody>
                             {roundEvents.map((ev) => {
-                              const home = ev.participants.find((p) => p.side === 'local') ?? ev.participants[0];
-                              const away = ev.participants.find((p) => p.side === 'visitante') ?? ev.participants[1];
+                              const home =
+                                ev.participants.find(
+                                  (p) => p.side === 'local',
+                                ) ?? ev.participants[0];
+                              const away =
+                                ev.participants.find(
+                                  (p) => p.side === 'visitante',
+                                ) ?? ev.participants[1];
 
                               return (
                                 <tr key={ev.id}>
                                   <td data-label="Encuentro">
-                                    <strong>{home ? getParticipantName(home.registration) : 'Por definir'}</strong>
+                                    <strong>
+                                      {home
+                                        ? getParticipantName(home.registration)
+                                        : 'Por definir'}
+                                    </strong>
                                     {' vs '}
-                                    <strong>{away ? getParticipantName(away.registration) : 'Por definir'}</strong>
+                                    <strong>
+                                      {away
+                                        ? getParticipantName(away.registration)
+                                        : 'Por definir'}
+                                    </strong>
                                   </td>
                                   <td data-label="Fecha / Hora">
                                     {ev.scheduledAt
-                                      ? new Date(ev.scheduledAt).toLocaleString('es-EC', {
-                                          dateStyle: 'medium',
-                                          timeStyle: 'short',
-                                        })
+                                      ? new Date(ev.scheduledAt).toLocaleString(
+                                          'es-EC',
+                                          {
+                                            dateStyle: 'medium',
+                                            timeStyle: 'short',
+                                          },
+                                        )
                                       : 'Por programar'}
                                     {ev.postponementReason && (
-                                      <div style={{ fontSize: '0.75rem', color: 'var(--warning-text)' }}>
+                                      <div
+                                        style={{
+                                          fontSize: '0.75rem',
+                                          color: 'var(--warning-text)',
+                                        }}
+                                      >
                                         Motivo: {ev.postponementReason}
                                       </div>
                                     )}
@@ -499,10 +573,10 @@ export function FixturesTab({
                                         ev.status === 'en_curso'
                                           ? 'badge-ok'
                                           : ev.status === 'finalizado'
-                                          ? 'badge-neutral'
-                                          : ev.status === 'postergado'
-                                          ? 'badge-warning'
-                                          : ''
+                                            ? 'badge-neutral'
+                                            : ev.status === 'postergado'
+                                              ? 'badge-warning'
+                                              : ''
                                       }`}
                                     >
                                       {EVENT_STATUS_LABELS[ev.status]}
@@ -512,17 +586,26 @@ export function FixturesTab({
                                     <td data-label="Acciones">
                                       <button
                                         type="button"
-                                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', marginRight: '0.5rem' }}
+                                        style={{
+                                          fontSize: '0.75rem',
+                                          padding: '0.25rem 0.5rem',
+                                          marginRight: '0.5rem',
+                                        }}
                                         onClick={() => setScoresheetEvent(ev)}
                                       >
                                         Acta / Resultado
                                       </button>
                                       <button
                                         type="button"
-                                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                                        style={{
+                                          fontSize: '0.75rem',
+                                          padding: '0.25rem 0.5rem',
+                                        }}
                                         onClick={() => {
                                           setReschedulingEvent(ev);
-                                          setRescheduleVenueId(ev.venue?.id ?? '');
+                                          setRescheduleVenueId(
+                                            ev.venue?.id ?? '',
+                                          );
                                           setRescheduleDate(
                                             ev.scheduledAt
                                               ? new Date(ev.scheduledAt)
@@ -558,7 +641,8 @@ export function FixturesTab({
           <div className="dialog-content">
             <h4>Reprogramar partido</h4>
             <p style={{ fontSize: '0.875rem' }}>
-              Modifique la fecha, hora o escenario del partido. Debe justificar el motivo para fines de auditoría.
+              Modifique la fecha, hora o escenario del partido. Debe justificar
+              el motivo para fines de auditoría.
             </p>
             <form onSubmit={handleReschedule}>
               <div className="form-group">
@@ -587,7 +671,9 @@ export function FixturesTab({
                 </select>
               </div>
               <div className="form-group">
-                <label htmlFor="res-reason">Motivo de reprogramación (obligatorio)</label>
+                <label htmlFor="res-reason">
+                  Motivo de reprogramación (obligatorio)
+                </label>
                 <textarea
                   id="res-reason"
                   required

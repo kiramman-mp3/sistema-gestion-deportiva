@@ -89,10 +89,20 @@ describe('reglamentos y puntuación multideporte (básquet, taekwondo, ajedrez)'
     });
 
     const team1 = await prisma.team.create({
-      data: { clubId: club1.id, sportId: sport.id, name: 'Tiburones Basket', nameKey: 'tiburones basket' },
+      data: {
+        clubId: club1.id,
+        sportId: sport.id,
+        name: 'Tiburones Basket',
+        nameKey: 'tiburones basket',
+      },
     });
     const team2 = await prisma.team.create({
-      data: { clubId: club2.id, sportId: sport.id, name: 'Águilas Basket', nameKey: 'aguilas basket' },
+      data: {
+        clubId: club2.id,
+        sportId: sport.id,
+        name: 'Águilas Basket',
+        nameKey: 'aguilas basket',
+      },
     });
 
     const p1 = await prisma.participant.create({
@@ -103,10 +113,18 @@ describe('reglamentos y puntuación multideporte (básquet, taekwondo, ajedrez)'
     });
 
     const r1 = await prisma.registration.create({
-      data: { championshipId: champ.id, participantId: p1.id, status: 'aprobada' },
+      data: {
+        championshipId: champ.id,
+        participantId: p1.id,
+        status: 'aprobada',
+      },
     });
     const r2 = await prisma.registration.create({
-      data: { championshipId: champ.id, participantId: p2.id, status: 'aprobada' },
+      data: {
+        championshipId: champ.id,
+        participantId: p2.id,
+        status: 'aprobada',
+      },
     });
 
     const stage = await prisma.stage.create({
@@ -207,24 +225,46 @@ describe('reglamentos y puntuación multideporte (básquet, taekwondo, ajedrez)'
     });
 
     const ath1 = await prisma.athlete.create({
-      data: { personId: person1.id, clubId: club1.id, eligibility: 'habilitado' },
+      data: {
+        personId: person1.id,
+        clubId: club1.id,
+        eligibility: 'habilitado',
+      },
     });
     const ath2 = await prisma.athlete.create({
-      data: { personId: person2.id, clubId: club2.id, eligibility: 'habilitado' },
+      data: {
+        personId: person2.id,
+        clubId: club2.id,
+        eligibility: 'habilitado',
+      },
     });
 
     const p1 = await prisma.participant.create({
-      data: { kind: 'individual', individual: { create: { athleteId: ath1.id } } },
+      data: {
+        kind: 'individual',
+        individual: { create: { athleteId: ath1.id } },
+      },
     });
     const p2 = await prisma.participant.create({
-      data: { kind: 'individual', individual: { create: { athleteId: ath2.id } } },
+      data: {
+        kind: 'individual',
+        individual: { create: { athleteId: ath2.id } },
+      },
     });
 
     const r1 = await prisma.registration.create({
-      data: { championshipId: champ.id, participantId: p1.id, status: 'aprobada' },
+      data: {
+        championshipId: champ.id,
+        participantId: p1.id,
+        status: 'aprobada',
+      },
     });
     const r2 = await prisma.registration.create({
-      data: { championshipId: champ.id, participantId: p2.id, status: 'aprobada' },
+      data: {
+        championshipId: champ.id,
+        participantId: p2.id,
+        status: 'aprobada',
+      },
     });
 
     const stage = await prisma.stage.create({
@@ -262,7 +302,13 @@ describe('reglamentos y puntuación multideporte (básquet, taekwondo, ajedrez)'
         taekwondoBouts: [
           { eventParticipantId: ep1, roundNumber: 1, points: 10, penalties: 1 },
           { eventParticipantId: ep2, roundNumber: 1, points: 6, penalties: 2 },
-          { eventParticipantId: ep1, roundNumber: 2, points: 15, penalties: 0, decision: 'superioridad' },
+          {
+            eventParticipantId: ep1,
+            roundNumber: 2,
+            points: 15,
+            penalties: 0,
+            decision: 'superioridad',
+          },
           { eventParticipantId: ep2, roundNumber: 2, points: 12, penalties: 1 },
         ],
       })
@@ -303,24 +349,46 @@ describe('reglamentos y puntuación multideporte (básquet, taekwondo, ajedrez)'
     });
 
     const ath1 = await prisma.athlete.create({
-      data: { personId: person1.id, clubId: club1.id, eligibility: 'habilitado' },
+      data: {
+        personId: person1.id,
+        clubId: club1.id,
+        eligibility: 'habilitado',
+      },
     });
     const ath2 = await prisma.athlete.create({
-      data: { personId: person2.id, clubId: club2.id, eligibility: 'habilitado' },
+      data: {
+        personId: person2.id,
+        clubId: club2.id,
+        eligibility: 'habilitado',
+      },
     });
 
     const p1 = await prisma.participant.create({
-      data: { kind: 'individual', individual: { create: { athleteId: ath1.id } } },
+      data: {
+        kind: 'individual',
+        individual: { create: { athleteId: ath1.id } },
+      },
     });
     const p2 = await prisma.participant.create({
-      data: { kind: 'individual', individual: { create: { athleteId: ath2.id } } },
+      data: {
+        kind: 'individual',
+        individual: { create: { athleteId: ath2.id } },
+      },
     });
 
     const r1 = await prisma.registration.create({
-      data: { championshipId: champ.id, participantId: p1.id, status: 'aprobada' },
+      data: {
+        championshipId: champ.id,
+        participantId: p1.id,
+        status: 'aprobada',
+      },
     });
     const r2 = await prisma.registration.create({
-      data: { championshipId: champ.id, participantId: p2.id, status: 'aprobada' },
+      data: {
+        championshipId: champ.id,
+        participantId: p2.id,
+        status: 'aprobada',
+      },
     });
 
     const stage = await prisma.stage.create({
@@ -356,8 +424,18 @@ describe('reglamentos y puntuación multideporte (básquet, taekwondo, ajedrez)'
           { eventParticipantId: ep2, score: 0 },
         ],
         chessPairings: [
-          { eventParticipantId: ep1, color: 'blancas', points: 1.0, buchholz: 0.5 },
-          { eventParticipantId: ep2, color: 'negras', points: 0.0, buchholz: 1.0 },
+          {
+            eventParticipantId: ep1,
+            color: 'blancas',
+            points: 1.0,
+            buchholz: 0.5,
+          },
+          {
+            eventParticipantId: ep2,
+            color: 'negras',
+            points: 0.0,
+            buchholz: 1.0,
+          },
         ],
       })
       .expect(200);
