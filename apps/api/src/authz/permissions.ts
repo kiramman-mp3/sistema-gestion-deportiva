@@ -13,11 +13,14 @@ export const PERMISSIONS = {
   'roles:manage': 'Crear roles y asignar permisos y roles a usuarios',
   'audit:read': 'Consultar la auditoría',
   'sports:read': 'Consultar deportes',
-  'sports:manage': 'Crear, modificar y desactivar deportes',
+  'sports:manage': 'Crear, modificar y activar o desactivar deportes',
+  'sports:delete': 'Eliminar deportes que no estén en uso',
   'categories:read': 'Consultar categorías',
-  'categories:manage': 'Crear, modificar y desactivar categorías',
+  'categories:manage': 'Crear, modificar y activar o desactivar categorías',
+  'categories:delete': 'Eliminar categorías que no estén en uso',
   'seasons:read': 'Consultar temporadas',
   'seasons:manage': 'Crear, modificar y cambiar el estado de temporadas',
+  'seasons:delete': 'Eliminar temporadas en borrador que no estén en uso',
 } as const satisfies Record<string, string>;
 
 export type PermissionCode = keyof typeof PERMISSIONS;
