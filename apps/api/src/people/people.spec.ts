@@ -34,7 +34,7 @@ describe('claves normalizadas', () => {
 
 /** Completa 9 dígitos con su verificador (módulo 10), independiente de la implementación. */
 function withCheckDigit(first9: string): string {
-  const sum = [...first9].reduce((acc, ch, i) => {
+  const sum = first9.split('').reduce((acc, ch, i) => {
     let n = Number(ch) * (i % 2 === 0 ? 2 : 1);
     if (n > 9) n -= 9;
     return acc + n;
