@@ -1,0 +1,91 @@
+import { z } from 'zod';
+import { listQuerySchema, reasonSchema } from '../catalogs/common.js';
+import {
+  calendarDate,
+  idIssue,
+  optionalText,
+  personInputShape,
+} from '../people/people.schemas.js';
+
+export const personStatusValues = ['activo', 'inactivo'] as const;
+export const eligibilityValues = [
+  'pendiente',
+  'habilitado',
+  'inhabilitado',
+] as const;
+export const consentTypeValues = [
+  'publicacion_perfil',
+  'publicacion_foto',
+  'tratamiento_datos',
+] as const;
+
+export const athleteListQuerySchema = listQuerySchema.extend({
+  clubId: z.uuid().optional(),
+  status: z.enum(personStatusValues).optional(),
+  eligibility: z.enum(eligibilityValues).optional(),
+});
+
+export const createAthleteSchema = z
+  .strictObject({
+    clubId: z.uuid(),
+    ...personInputShape,
+    /** Confirma que, pese a coincidir nombre y fecha de nacimiento con otra persona, es alguien distinto. */
+    confirmDuplicate: z.boolean().optional(),
+  })
+  .superRefine(idIssue);
+
+export const updateAthleteSchema = z
+  .strictObject({
+    firstName: personInputShape.firstName.optional(),
+    lastName: personInputShape.lastName.optional(),
+    birthDate: personInputShape.birthDate,
+    idType: personInputShape.idType,
+    idNumber: personInputShape.idNumber,
+    phone: personInputShape.phone,
+    guardianName: personInputShape.guardianName,
+    guardianRelation: personInputShape.guardianRelation,
+    guardianPhone: personInputShape.guardianPhone,
+  })
+  .superRefine(idIssue)
+  .refine((v) => Object.keys(v).length > 0, {
+    message: 'Indique al menos un campo para modificar',
+  });
+
+export const athleteStatusSchema = z.strictObject({
+  status: z.enum(personStatusValues),
+  reason: reasonSchema,
+});
+
+export const eligibilitySchema = z.strictObject({
+  eligibility: z.enum(eligibilityValues),
+  reason: reasonSchema,
+});
+
+export const transferSchema = z.strictObject({
+  clubId: z.uuid(),
+  reason: reasonSchema,
+});
+
+export const publicationSchema = z.strictObject({ published: z.boolean() });
+
+export const createConsentSchema = z.strictObject({
+  type: z.enum(consentTypeValues),
+  purpose: optionalText(200).optional(),
+  grantedByName: z
+    .string()
+    .transform((v) => v.trim().replace(/\s+/g, ' '))
+    .pipe(z.string().min(1, 'Obligatorio').max(120, 'Máximo 120 caracteres')),
+  /** `propio` si lo otorga la propia persona (mayor de edad); si no, el parentesco del tutor. */
+  grantedByRelation: z
+    .string()
+    .transform((v) => v.trim().toLowerCase().replace(/\s+/g, ' '))
+    .pipe(z.string().min(1, 'Obligatorio').max(40, 'Máximo 40 caracteres')),
+  /** Último día de vigencia (`AAAA-MM-DD`); opcional. */
+  expiresOn: calendarDate.nullable().optional(),
+});
+
+export const revokeConsentSchema = z.strictObject({ reason: reasonSchema });
+
+export type CreateAthleteInput = z.infer<typeof createAthleteSchema>;
+export type UpdateAthleteInput = z.infer<typeof updateAthleteSchema>;
+export type CreateConsentInput = z.infer<typeof createConsentSchema>;

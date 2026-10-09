@@ -95,6 +95,23 @@ erDiagram
 
 > Los catálogos `sports`, `categories` y `seasons` se administran desde la API sin tablas nuevas; ver `catalogs.md`.
 
+### Clubes, personas, deportistas y equipos
+
+Detalle de reglas y endpoints en `clubs-people-teams.md`.
+
+| Tabla                  | Propósito y reglas                                                                                                                                                                                                                        |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `clubs`                | `name_key` (nombre normalizado) y `slug` únicos; estado. Se elimina solo si nada lo referencia (FK `RESTRICT`).                                                                                                                           |
+| `club_users`           | Alcance: vincula usuarios con los clubes que pueden gestionar (PK compuesta).                                                                                                                                                             |
+| `club_representatives` | Representantes con vigencia; apuntan a una persona.                                                                                                                                                                                       |
+| `persons`              | Identidad básica: nombres y fecha de nacimiento (`DATE`, CHECK ≥ 1900; la fecha futura se rechaza en el servicio porque `CURRENT_DATE` no es inmutable).                                                                                  |
+| `person_private_data`  | Documento, teléfono y tutor, **separados** de la identidad. `id_key` (`tipo:número` normalizado) **único**.                                                                                                                               |
+| `athletes`             | Una persona = un deportista (`person_id` único); club; `code_number` correlativo (DEP‑000123); habilitación; marca de perfil público.                                                                                                     |
+| `consent_records`      | Consentimientos por persona y tipo; se revocan, no se borran. Índice único parcial: un solo consentimiento `otorgado` por persona y tipo.                                                                                                 |
+| `teams`                | Club + deporte + nombre por defecto; único `(club, deporte, nombre normalizado)`.                                                                                                                                                         |
+| `team_seasons`         | Inscripción de un equipo en una temporada con su categoría y **nombre de esa temporada**; `sport_id` repetido con clave compuesta hacia `teams`; único `(temporada, deporte, nombre normalizado)`.                                        |
+| `team_memberships`     | Alta de un deportista en una plantilla. **Único `(athlete_id, sport_id, season_id)`** (un equipo por deporte y temporada); FK compuesta a `team_seasons`; CHECK de baja con fecha y motivo; dorsal único entre vigentes (índice parcial). |
+
 ### Qué no se modeló todavía, a propósito
 
 - **Categorías por deporte, género, peso, modalidad:** la Liga no ha confirmado estas reglas (ver `decisions.md`). La relación deporte‑categoría se establecerá en el campeonato; peso y modalidad serán conceptos propios, nunca columnas de `categories`.
