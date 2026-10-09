@@ -26,6 +26,17 @@ export const loginSchema = z.object({
 
 export const uuidSchema = z.uuid();
 
+export const changePasswordSchema = z.strictObject({
+  currentPassword: z.string().min(1, 'Ingrese su contraseña actual').max(128),
+  newPassword: newPasswordSchema,
+});
+
+/** Canje de un enlace de activación/restablecimiento (token de 43 caracteres base64url). */
+export const completeCredentialSchema = z.strictObject({
+  token: z.string().regex(/^[A-Za-z0-9_-]{43}$/, 'Enlace inválido'),
+  password: newPasswordSchema,
+});
+
 export const userStatusSchema = z.object({
   status: z.enum(['activo', 'inactivo', 'bloqueado']),
   reason: z.string().trim().min(3, 'Indique el motivo').max(500),

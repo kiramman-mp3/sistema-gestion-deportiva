@@ -182,10 +182,11 @@ export class SessionService implements OnModuleInit, OnModuleDestroy {
     userId: string,
     reason: SessionRevocationReason,
     tx?: Prisma.TransactionClient,
+    exceptSessionId?: string,
   ): Promise<number> {
     const client = tx ?? this.prisma.client;
     const { count } = await client.session.updateMany({
-      where: { userId, revokedAt: null },
+      where: { userId, revokedAt: null, id: { not: exceptSessionId } },
       data: { revokedAt: new Date(), revocationReason: reason },
     });
     return count;
