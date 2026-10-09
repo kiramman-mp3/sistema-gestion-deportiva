@@ -52,8 +52,34 @@ const envSchema = z
     LOGIN_MAX_FAILURES_PER_ACCOUNT: positiveInt(1, 10_000, 50),
     /** Ruta de almacenamiento de archivos en disco (fuera de la raíz web). */
     STORAGE_PATH: z.string().default('./uploads'),
+
+    /**
+     * Envío de correo. `none` (por defecto): solo avisos dentro del sistema; no se
+     * encolan correos hasta que la Liga defina proveedor y remitente (ver docs/notifications.md).
+     */
+    MAIL_TRANSPORT: z.enum(['none', 'smtp']).default('none'),
+    MAIL_FROM: z.string().trim().min(3).optional(),
+    SMTP_HOST: z.string().trim().min(1).optional(),
+    SMTP_PORT: positiveInt(1, 65535, 587),
+    SMTP_SECURE: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((value) => value === 'true'),
+    SMTP_USER: z.string().optional(),
+    SMTP_PASSWORD: z.string().optional(),
   })
   .superRefine((env, ctx) => {
+    if (env.MAIL_TRANSPORT === 'smtp') {
+      for (const key of ['SMTP_HOST', 'MAIL_FROM'] as const) {
+        if (!env[key]) {
+          ctx.addIssue({
+            code: 'custom',
+            path: [key],
+            message: 'es obligatorio cuando MAIL_TRANSPORT=smtp',
+          });
+        }
+      }
+    }
     if (env.NODE_ENV === 'production') {
       for (const origin of env.WEB_ORIGIN) {
         if (!origin.startsWith('https://')) {

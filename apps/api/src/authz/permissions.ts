@@ -64,6 +64,8 @@ export const PERMISSIONS = {
   'results:read': 'Consultar resultados y actas',
   'results:manage': 'Registrar y corregir resultados y actas en borrador',
   'results:approve': 'Aprobar, rechazar o anular resultados oficiales',
+  'notifications:manage':
+    'Consultar la cola de correos, reintentar envíos y enviar recordatorios de documentación',
   'institution:read': 'Consultar la configuración institucional',
   'institution:manage':
     'Modificar los datos institucionales, el logotipo y los parámetros de publicación',
@@ -96,6 +98,7 @@ export const PERMISSION_MODULES = {
   fixtures: 'Calendario',
   results: 'Resultados',
   institution: 'Institución',
+  notifications: 'Notificaciones',
 } as const satisfies Record<string, string>;
 
 /**

@@ -15,6 +15,8 @@ import { ChampionshipsPage } from '../competitions/ChampionshipsPage.tsx';
 import { VenuesPage } from '../competitions/VenuesPage.tsx';
 import { ApiStatus } from '../health/ApiStatus.tsx';
 import { InstitutionPage } from '../institution/InstitutionPage.tsx';
+import { NotificationsPage } from '../notifications/NotificationsPage.tsx';
+import { useUnreadCount } from '../notifications/useUnreadCount.ts';
 import { CatalogAdmin } from './CatalogAdmin.tsx';
 import { categoriesConfig, seasonsConfig, sportsConfig } from './configs.tsx';
 
@@ -63,6 +65,7 @@ const SECTIONS: Section[] = [
     permission: 'institution:read',
   },
   { hash: '#/auditoria', label: 'Auditoría', permission: 'audit:read' },
+  { hash: '#/notificaciones', label: 'Notificaciones' },
   { hash: '#/cuenta', label: 'Mi cuenta' },
 ];
 
@@ -86,6 +89,7 @@ export function CatalogsApp({
   selfId: string;
 }) {
   const [hash, setHash] = useState(currentHash);
+  const unread = useUnreadCount();
 
   useEffect(() => {
     const onChange = () => setHash(currentHash());
@@ -109,6 +113,12 @@ export function CatalogsApp({
             <li key={s.hash}>
               <a href={s.hash} aria-current={s === active ? 'page' : undefined}>
                 {s.label}
+                {s.hash === '#/notificaciones' && unread > 0 && (
+                  <span className="nav-badge">
+                    <span aria-hidden="true"> ({unread})</span>
+                    <span className="visually-hidden">, {unread} sin leer</span>
+                  </span>
+                )}
               </a>
             </li>
           ))}
@@ -198,6 +208,9 @@ export function CatalogsApp({
         <InstitutionPage permissions={permissions} />
       )}
       {active.hash === '#/auditoria' && <AuditPage />}
+      {active.hash === '#/notificaciones' && (
+        <NotificationsPage permissions={permissions} />
+      )}
       {active.hash === '#/cuenta' && <ChangePasswordForm />}
     </>
   );

@@ -1,10 +1,12 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { AuditService } from '../../audit/audit.service.js';
 import { PrismaService } from '../../database/prisma.service.js';
+import { NotificationsService } from '../../notifications/notifications.service.js';
 import type { Prisma } from '../../generated/prisma/client.js';
 import type {
   ChangeEventStatusInput,
@@ -20,6 +22,8 @@ export class FixturesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    @Inject(NotificationsService)
+    private readonly notifications: NotificationsService,
   ) {}
 
   async listStages(championshipId: string) {
@@ -469,6 +473,22 @@ export class FixturesService {
         tx,
       );
 
+      const context = await this.notifications.eventContext(tx, id);
+      await this.notifications.notify(tx, {
+        userIds: context.audience,
+        template: 'event.rescheduled',
+        params: {
+          championship: context.championship,
+          match: context.match,
+          when: context.when,
+          reason: input.reason,
+        },
+        entityType: 'event',
+        entityId: id,
+        link: '#/campeonatos',
+        excludeUserId: userId,
+      });
+
       return updated;
     });
   }
@@ -508,6 +528,27 @@ export class FixturesService {
         },
         tx,
       );
+
+      if (
+        updated.status !== existing.status &&
+        ['suspendido', 'postergado', 'cancelado'].includes(updated.status)
+      ) {
+        const context = await this.notifications.eventContext(tx, id);
+        await this.notifications.notify(tx, {
+          userIds: context.audience,
+          template: 'event.status_changed',
+          params: {
+            championship: context.championship,
+            match: context.match,
+            status: updated.status,
+            reason: input.reason,
+          },
+          entityType: 'event',
+          entityId: id,
+          link: '#/campeonatos',
+          excludeUserId: userId,
+        });
+      }
 
       return updated;
     });
