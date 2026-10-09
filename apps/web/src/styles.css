@@ -1421,3 +1421,42 @@ pre.json {
 .detail-list dd {
   margin: 0;
 }
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 1rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  padding: 0.5rem 1rem;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 0.25rem 0.25rem 0 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.tab.active {
+  border-color: var(--border);
+  background: var(--surface);
+  font-weight: 700;
+  box-shadow: 0 2px 0 var(--primary) inset;
+}
+
+.timeline {
+  margin: 1rem 0;
+  padding-left: 1.25rem;
+}
+
+.timeline li {
+  margin-bottom: 0.75rem;
+}
+
+.timeline p {
+  margin: 0.25rem 0 0;
+}

@@ -12,6 +12,7 @@ import {
   type StageType,
   type Venue,
 } from './types.js';
+import { IncidentDialog } from '../discipline/IncidentDialog.tsx';
 import { EventAssignmentsDialog } from '../officials/EventAssignmentsDialog.tsx';
 import { MatchScoresheetDialog } from './MatchScoresheetDialog.tsx';
 
@@ -29,6 +30,7 @@ export function FixturesTab({
   const canManage = permissions.includes('fixtures:manage');
   const canSeeAssignments = permissions.includes('assignments:read');
   const canAssign = permissions.includes('assignments:manage');
+  const canReport = permissions.includes('incidents:report');
 
   const [stagesState, reloadStages] = useFetch<Stage[]>(
     `/championships/${championship.id}/stages`,
@@ -88,6 +90,9 @@ export function FixturesTab({
     useState<CompetitionEvent | null>(null);
   const [assignmentsEvent, setAssignmentsEvent] =
     useState<CompetitionEvent | null>(null);
+  const [incidentEvent, setIncidentEvent] = useState<CompetitionEvent | null>(
+    null,
+  );
 
   const handleCreateStage = async (e: FormEvent) => {
     e.preventDefault();
@@ -190,6 +195,17 @@ export function FixturesTab({
   const approvedRegistrations = registrations.filter(
     (r) => r.status === 'aprobada' || r.status === 'pendiente',
   );
+
+  const clubsOf = (ev: CompetitionEvent) => {
+    const found = new Map<string, string>();
+    for (const p of ev.participants) {
+      const club =
+        p.registration.participant.team?.team.club ??
+        p.registration.participant.individual?.athlete.club;
+      if (club) found.set(club.id, club.name);
+    }
+    return [...found].map(([id, name]) => ({ id, name }));
+  };
 
   const getParticipantName = (r: Registration) => {
     if (r.participant.kind === 'equipo' && r.participant.team) {
@@ -587,7 +603,9 @@ export function FixturesTab({
                                       {EVENT_STATUS_LABELS[ev.status]}
                                     </span>
                                   </td>
-                                  {(canManage || canSeeAssignments) && (
+                                  {(canManage ||
+                                    canSeeAssignments ||
+                                    canReport) && (
                                     <td data-label="Acciones">
                                       {canSeeAssignments && (
                                         <button
@@ -602,6 +620,19 @@ export function FixturesTab({
                                           }
                                         >
                                           Designaciones
+                                        </button>
+                                      )}
+                                      {canReport && (
+                                        <button
+                                          type="button"
+                                          style={{
+                                            fontSize: '0.75rem',
+                                            padding: '0.25rem 0.5rem',
+                                            marginRight: '0.5rem',
+                                          }}
+                                          onClick={() => setIncidentEvent(ev)}
+                                        >
+                                          Reportar incidencia
                                         </button>
                                       )}
                                       {canManage && (
@@ -733,6 +764,22 @@ export function FixturesTab({
             .join(' vs ')}
           canManage={canAssign}
           onClose={() => setAssignmentsEvent(null)}
+        />
+      )}
+
+      {incidentEvent && (
+        <IncidentDialog
+          eventId={incidentEvent.id}
+          title={incidentEvent.participants
+            .map((p) => getParticipantName(p.registration))
+            .join(' vs ')}
+          clubs={clubsOf(incidentEvent)}
+          canListAthletes={permissions.includes('athletes:read')}
+          onClose={() => setIncidentEvent(null)}
+          onReported={() => {
+            setIncidentEvent(null);
+            setNotice({ type: 'success', text: 'Se reportó la incidencia.' });
+          }}
         />
       )}
 
