@@ -51,4 +51,7 @@ Cada comprobación también está disponible por separado: `format:check`, `lint
 - [`docs/clubs-people-teams.md`](docs/clubs-people-teams.md): clubes, deportistas (niveles de privacidad, consentimientos, perfil público), equipos, plantillas y transferencias.
 - [`docs/database.md`](docs/database.md): esquema, convenciones, migraciones y modelo de participantes.
 - [`docs/decisions.md`](docs/decisions.md): decisiones técnicas, discrepancias y preguntas pendientes para la Liga.
-- [`docs/roadmap.md`](docs/roadmap.md): estado de implementación por fase.
+- [`docs/deployment.md`](docs/deployment.md): despliegue en producción (servidor, variables de entorno, servicio systemd, Nginx con SSL y verificación).
+- [`docs/backup-restore.md`](docs/backup-restore.md): copias de seguridad y restauración verificada (`db:backup` / `db:restore`).
+- [`docs/user-manual.md`](docs/user-manual.md): manual de usuario del sistema privado y del portal público.
+- [`docs/roadmap.md`](docs/roadmap.md): estado de implementación por fase y alcance pendiente.
