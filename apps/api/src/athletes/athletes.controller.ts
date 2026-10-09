@@ -22,8 +22,10 @@ import {
   eligibilitySchema,
   publicationSchema,
   revokeConsentSchema,
+  transferSchema,
   updateAthleteSchema,
 } from './athletes.schemas.js';
+import { RosterService } from '../teams/roster.service.js';
 import { AthletesService } from './athletes.service.js';
 
 const ipOf = (req: AuthedRequest) => req.ip ?? 'desconocida';
@@ -33,6 +35,7 @@ const ipOf = (req: AuthedRequest) => req.ip ?? 'desconocida';
 export class AthletesController {
   constructor(
     @Inject(AthletesService) private readonly athletes: AthletesService,
+    @Inject(RosterService) private readonly roster: RosterService,
   ) {}
 
   @RequirePermissions('athletes:read')
@@ -170,5 +173,33 @@ export class AthletesController {
       parseOrThrow(publicationSchema, body).published,
       ipOf(req),
     );
+  }
+
+  /** Cambio de club: solo entre temporadas (sin inscripciones vigentes). */
+  @RequirePermissions('athletes:transfer')
+  @Post(':id/transfer')
+  transfer(
+    @CurrentAuth() auth: AuthContext,
+    @Req() req: AuthedRequest,
+    @Param('id') id: string,
+    @Body() body: unknown,
+  ) {
+    const input = parseOrThrow(transferSchema, body);
+    return this.athletes.transfer(
+      auth,
+      parseOrThrow(uuidSchema, id),
+      input.clubId,
+      input.reason,
+      ipOf(req),
+    );
+  }
+
+  /** Equipos del deportista por temporada (historial). */
+  @RequirePermissions('athletes:read', 'teams:read')
+  @Get(':id/teams')
+  async teams(@CurrentAuth() auth: AuthContext, @Param('id') id: string) {
+    const athleteId = parseOrThrow(uuidSchema, id);
+    await this.athletes.get(auth, athleteId); // comprueba el alcance por club
+    return this.roster.forAthlete(athleteId);
   }
 }
