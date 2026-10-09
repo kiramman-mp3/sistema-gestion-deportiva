@@ -540,6 +540,8 @@ export class ResultsService {
         yellowCards: number;
         redCards: number;
         buchholz?: number;
+        /** Puntos descontados por sanciones (ya restados de `points`). */
+        pointsDeducted?: number;
       }
     >();
 
@@ -717,6 +719,27 @@ export class ResultsService {
             row.redCards += tb.penalties; // acumulamos penalizaciones
           }
         }
+      }
+    }
+
+    // Descuentos de puntos por sanciones vigentes (decididas por la autoridad disciplinaria).
+    const deductions = await this.prisma.client.sanction.findMany({
+      where: {
+        championshipId,
+        type: 'descuento_puntos',
+        status: 'vigente',
+        teamId: { not: null },
+      },
+      select: { teamId: true, points: true },
+    });
+    for (const d of deductions) {
+      const reg = registrations.find(
+        (r) => r.participant.team?.teamId === d.teamId,
+      );
+      const row = reg ? tableMap.get(reg.id) : undefined;
+      if (row && d.points) {
+        row.points -= d.points;
+        row.pointsDeducted = (row.pointsDeducted ?? 0) + d.points;
       }
     }
 

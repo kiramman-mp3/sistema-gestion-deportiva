@@ -13,6 +13,8 @@ import { TeamsPage } from '../people/TeamsPage.tsx';
 import { ChampionshipDetailPage } from '../competitions/ChampionshipDetailPage.tsx';
 import { ChampionshipsPage } from '../competitions/ChampionshipsPage.tsx';
 import { VenuesPage } from '../competitions/VenuesPage.tsx';
+import { CaseDetailPage } from '../discipline/CaseDetailPage.tsx';
+import { DisciplinePage } from '../discipline/DisciplinePage.tsx';
 import { ApiStatus } from '../health/ApiStatus.tsx';
 import { InstitutionPage } from '../institution/InstitutionPage.tsx';
 import { NotificationsPage } from '../notifications/NotificationsPage.tsx';
@@ -68,6 +70,12 @@ const SECTIONS: Section[] = [
     permission: 'assignments:read_own',
   },
   {
+    hash: '#/disciplina',
+    label: 'Disciplina',
+    // Cualquiera de estos permisos habilita la sección (cada pestaña vuelve a comprobar el suyo).
+    permission: 'discipline',
+  },
+  {
     hash: '#/escenarios',
     label: 'Escenarios',
     permission: 'venues:read',
@@ -80,6 +88,14 @@ const SECTIONS: Section[] = [
   { hash: '#/auditoria', label: 'Auditoría', permission: 'audit:read' },
   { hash: '#/notificaciones', label: 'Notificaciones' },
   { hash: '#/cuenta', label: 'Mi cuenta' },
+];
+
+/** Permisos que dan acceso a alguna pestaña de disciplina. */
+const DISCIPLINE_PERMISSIONS = [
+  'incidents:read',
+  'complaints:read',
+  'cases:read',
+  'sanctions:read',
 ];
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -111,7 +127,11 @@ export function CatalogsApp({
   }, []);
 
   const visible = SECTIONS.filter(
-    (s) => !s.permission || permissions.includes(s.permission),
+    (s) =>
+      !s.permission ||
+      (s.permission === 'discipline'
+        ? DISCIPLINE_PERMISSIONS.some((p) => permissions.includes(p))
+        : permissions.includes(s.permission)),
   );
   // Una dirección sin permiso (o desconocida) vuelve a Inicio.
   const active = visible.find((s) => matches(s, hash)) ?? visible[0]!;
@@ -227,6 +247,16 @@ export function CatalogsApp({
       {active.hash === '#/mis-designaciones' && (
         <MyAssignmentsPage permissions={permissions} />
       )}
+      {active.hash === '#/disciplina' &&
+        (detailId && UUID.test(detailId) ? (
+          <CaseDetailPage
+            key={detailId}
+            caseId={detailId}
+            permissions={permissions}
+          />
+        ) : (
+          <DisciplinePage permissions={permissions} />
+        ))}
       {active.hash === '#/escenarios' && (
         <VenuesPage permissions={permissions} />
       )}
