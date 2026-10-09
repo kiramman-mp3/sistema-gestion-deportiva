@@ -6,6 +6,9 @@ import { CatalogsModule } from './catalogs/catalogs.module.js';
 import { ConfigModule } from './config/config.module.js';
 import { PrismaModule } from './database/prisma.module.js';
 import { HealthController } from './health/health.controller.js';
+import { ClubsModule } from './clubs/clubs.module.js';
+import { PeopleModule } from './people/people.module.js';
+import { PublicModule } from './public/public.module.js';
 import { UsersModule } from './users/users.module.js';
 
 @Module({
@@ -17,6 +20,9 @@ import { UsersModule } from './users/users.module.js';
     AuthModule,
     UsersModule,
     CatalogsModule,
+    PeopleModule,
+    ClubsModule,
+    PublicModule,
   ],
   controllers: [HealthController],
 })

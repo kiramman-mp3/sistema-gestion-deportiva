@@ -158,3 +158,50 @@ export async function adminWith(
   const user = await createUser(prisma, { permissions });
   return { user, session: await login(t, user.email) };
 }
+
+// ───────────────────── Clubes y personas ─────────────────────
+
+/** Cédula ecuatoriana válida a partir de 9 dígitos (calcula el verificador). */
+export function cedula(first9 = '171003406'): string {
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    let n = Number(first9[i]) * (i % 2 === 0 ? 2 : 1);
+    if (n > 9) n -= 9;
+    sum += n;
+  }
+  return first9 + String((10 - (sum % 10)) % 10);
+}
+
+let clubCounter = 0;
+export async function createClub(
+  prisma: PrismaClient,
+  name?: string,
+  status: 'activo' | 'inactivo' | 'suspendido' | 'archivado' = 'activo',
+) {
+  const { normalizeKey, slugify } = await import('../../src/common/keys.js');
+  const label = name ?? `Club de Prueba ${++clubCounter}`;
+  return prisma.club.create({
+    data: {
+      name: label,
+      nameKey: normalizeKey(label),
+      slug: slugify(label),
+      status,
+    },
+  });
+}
+
+/**
+ * Usuario con exactamente esos permisos, vinculado a esos clubes (alcance), con la
+ * sesión iniciada. Sin `clubs:access_all` solo alcanza a los clubes indicados.
+ */
+export async function leaderWith(
+  t: TestApp,
+  prisma: PrismaClient,
+  permissions: string[],
+  clubIds: string[] = [],
+) {
+  const user = await createUser(prisma, { permissions });
+  for (const clubId of clubIds)
+    await prisma.clubUser.create({ data: { clubId, userId: user.id } });
+  return { user, session: await login(t, user.email) };
+}
