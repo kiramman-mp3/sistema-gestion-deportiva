@@ -16,6 +16,7 @@ import { escapeLike, listQuerySchema } from '../catalogs/common.js';
 import { ResultsService } from '../competitions/results/results.service.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { InstitutionService } from '../institution/institution.service.js';
+import { PublicNamesService } from './public-names.service.js';
 import { DocumentsService } from '../documents/documents.service.js';
 import type { ChampionshipStatus, Prisma } from '../generated/prisma/client.js';
 import { publicChampionshipsQuerySchema } from './public.schemas.js';
@@ -36,6 +37,7 @@ export class PublicController {
     @Inject(ResultsService) private readonly results: ResultsService,
     @Inject(InstitutionService)
     private readonly institution: InstitutionService,
+    @Inject(PublicNamesService) private readonly names: PublicNamesService,
   ) {}
 
   /** Clubes activos: nombre, nombre corto, identificador y sector. */
@@ -120,6 +122,7 @@ export class PublicController {
       status: { in: allowedStatuses },
       ...(parsed.sportId && { sportId: parsed.sportId }),
       ...(parsed.seasonId && { seasonId: parsed.seasonId }),
+      ...(parsed.categoryId && { categoryId: parsed.categoryId }),
       ...(parsed.q && {
         name: { contains: escapeLike(parsed.q), mode: 'insensitive' },
       }),
@@ -257,6 +260,23 @@ export class PublicController {
       },
     });
 
+    // Los menores sin consentimiento de publicación no se nombran (ver PublicNamesService).
+    const athleteIds = stages.flatMap((st) =>
+      st.rounds.flatMap((r) =>
+        r.events.flatMap((e) => [
+          ...e.participants.flatMap((ep) =>
+            ep.registration.participant.individual
+              ? [ep.registration.participant.individual.athlete.id]
+              : [],
+          ),
+          ...(e.result?.footballEvents ?? []).flatMap((fe) =>
+            fe.athlete ? [fe.athlete.id] : [],
+          ),
+        ]),
+      ),
+    );
+    const labels = await this.names.labels(athleteIds);
+
     return stages.map((stage) => ({
       id: stage.id,
       name: stage.name,
@@ -290,7 +310,7 @@ export class PublicController {
                 ep.registration.participant.individual
               ) {
                 const ind = ep.registration.participant.individual;
-                name = `${ind.athlete.person.firstName} ${ind.athlete.person.lastName}`;
+                name = labels.get(ind.athlete.id) ?? 'Deportista';
                 clubName = ind.athlete.club.name;
               }
 
@@ -322,7 +342,7 @@ export class PublicController {
                       eventType: fe.eventType,
                       minute: fe.minute,
                       athleteName: fe.athlete
-                        ? `${fe.athlete.person.firstName} ${fe.athlete.person.lastName}`
+                        ? (labels.get(fe.athlete.id) ?? 'Deportista')
                         : null,
                       notes: fe.notes,
                     })),
@@ -352,10 +372,18 @@ export class PublicController {
     }
 
     const calculated = await this.results.calculateStandings(champId);
+    const labels = await this.names.labels(
+      calculated.standings.flatMap((row) =>
+        row.athleteId ? [row.athleteId] : [],
+      ),
+    );
     return {
       championship: champ,
       rules: calculated.rules,
-      standings: calculated.standings,
+      standings: calculated.standings.map(({ athleteId, ...row }) => ({
+        ...row,
+        name: athleteId ? (labels.get(athleteId) ?? row.name) : row.name,
+      })),
     };
   }
 
@@ -481,10 +509,13 @@ export class PublicController {
           });
 
           if (teamSeason) {
+            const labels = await this.names.labels(
+              teamSeason.memberships.map((m) => m.athlete.id),
+            );
             roster = teamSeason.memberships.map((m) => ({
               jerseyNumber: m.jerseyNumber,
               code: athleteCode(m.athlete.codeNumber),
-              name: `${m.athlete.person.firstName} ${m.athlete.person.lastName}`,
+              name: labels.get(m.athlete.id) ?? 'Deportista',
             }));
           }
         } else if (
@@ -492,7 +523,9 @@ export class PublicController {
           ep.registration.participant.individual
         ) {
           const ind = ep.registration.participant.individual;
-          name = `${ind.athlete.person.firstName} ${ind.athlete.person.lastName}`;
+          name =
+            (await this.names.labels([ind.athlete.id])).get(ind.athlete.id) ??
+            'Deportista';
           clubName = ind.athlete.club.name;
           roster = [
             {
@@ -518,6 +551,12 @@ export class PublicController {
           roster,
         };
       }),
+    );
+
+    const eventLabels = await this.names.labels(
+      (event.result?.footballEvents ?? []).flatMap((fe) =>
+        fe.athlete ? [fe.athlete.id] : [],
+      ),
     );
 
     return {
@@ -557,7 +596,7 @@ export class PublicController {
                 minute: fe.minute,
                 eventType: fe.eventType,
                 athleteName: fe.athlete
-                  ? `${fe.athlete.person.firstName} ${fe.athlete.person.lastName}`
+                  ? (eventLabels.get(fe.athlete.id) ?? 'Jugador')
                   : 'Jugador',
                 notes: fe.notes,
               })),
@@ -679,10 +718,13 @@ export class PublicController {
       });
 
       if (teamSeason) {
+        const labels = await this.names.labels(
+          teamSeason.memberships.map((m) => m.athlete.id),
+        );
         members = teamSeason.memberships.map((m) => ({
           jerseyNumber: m.jerseyNumber,
           code: athleteCode(m.athlete.codeNumber),
-          name: `${m.athlete.person.firstName} ${m.athlete.person.lastName}`,
+          name: labels.get(m.athlete.id) ?? 'Deportista',
           status: m.status,
         }));
       }
@@ -691,7 +733,9 @@ export class PublicController {
       reg.participant.individual
     ) {
       const ind = reg.participant.individual;
-      participantName = `${ind.athlete.person.firstName} ${ind.athlete.person.lastName}`;
+      participantName =
+        (await this.names.labels([ind.athlete.id])).get(ind.athlete.id) ??
+        'Deportista';
       clubName = ind.athlete.club.name;
       clubSector = ind.athlete.club.sector ?? '';
       members = [

@@ -1,0 +1,674 @@
+import { useState } from 'react';
+import { useFetch } from '../../hooks/useFetch.ts';
+import { Pagination } from '../../components/Pagination.tsx';
+import { LoadState, SelectField, TextField } from '../people/fields.tsx';
+import type {
+  PublicAnnouncement,
+  PublicAnnouncementSummary,
+  PublicChampionshipsResponse,
+  PublicClub,
+  PublicEventDetail,
+  PublicEventSummary,
+  PublicHome,
+  PublicInstitution,
+  PublicPage,
+  PublicResolution,
+} from './types.ts';
+
+const dateTime = new Intl.DateTimeFormat('es-EC', {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+});
+const dateOnly = new Intl.DateTimeFormat('es-EC', { dateStyle: 'long' });
+const day = (iso: string) =>
+  dateOnly.format(new Date(iso.slice(0, 10) + 'T12:00:00'));
+
+const STATUS_LABELS: Record<string, string> = {
+  programado: 'Programado',
+  en_curso: 'En curso',
+  finalizado: 'Finalizado',
+  suspendido: 'Suspendido',
+  postergado: 'Postergado',
+  cancelado: 'Cancelado',
+};
+
+/** Texto plano: cada línea en blanco separa un párrafo. Nunca se interpreta como HTML. */
+export function Paragraphs({ text }: { text: string }) {
+  return (
+    <>
+      {text
+        .split(/\n{2,}/)
+        .map((p) => p.trim())
+        .filter(Boolean)
+        .map((p, i) => (
+          <p key={i} className="plain-text">
+            {p}
+          </p>
+        ))}
+    </>
+  );
+}
+
+function CopyLink({ hash }: { hash: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      className="link-button"
+      onClick={() => {
+        const url = `${window.location.origin}${window.location.pathname}${hash}`;
+        void navigator.clipboard
+          ?.writeText(url)
+          .then(() => setCopied(true))
+          .catch(() => undefined);
+      }}
+    >
+      {copied ? 'Enlace copiado' : 'Copiar enlace'}
+    </button>
+  );
+}
+
+// ───────────────────── Partidos ─────────────────────
+
+export function MatchRow({ event }: { event: PublicEventSummary }) {
+  const a =
+    event.participants.find((p) => p.side === 'local') ?? event.participants[0];
+  const b =
+    event.participants.find((p) => p.side === 'visitante') ??
+    event.participants[1];
+  return (
+    <article className="match-card">
+      <div className="match-meta">
+        <span className="match-venue">
+          📍 {event.venue?.name ?? 'Por confirmar'}
+        </span>
+        <span className="match-date">
+          🕒{' '}
+          {event.scheduledAt
+            ? dateTime.format(new Date(event.scheduledAt))
+            : 'Fecha por definir'}
+        </span>
+        <span className={`match-status-pill status-${event.status}`}>
+          {STATUS_LABELS[event.status] ?? event.status}
+        </span>
+      </div>
+      <div className="match-teams-row">
+        <div className="match-team local">
+          <span className="team-name">{a?.name ?? 'Por definir'}</span>
+          <small className="team-club">{a?.clubName}</small>
+        </div>
+        <div className="match-score">
+          {event.hasResult ? (
+            <span className="score-numbers">
+              {a?.score ?? 0} — {b?.score ?? 0}
+            </span>
+          ) : (
+            <span className="vs-badge">VS</span>
+          )}
+        </div>
+        <div className="match-team away">
+          <span className="team-name">{b?.name ?? 'Por definir'}</span>
+          <small className="team-club">{b?.clubName}</small>
+        </div>
+      </div>
+      <p className="hint">
+        {event.championship.name} · {event.round}
+      </p>
+      <div className="match-footer-actions">
+        <a className="print-link-button" href={`#/portal/partido/${event.id}`}>
+          Ver detalle del partido
+        </a>
+      </div>
+    </article>
+  );
+}
+
+// ───────────────────── Inicio ─────────────────────
+
+export function NewsCard({ item }: { item: PublicAnnouncementSummary }) {
+  return (
+    <article className="news-card">
+      {item.cover && (
+        <img
+          src={`/api/public/media/${item.cover.id}`}
+          alt={item.cover.altText}
+        />
+      )}
+      <div className="news-body">
+        <span className="sport-tag">
+          {item.kind === 'comunicado' ? 'Comunicado' : 'Noticia'} ·{' '}
+          {dateOnly.format(new Date(item.publishedAt))}
+        </span>
+        <h4>
+          <a href={`#/portal/noticias/${item.slug}`}>{item.title}</a>
+        </h4>
+        <p>{item.summary}</p>
+      </div>
+    </article>
+  );
+}
+
+export function HomePage() {
+  const [home, reload] = useFetch<PublicHome>('/public/home');
+  return (
+    <>
+      <LoadState state={home} onRetry={reload} />
+      {home.kind === 'ready' && (
+        <>
+          {home.data.news.length > 0 && (
+            <section className="portal-section" aria-labelledby="home-news">
+              <div className="section-header">
+                <h3 id="home-news">Últimas noticias</h3>
+                <a href="#/portal/noticias">Ver todas</a>
+              </div>
+              <div className="news-grid">
+                {home.data.news.map((n) => (
+                  <NewsCard key={n.slug} item={n} />
+                ))}
+              </div>
+            </section>
+          )}
+          <section className="portal-section" aria-labelledby="home-upcoming">
+            <div className="section-header">
+              <h3 id="home-upcoming">Próximos partidos</h3>
+              <a href="#/portal/calendario">Ver calendario</a>
+            </div>
+            {home.data.upcoming.length === 0 ? (
+              <p className="empty-state">
+                No hay partidos programados por ahora.
+              </p>
+            ) : (
+              <div className="events-list">
+                {home.data.upcoming.map((e) => (
+                  <MatchRow key={e.id} event={e} />
+                ))}
+              </div>
+            )}
+          </section>
+          <section className="portal-section" aria-labelledby="home-recent">
+            <div className="section-header">
+              <h3 id="home-recent">Últimos resultados oficiales</h3>
+              <a href="#/portal/competencias">Ver posiciones</a>
+            </div>
+            {home.data.recent.length === 0 ? (
+              <p className="empty-state">Aún no hay resultados aprobados.</p>
+            ) : (
+              <div className="events-list">
+                {home.data.recent.map((e) => (
+                  <MatchRow key={e.id} event={e} />
+                ))}
+              </div>
+            )}
+          </section>
+        </>
+      )}
+    </>
+  );
+}
+
+// ───────────────────── Calendario ─────────────────────
+
+export function CalendarPage() {
+  const [page, setPage] = useState(1);
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
+  const [sportId, setSportId] = useState('');
+  const [championshipId, setChampionshipId] = useState('');
+  const [status, setStatus] = useState('');
+
+  const [champs] = useFetch<PublicChampionshipsResponse>(
+    '/public/championships?pageSize=100',
+  );
+
+  const query = new URLSearchParams({
+    page: String(page),
+    pageSize: '10',
+    ...(from && { from }),
+    ...(to && { to }),
+    ...(sportId && { sportId }),
+    ...(championshipId && { championshipId }),
+    ...(status && { status }),
+  });
+  const [events, reload] = useFetch<PublicPage<PublicEventSummary>>(
+    `/public/events?${query.toString()}`,
+  );
+
+  const sports =
+    champs.kind === 'ready'
+      ? [
+          ...new Map(
+            champs.data.items.map((c) => [c.sport.id, c.sport]),
+          ).values(),
+        ]
+      : [];
+  const reset =
+    <T,>(setter: (v: T) => void) =>
+    (v: T) => {
+      setter(v);
+      setPage(1);
+    };
+
+  return (
+    <section className="portal-section" aria-labelledby="calendar-title">
+      <div className="section-header">
+        <h3 id="calendar-title">Calendario de partidos</h3>
+      </div>
+      <div className="filters">
+        <TextField
+          label="Desde"
+          type="date"
+          value={from}
+          onChange={reset(setFrom)}
+        />
+        <TextField
+          label="Hasta"
+          type="date"
+          value={to}
+          onChange={reset(setTo)}
+        />
+        <SelectField
+          label="Deporte"
+          value={sportId}
+          onChange={reset(setSportId)}
+          placeholder="Todos los deportes"
+          options={sports.map((s) => ({ value: s.id, label: s.name }))}
+        />
+        <SelectField
+          label="Campeonato"
+          value={championshipId}
+          onChange={reset(setChampionshipId)}
+          placeholder="Todos los campeonatos"
+          options={
+            champs.kind === 'ready'
+              ? champs.data.items.map((c) => ({ value: c.id, label: c.name }))
+              : []
+          }
+        />
+        <SelectField
+          label="Estado"
+          value={status}
+          onChange={reset(setStatus)}
+          placeholder="Todos los estados"
+          options={Object.entries(STATUS_LABELS).map(([value, label]) => ({
+            value,
+            label,
+          }))}
+        />
+      </div>
+      <LoadState state={events} onRetry={reload} />
+      {events.kind === 'ready' && events.data.items.length === 0 && (
+        <p className="empty-state">
+          No hay partidos para los filtros elegidos.
+        </p>
+      )}
+      {events.kind === 'ready' && events.data.items.length > 0 && (
+        <>
+          <div className="events-list">
+            {events.data.items.map((e) => (
+              <MatchRow key={e.id} event={e} />
+            ))}
+          </div>
+          <Pagination
+            page={events.data.page}
+            pageSize={events.data.pageSize}
+            total={events.data.total}
+            onChange={setPage}
+          />
+        </>
+      )}
+    </section>
+  );
+}
+
+// ───────────────────── Detalle de un partido ─────────────────────
+
+const EVENT_TYPE_LABELS: Record<string, string> = {
+  gol: 'Gol',
+  tarjeta_amarilla: 'Tarjeta amarilla',
+  tarjeta_roja: 'Tarjeta roja',
+  sustitucion: 'Sustitución',
+};
+
+export function MatchPage({
+  eventId,
+  onOpenPrint,
+}: {
+  eventId: string;
+  onOpenPrint: (kind: 'acta' | 'nomina', id: string) => void;
+}) {
+  const [event, reload] = useFetch<PublicEventDetail>(
+    `/public/events/${eventId}`,
+  );
+  return (
+    <section className="portal-section" aria-labelledby="match-title">
+      <p>
+        <a href="#/portal/calendario">← Volver al calendario</a>
+      </p>
+      <LoadState state={event} onRetry={reload} />
+      {event.kind === 'ready' && (
+        <>
+          <h3 id="match-title">
+            {event.data.participants.map((p) => p.name).join(' vs ')}
+          </h3>
+          <p className="hint">
+            {event.data.championship.name} ·{' '}
+            {event.data.championship.sport.name} ·{' '}
+            {event.data.championship.category.name} · {event.data.round}
+          </p>
+          <MatchRow event={event.data} />
+          {event.data.venue?.address && (
+            <p>
+              <strong>Escenario:</strong> {event.data.venue.name} —{' '}
+              {event.data.venue.address}
+            </p>
+          )}
+          {event.data.postponementReason && (
+            <p>
+              <strong>Motivo del cambio:</strong>{' '}
+              {event.data.postponementReason}
+            </p>
+          )}
+          {event.data.result && (
+            <>
+              {event.data.result.footballEvents.length > 0 && (
+                <>
+                  <h4>Incidencias del partido</h4>
+                  <ul className="plain-list">
+                    {event.data.result.footballEvents.map((fe, i) => (
+                      <li key={i}>
+                        Min. {fe.minute}:{' '}
+                        {EVENT_TYPE_LABELS[fe.eventType] ?? fe.eventType}
+                        {fe.athleteName ? ` — ${fe.athleteName}` : ''}
+                        {fe.team ? ` (${fe.team})` : ''}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              {event.data.result.periodScores.length > 0 && (
+                <p>
+                  <strong>Puntuación por período:</strong>{' '}
+                  {event.data.result.periodScores
+                    .map((s) => `P${s.periodNumber}: ${s.score}`)
+                    .join(' · ')}
+                </p>
+              )}
+            </>
+          )}
+          <p className="row-actions">
+            <button
+              type="button"
+              className="link-button"
+              onClick={() => onOpenPrint('acta', event.data.id)}
+            >
+              🖨️ Ver / imprimir acta oficial
+            </button>
+            <CopyLink hash={`#/portal/partido/${event.data.id}`} />
+          </p>
+        </>
+      )}
+    </section>
+  );
+}
+
+// ───────────────────── Noticias ─────────────────────
+
+export function NewsListPage() {
+  const [page, setPage] = useState(1);
+  const [kind, setKind] = useState('');
+  const query = new URLSearchParams({
+    page: String(page),
+    pageSize: '9',
+    ...(kind && { kind }),
+  });
+  const [news, reload] = useFetch<PublicPage<PublicAnnouncementSummary>>(
+    `/public/announcements?${query.toString()}`,
+  );
+  return (
+    <section className="portal-section" aria-labelledby="news-title">
+      <div className="section-header">
+        <h3 id="news-title">Noticias y comunicados</h3>
+      </div>
+      <div className="filters">
+        <SelectField
+          label="Mostrar"
+          value={kind}
+          onChange={(v) => {
+            setKind(v);
+            setPage(1);
+          }}
+          placeholder="Noticias y comunicados"
+          options={[
+            { value: 'noticia', label: 'Solo noticias' },
+            { value: 'comunicado', label: 'Solo comunicados' },
+          ]}
+        />
+      </div>
+      <LoadState state={news} onRetry={reload} />
+      {news.kind === 'ready' && news.data.items.length === 0 && (
+        <p className="empty-state">Todavía no hay publicaciones.</p>
+      )}
+      {news.kind === 'ready' && news.data.items.length > 0 && (
+        <>
+          <div className="news-grid">
+            {news.data.items.map((n) => (
+              <NewsCard key={n.slug} item={n} />
+            ))}
+          </div>
+          <Pagination
+            page={news.data.page}
+            pageSize={news.data.pageSize}
+            total={news.data.total}
+            onChange={setPage}
+          />
+        </>
+      )}
+    </section>
+  );
+}
+
+export function NewsArticlePage({ slug }: { slug: string }) {
+  const [article, reload] = useFetch<PublicAnnouncement>(
+    `/public/announcements/${slug}`,
+  );
+  return (
+    <article className="portal-section article" aria-labelledby="article-title">
+      <p>
+        <a href="#/portal/noticias">← Todas las noticias</a>
+      </p>
+      <LoadState state={article} onRetry={reload} />
+      {article.kind === 'ready' && (
+        <>
+          <span className="sport-tag">
+            {article.data.kind === 'comunicado' ? 'Comunicado' : 'Noticia'} ·{' '}
+            {dateOnly.format(new Date(article.data.publishedAt))}
+          </span>
+          <h2 id="article-title">{article.data.title}</h2>
+          {article.data.cover && (
+            <img
+              className="article-cover"
+              src={`/api/public/media/${article.data.cover.id}`}
+              alt={article.data.cover.altText}
+            />
+          )}
+          <p className="lead">{article.data.summary}</p>
+          <Paragraphs text={article.data.content} />
+          <p>
+            <CopyLink hash={`#/portal/noticias/${article.data.slug}`} />
+          </p>
+        </>
+      )}
+    </article>
+  );
+}
+
+// ───────────────────── Clubes ─────────────────────
+
+export function ClubsPage() {
+  const [clubs, reload] = useFetch<PublicPage<PublicClub>>(
+    '/public/clubs?pageSize=100',
+  );
+  return (
+    <section className="portal-section" aria-labelledby="clubs-title">
+      <div className="section-header">
+        <h3 id="clubs-title">Organizaciones y clubes afiliados</h3>
+      </div>
+      <LoadState state={clubs} onRetry={reload} />
+      {clubs.kind === 'ready' && clubs.data.items.length === 0 && (
+        <p className="empty-state">No hay clubes para mostrar.</p>
+      )}
+      {clubs.kind === 'ready' && clubs.data.items.length > 0 && (
+        <div className="clubs-pills-grid">
+          {clubs.data.items.map((club) => (
+            <div key={club.slug} className="club-pill">
+              <div className="club-icon">🛡️</div>
+              <div className="club-info">
+                <strong>{club.name}</strong>
+                <small>
+                  {club.sector ? `Sector ${club.sector}` : 'Quero, Tungurahua'}
+                </small>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+// ───────────────────── Resoluciones ─────────────────────
+
+export function ResolutionsPage() {
+  const [page, setPage] = useState(1);
+  const [list, reload] = useFetch<PublicPage<PublicResolution>>(
+    `/public/resolutions?page=${page}&pageSize=10`,
+  );
+  return (
+    <section className="portal-section" aria-labelledby="resolutions-title">
+      <div className="section-header">
+        <h3 id="resolutions-title">Resoluciones disciplinarias</h3>
+      </div>
+      <p className="hint">
+        Solo se publican las resoluciones que la Liga decide hacer públicas, sin
+        nombres de personas.
+      </p>
+      <LoadState state={list} onRetry={reload} />
+      {list.kind === 'ready' && list.data.items.length === 0 && (
+        <p className="empty-state">No hay resoluciones publicadas.</p>
+      )}
+      {list.kind === 'ready' && list.data.items.length > 0 && (
+        <>
+          {list.data.items.map((r) => (
+            <article key={r.id} className="championship-card">
+              <span className="sport-tag">
+                {r.code} · {dateOnly.format(new Date(r.publishedAt))}
+                {r.championship ? ` · ${r.championship}` : ''}
+              </span>
+              <h4>{r.title}</h4>
+              {r.summary && <Paragraphs text={r.summary} />}
+              {r.sanctions.length > 0 && (
+                <ul className="plain-list">
+                  {r.sanctions.map((s, i) => (
+                    <li key={i}>
+                      {s.typeLabel} a {s.subject}
+                      {s.team ? ` (${s.team})` : ''}
+                      {s.club ? ` del club ${s.club}` : ''}
+                      {s.matchesCount ? `, ${s.matchesCount} partidos` : ''}
+                      {s.points ? `, ${s.points} puntos` : ''} — desde{' '}
+                      {day(s.startsAt)}
+                      {s.endsAt ? ` hasta ${day(s.endsAt)}` : ''}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </article>
+          ))}
+          <Pagination
+            page={list.data.page}
+            pageSize={list.data.pageSize}
+            total={list.data.total}
+            onChange={setPage}
+          />
+        </>
+      )}
+    </section>
+  );
+}
+
+// ───────────────────── La Liga ─────────────────────
+
+export function AboutPage({ institution }: { institution: PublicInstitution }) {
+  return (
+    <section className="portal-section" aria-labelledby="about-title">
+      <div className="section-header">
+        <h3 id="about-title">{institution.name}</h3>
+      </div>
+      {institution.affiliation && <p>{institution.affiliation}</p>}
+      {institution.about ? (
+        <Paragraphs text={institution.about} />
+      ) : (
+        <p className="empty-state">La Liga aún no publicó su presentación.</p>
+      )}
+      {(institution.presidentName || institution.secretaryName) && (
+        <dl className="detail-list">
+          {institution.presidentName && (
+            <>
+              <dt>Presidente</dt>
+              <dd>{institution.presidentName}</dd>
+            </>
+          )}
+          {institution.secretaryName && (
+            <>
+              <dt>Secretario/a</dt>
+              <dd>{institution.secretaryName}</dd>
+            </>
+          )}
+        </dl>
+      )}
+
+      <h3 id="contact">Contacto</h3>
+      <dl className="detail-list">
+        {institution.address && (
+          <>
+            <dt>Dirección</dt>
+            <dd>{institution.address}</dd>
+          </>
+        )}
+        {institution.phone && (
+          <>
+            <dt>Teléfono</dt>
+            <dd>{institution.phone}</dd>
+          </>
+        )}
+        {institution.email && (
+          <>
+            <dt>Correo</dt>
+            <dd>
+              <a href={`mailto:${institution.email}`}>{institution.email}</a>
+            </dd>
+          </>
+        )}
+        {institution.website && (
+          <>
+            <dt>Sitio web</dt>
+            <dd>
+              <a href={institution.website} rel="noopener noreferrer">
+                {institution.website}
+              </a>
+            </dd>
+          </>
+        )}
+      </dl>
+      {institution.contactInfo && <Paragraphs text={institution.contactInfo} />}
+
+      <h3 id="privacy">Política de privacidad</h3>
+      {institution.privacyPolicy ? (
+        <Paragraphs text={institution.privacyPolicy} />
+      ) : (
+        <p className="empty-state">
+          La política de privacidad todavía no fue publicada.
+        </p>
+      )}
+    </section>
+  );
+}

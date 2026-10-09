@@ -91,6 +91,13 @@ export const PERMISSIONS = {
   'sanctions:read':
     'Consultar sanciones (las de los clubes vinculados, o todas con «acceso a todos los clubes»)',
   'sanctions:manage': 'Registrar, cumplir y anular sanciones',
+  'announcements:read': 'Consultar noticias, comunicados e imágenes del portal',
+  'announcements:manage':
+    'Redactar y editar noticias y comunicados y subir imágenes (no los publica)',
+  'announcements:publish':
+    'Publicar, retirar y archivar noticias y comunicados en el portal',
+  'announcements:delete':
+    'Eliminar borradores de noticias que nunca se publicaron',
   'notifications:manage':
     'Consultar la cola de correos, reintentar envíos y enviar recordatorios de documentación',
   'institution:read': 'Consultar la configuración institucional',
@@ -132,6 +139,7 @@ export const PERMISSION_MODULES = {
   complaints: 'Reclamos',
   cases: 'Expedientes disciplinarios',
   sanctions: 'Sanciones',
+  announcements: 'Noticias y comunicados',
 } as const satisfies Record<string, string>;
 
 /**

@@ -542,6 +542,8 @@ export class ResultsService {
         buchholz?: number;
         /** Puntos descontados por sanciones (ya restados de `points`). */
         pointsDeducted?: number;
+        /** Solo en participantes individuales: permite al portal público decidir cómo nombrarlos. */
+        athleteId?: string;
       }
     >();
 
@@ -565,6 +567,7 @@ export class ResultsService {
         participantId: reg.participantId,
         name,
         clubName,
+        athleteId: reg.participant.individual?.athlete.id,
         played: 0,
         won: 0,
         drawn: 0,
