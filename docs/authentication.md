@@ -109,7 +109,7 @@ Generar la clave: `node -e "console.log(require('crypto').randomBytes(32).toStri
 
 Reglas de seguridad adicionales de la administración: nadie cambia su **propio** estado ni sus **propios** roles; solo se asigna o retira un rol cuyos permisos el actor posee todos (evita autoescalada y que un administrador parcial cree o elimine superadministradores); nunca puede quedar el sistema sin un superadministrador **activo** (los cambios se serializan con un bloqueo asesor de PostgreSQL).
 
-Permisos del catálogo (`src/authz/permissions.ts`): `users:read|create|update`, `roles:read|manage`, `audit:read`, `sports|categories|seasons:read|manage`. Los usados hoy por rutas son `users:update`, `roles:manage` y `roles:read`; el resto está reservado para los módulos siguientes. Un usuario nuevo **no tiene ningún rol**. Solo `superadmin` (rol de sistema) recibe todos los permisos; la matriz real de roles institucionales debe aprobarla la Liga.
+Permisos del catálogo (`src/authz/permissions.ts`): `users:read|create|update`, `roles:read|manage`, `audit:read` y, por cada catálogo (`sports`, `categories`, `seasons`), `read`, `manage` y `delete` (ver `catalogs.md`). Los usados hoy por rutas son `users:update`, `roles:manage`, `roles:read` y los de catálogos; el resto está reservado para los módulos siguientes. Un usuario nuevo **no tiene ningún rol**.
 
 ## Primer superadministrador
 

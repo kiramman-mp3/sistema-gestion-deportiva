@@ -71,4 +71,20 @@ describe('esquemas de validación', () => {
       expect(JSON.stringify(body)).not.toContain('valor-secreto');
     }
   });
+
+  it('los mensajes de validación por defecto están en español', () => {
+    try {
+      parseOrThrow(z.object({ reason: z.string() }), {});
+      expect.unreachable();
+    } catch (error) {
+      const body = (error as BadRequestException).getResponse() as {
+        errors: { field: string; message: string }[];
+      };
+      expect(body.errors[0]!.field).toBe('reason');
+      expect(body.errors[0]!.message).not.toMatch(
+        /expected|received|Invalid input/,
+      );
+      expect(body.errors[0]!.message).toMatch(/Entrada inválida/);
+    }
+  });
 });
