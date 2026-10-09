@@ -3,6 +3,7 @@ import { createTestApp, type TestApp } from '../support/app.js';
 import { createTestPrisma, resetDatabase } from '../support/db.js';
 import {
   adminWith,
+  allowSelfApproval,
   authed,
   createClub,
   seedCatalog,
@@ -43,6 +44,7 @@ describe('portal público y documentos institucionales imprimibles', () => {
   beforeEach(async () => {
     await resetDatabase(prisma);
     await seedCatalog(prisma);
+    await allowSelfApproval(prisma);
     admin = await adminWith(t, prisma, PERMISSIONS);
 
     const club1 = await createClub(prisma, 'Club Deportivo San Pedro');
@@ -323,6 +325,7 @@ describe('portal público y documentos institucionales imprimibles', () => {
     expect(eventDraft.participants[0].score).toBeNull();
 
     // Aprobar resultado oficial
+    await api().post(`/api/events/${eventId}/result/submit`).expect(201);
     await api()
       .post(`/api/events/${eventId}/result/approve`)
       .send({
@@ -355,6 +358,7 @@ describe('portal público y documentos institucionales imprimibles', () => {
         ],
       })
       .expect(200);
+    await api().post(`/api/events/${eventId}/result/submit`).expect(201);
     await api()
       .post(`/api/events/${eventId}/result/approve`)
       .send({ approved: true, reason: 'Validación reglamentaria' })
