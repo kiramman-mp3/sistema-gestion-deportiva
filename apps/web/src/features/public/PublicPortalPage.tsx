@@ -1,79 +1,131 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useFetch } from '../../hooks/useFetch.ts';
-import type {
-  PublicChampionship,
-  PublicChampionshipsResponse,
-  PublicClub,
-  PublicStage,
-  PublicStandingsResponse,
-} from './types.ts';
+import { CompetitionsView } from './CompetitionsView.tsx';
+import {
+  AboutPage,
+  CalendarPage,
+  ClubsPage,
+  HomePage,
+  MatchPage,
+  NewsArticlePage,
+  NewsListPage,
+  ResolutionsPage,
+} from './PortalPages.tsx';
+import type { PublicInstitution } from './types.ts';
 
 interface PublicPortalPageProps {
   onLoginClick?: () => void;
   onOpenPrintDocument?: (kind: 'acta' | 'nomina', id: string) => void;
 }
 
-const SPORT_FILTERS = [
-  { code: 'all', label: 'Todos los deportes', icon: '🏆' },
-  { code: 'futbol', label: 'Fútbol', icon: '⚽' },
-  { code: 'basquet', label: 'Básquet', icon: '🏀' },
-  { code: 'taekwondo', label: 'Taekwondo', icon: '🥋' },
-  { code: 'ajedrez', label: 'Ajedrez', icon: '♟️' },
+type PortalRoute =
+  | { page: 'inicio' }
+  | { page: 'competencias' }
+  | { page: 'calendario' }
+  | { page: 'partido'; id: string }
+  | { page: 'noticias' }
+  | { page: 'noticia'; slug: string }
+  | { page: 'clubes' }
+  | { page: 'resoluciones' }
+  | { page: 'liga' };
+
+/** `#/portal`, `#/portal/noticias/<slug>`, `#/portal/partido/<id>`… */
+export function parsePortalRoute(hash: string): PortalRoute {
+  const [, , section, param] = hash.split('/');
+  switch (section) {
+    case 'competencias':
+      return { page: 'competencias' };
+    case 'calendario':
+      return { page: 'calendario' };
+    case 'partido':
+      return param ? { page: 'partido', id: param } : { page: 'calendario' };
+    case 'noticias':
+      return param ? { page: 'noticia', slug: param } : { page: 'noticias' };
+    case 'clubes':
+      return { page: 'clubes' };
+    case 'resoluciones':
+      return { page: 'resoluciones' };
+    case 'liga':
+      return { page: 'liga' };
+    default:
+      return { page: 'inicio' };
+  }
+}
+
+const NAV: { page: PortalRoute['page']; hash: string; label: string }[] = [
+  { page: 'inicio', hash: '#/portal', label: 'Inicio' },
+  {
+    page: 'competencias',
+    hash: '#/portal/competencias',
+    label: 'Competencias',
+  },
+  { page: 'calendario', hash: '#/portal/calendario', label: 'Calendario' },
+  { page: 'noticias', hash: '#/portal/noticias', label: 'Noticias' },
+  { page: 'clubes', hash: '#/portal/clubes', label: 'Clubes' },
+  {
+    page: 'resoluciones',
+    hash: '#/portal/resoluciones',
+    label: 'Resoluciones',
+  },
+  { page: 'liga', hash: '#/portal/liga', label: 'La Liga' },
 ];
 
+/** Portal público: inicio, competencias, calendario, noticias, clubes, resoluciones e información de la Liga. */
 export function PublicPortalPage({
   onLoginClick,
   onOpenPrintDocument,
 }: PublicPortalPageProps) {
-  const [selectedSport, setSelectedSport] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedChampId, setSelectedChampId] = useState<string | null>(null);
-
-  const queryParams = new URLSearchParams();
-  if (searchQuery.trim()) queryParams.set('q', searchQuery.trim());
-  const queryString = queryParams.toString()
-    ? `?${queryParams.toString()}`
-    : '';
-
-  const [championshipsState] = useFetch<PublicChampionshipsResponse>(
-    `/public/championships${queryString}`,
+  const [route, setRoute] = useState(() =>
+    parsePortalRoute(window.location.hash),
   );
+  const [institution] = useFetch<PublicInstitution>('/public/institution');
 
-  const [clubsState] = useFetch<{ items: PublicClub[] }>(
-    '/public/clubs?pageSize=50',
-  );
+  useEffect(() => {
+    const onChange = () => {
+      setRoute(parsePortalRoute(window.location.hash));
+      window.scrollTo?.({ top: 0 });
+    };
+    window.addEventListener('hashchange', onChange);
+    return () => window.removeEventListener('hashchange', onChange);
+  }, []);
 
-  // Filtrado en memoria por deporte
-  const allChampionships =
-    championshipsState.kind === 'ready' ? championshipsState.data.items : [];
-  const filteredChampionships = allChampionships.filter((c) => {
-    if (selectedSport === 'all') return true;
-    return c.sport.code === selectedSport;
+  const info = institution.kind === 'ready' ? institution.data : null;
+  const visible = NAV.filter((n) => {
+    if (!info) return true;
+    if (n.page === 'noticias') return info.publication.news;
+    if (n.page === 'clubes') return info.publication.clubs;
+    if (n.page === 'resoluciones') return info.publication.resolutions;
+    return true;
   });
+  const current =
+    route.page === 'partido'
+      ? 'calendario'
+      : route.page === 'noticia'
+        ? 'noticias'
+        : route.page;
 
-  const selectedChampionship = allChampionships.find(
-    (c) => c.id === selectedChampId,
-  );
-
-  const handleOpenPrint = (kind: 'acta' | 'nomina', id: string) => {
-    if (onOpenPrintDocument) {
-      onOpenPrintDocument(kind, id);
-    } else {
-      window.location.hash = `#/imprimir/${kind}/${id}`;
-    }
+  const openPrint = (kind: 'acta' | 'nomina', id: string) => {
+    if (onOpenPrintDocument) onOpenPrintDocument(kind, id);
+    else window.location.hash = `#/imprimir/${kind}/${id}`;
   };
 
   return (
     <div className="public-portal">
-      {/* Banner de Bienvenida Institucional */}
       <header className="portal-hero">
         <div className="hero-content">
-          <div className="hero-badge">Portal Oficial de la Liga Cantonal</div>
-          <h2>Liga Deportiva Cantonal de Quero</h2>
+          {info?.hasLogo && (
+            <img
+              className="hero-logo"
+              src="/api/public/institution/logo"
+              alt={`Logotipo de ${info.name}`}
+            />
+          )}
+          <div className="hero-badge">Portal oficial</div>
+          <h2>{info?.name ?? 'Liga Deportiva Cantonal de Quero'}</h2>
           <p className="hero-description">
-            Consulta los resultados oficiales, clasificaciones reglamentarias,
-            calendarios de juego y actas aprobadas de las competencias
-            deportivas cantonales.
+            {info?.affiliation ? `${info.affiliation}. ` : ''}
+            Resultados oficiales, clasificaciones, calendarios y noticias de las
+            competencias deportivas cantonales.
           </p>
           {onLoginClick && (
             <div className="hero-actions">
@@ -81,487 +133,59 @@ export function PublicPortalPage({
                 type="button"
                 onClick={onLoginClick}
                 className="secondary-button"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.15)',
-                  borderColor: 'transparent',
-                  color: 'inherit',
-                }}
               >
-                🔐 Acceso para Dirigentes y Jueces
+                🔐 Acceso para dirigentes y jueces
               </button>
             </div>
           )}
         </div>
       </header>
 
-      {/* Si hay un campeonato seleccionado, muestra la vista detallada */}
-      {selectedChampId && selectedChampionship ? (
-        <ChampionshipDetailView
-          championship={selectedChampionship}
-          onBack={() => setSelectedChampId(null)}
-          onOpenPrint={handleOpenPrint}
-        />
-      ) : (
-        <>
-          {/* Barra de Filtros por Deporte y Búsqueda */}
-          <section
-            className="portal-controls"
-            aria-label="Filtros de competencias"
-          >
-            <div className="sport-tabs">
-              {SPORT_FILTERS.map((s) => (
-                <button
-                  key={s.code}
-                  type="button"
-                  className={`sport-tab-button ${selectedSport === s.code ? 'active' : ''}`}
-                  onClick={() => setSelectedSport(s.code)}
-                >
-                  <span className="tab-icon">{s.icon}</span> {s.label}
-                </button>
-              ))}
-            </div>
+      <nav className="portal-nav" aria-label="Secciones del portal">
+        <ul>
+          {visible.map((n) => (
+            <li key={n.page}>
+              <a
+                href={n.hash}
+                aria-current={n.page === current ? 'page' : undefined}
+              >
+                {n.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
 
-            <div className="search-box">
-              <input
-                type="search"
-                placeholder="Buscar campeonato por nombre…"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                aria-label="Buscar campeonato"
-              />
-            </div>
-          </section>
-
-          {/* Listado de Campeonatos */}
-          <section
-            className="portal-section"
-            aria-labelledby="campeonatos-heading"
-          >
-            <div className="section-header">
-              <h3 id="campeonatos-heading">Campeonatos Oficiales</h3>
-              <span className="count-badge">
-                {filteredChampionships.length}{' '}
-                {filteredChampionships.length === 1
-                  ? 'competencia'
-                  : 'competencias'}
-              </span>
-            </div>
-
-            {championshipsState.kind === 'loading' && (
-              <output>Cargando información de competencias…</output>
-            )}
-
-            {championshipsState.kind === 'error' && (
-              <div className="catalog-error">
-                <p>
-                  No se pudo cargar los campeonatos:{' '}
-                  {championshipsState.message}
-                </p>
-              </div>
-            )}
-
-            {championshipsState.kind === 'ready' &&
-              filteredChampionships.length === 0 && (
-                <div className="empty-state">
-                  <p>
-                    No se encontraron campeonatos para el filtro seleccionado.
-                  </p>
-                </div>
-              )}
-
-            <div className="championships-grid">
-              {filteredChampionships.map((champ) => (
-                <article key={champ.id} className="championship-card">
-                  <div className="card-top">
-                    <span className="sport-tag">
-                      {champ.sport.name} · {champ.category.name}
-                    </span>
-                    <span className={`status-badge status-${champ.status}`}>
-                      {champ.status === 'en_curso' && 'En curso'}
-                      {champ.status === 'finalizado' && 'Finalizado'}
-                      {champ.status === 'inscripciones_abiertas' &&
-                        'Inscripciones abiertas'}
-                      {champ.status === 'inscripciones_cerradas' &&
-                        'Inscripciones cerradas'}
-                    </span>
-                  </div>
-
-                  <h4 className="champ-title">{champ.name}</h4>
-                  <p className="season-meta">
-                    Temporada: <strong>{champ.season.name}</strong>
-                  </p>
-
-                  <div className="champ-stats">
-                    <div className="stat">
-                      <span className="stat-label">Inscritos</span>
-                      <span className="stat-value">
-                        {champ._count.registrations}
-                      </span>
-                    </div>
-                    <div className="stat">
-                      <span className="stat-label">Modalidad</span>
-                      <span className="stat-value format-val">
-                        {champ.format.replace(/_/g, ' ')}
-                      </span>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setSelectedChampId(champ.id)}
-                    className="primary-button full-width"
-                  >
-                    Ver Calendario y Posiciones →
-                  </button>
-                </article>
-              ))}
-            </div>
-          </section>
-
-          {/* Clubes Afiliados */}
-          <section className="portal-section" aria-labelledby="clubes-heading">
-            <div className="section-header">
-              <h3 id="clubes-heading">Organizaciones y Clubes Afiliados</h3>
-            </div>
-
-            {clubsState.kind === 'ready' && (
-              <div className="clubs-pills-grid">
-                {clubsState.data.items.map((club) => (
-                  <div key={club.slug} className="club-pill">
-                    <div className="club-icon">🛡️</div>
-                    <div className="club-info">
-                      <strong>{club.name}</strong>
-                      <small>
-                        {club.sector
-                          ? `Sector ${club.sector}`
-                          : 'Quero, Tungurahua'}
-                      </small>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        </>
+      {route.page === 'inicio' && <HomePage />}
+      {route.page === 'competencias' && (
+        <CompetitionsView onOpenPrintDocument={onOpenPrintDocument} />
       )}
-    </div>
-  );
-}
-
-function ChampionshipDetailView({
-  championship,
-  onBack,
-  onOpenPrint,
-}: {
-  championship: PublicChampionship;
-  onBack: () => void;
-  onOpenPrint: (kind: 'acta' | 'nomina', id: string) => void;
-}) {
-  const [activeTab, setActiveTab] = useState<
-    'fixtures' | 'standings' | 'rules'
-  >('fixtures');
-
-  const [fixturesState, reloadFixtures] = useFetch<PublicStage[]>(
-    `/public/championships/${championship.id}/fixtures`,
-  );
-
-  const [standingsState, reloadStandings] = useFetch<PublicStandingsResponse>(
-    `/public/championships/${championship.id}/standings`,
-  );
-
-  return (
-    <div className="champ-detail-view">
-      <div className="detail-top-nav">
-        <button type="button" onClick={onBack} className="secondary-button">
-          ← Volver al listado
-        </button>
-      </div>
-
-      <header className="champ-detail-header">
-        <span className="sport-tag">
-          {championship.sport.name} · {championship.category.name} ·{' '}
-          {championship.season.name}
-        </span>
-        <h2>{championship.name}</h2>
-        <div className="champ-tags">
-          <span className="badge">
-            Modalidad: {championship.format.replace(/_/g, ' ')}
-          </span>
-          <span className="badge">
-            Estado: {championship.status.replace(/_/g, ' ')}
-          </span>
-        </div>
-      </header>
-
-      {/* Tabs */}
-      <div className="detail-tabs" role="tablist">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === 'fixtures'}
-          className={`tab-btn ${activeTab === 'fixtures' ? 'active' : ''}`}
-          onClick={() => setActiveTab('fixtures')}
-        >
-          📅 Calendario y Resultados
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === 'standings'}
-          className={`tab-btn ${activeTab === 'standings' ? 'active' : ''}`}
-          onClick={() => setActiveTab('standings')}
-        >
-          📊 Tabla de Posiciones Oficial
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === 'rules'}
-          className={`tab-btn ${activeTab === 'rules' ? 'active' : ''}`}
-          onClick={() => setActiveTab('rules')}
-        >
-          📜 Información y Reglamentos
-        </button>
-      </div>
-
-      {/* Panel 1: Calendario y Resultados */}
-      {activeTab === 'fixtures' && (
-        <section className="tab-panel" aria-label="Calendario y resultados">
-          <div className="panel-actions">
-            <h4>Encuentros y Jornadas Oficiales</h4>
-            <button
-              type="button"
-              onClick={reloadFixtures}
-              className="link-button"
-            >
-              Actualizar
-            </button>
-          </div>
-
-          {fixturesState.kind === 'loading' && (
-            <output>Cargando calendario oficial…</output>
-          )}
-          {fixturesState.kind === 'error' && (
-            <div className="catalog-error">
-              <p>Error: {fixturesState.message}</p>
-            </div>
-          )}
-
-          {fixturesState.kind === 'ready' &&
-            fixturesState.data.length === 0 && (
-              <p>No se han programado jornadas para este campeonato aún.</p>
-            )}
-
-          {fixturesState.kind === 'ready' &&
-            fixturesState.data.map((stage) => (
-              <div key={stage.id} className="stage-block">
-                <h4 className="stage-name">{stage.name}</h4>
-                {stage.rounds.map((round) => (
-                  <div key={round.id} className="round-block">
-                    <h5 className="round-name">{round.name}</h5>
-                    <div className="events-list">
-                      {round.events.map((event) => {
-                        const local =
-                          event.participants.find((p) => p.side === 'local') ??
-                          event.participants[0];
-                        const away =
-                          event.participants.find(
-                            (p) => p.side === 'visitante',
-                          ) ?? event.participants[1];
-                        const isApproved = event.result !== null;
-
-                        return (
-                          <div key={event.id} className="match-card">
-                            <div className="match-meta">
-                              <span className="match-venue">
-                                📍 {event.venue?.name ?? 'Por confirmar'}
-                              </span>
-                              <span className="match-date">
-                                🕒{' '}
-                                {event.scheduledAt
-                                  ? new Date(event.scheduledAt).toLocaleString(
-                                      'es-EC',
-                                      {
-                                        dateStyle: 'medium',
-                                        timeStyle: 'short',
-                                      },
-                                    )
-                                  : 'Fecha por definir'}
-                              </span>
-                              <span
-                                className={`match-status-pill status-${event.status}`}
-                              >
-                                {event.status}
-                              </span>
-                            </div>
-
-                            <div className="match-teams-row">
-                              <div className="match-team local">
-                                <span className="team-name">
-                                  {local?.name ?? 'Por definir'}
-                                </span>
-                                <small className="team-club">
-                                  {local?.clubName}
-                                </small>
-                              </div>
-
-                              <div className="match-score">
-                                {isApproved ? (
-                                  <span className="score-numbers">
-                                    {local?.score ?? 0} — {away?.score ?? 0}
-                                  </span>
-                                ) : (
-                                  <span className="vs-badge">VS</span>
-                                )}
-                              </div>
-
-                              <div className="match-team away">
-                                <span className="team-name">
-                                  {away?.name ?? 'Por definir'}
-                                </span>
-                                <small className="team-club">
-                                  {away?.clubName}
-                                </small>
-                              </div>
-                            </div>
-
-                            <div className="match-footer-actions">
-                              <button
-                                type="button"
-                                onClick={() => onOpenPrint('acta', event.id)}
-                                className="print-link-button"
-                              >
-                                🖨️ Ver / Imprimir Acta Oficial
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ))}
-        </section>
+      {route.page === 'calendario' && <CalendarPage />}
+      {route.page === 'partido' && (
+        <MatchPage eventId={route.id} onOpenPrint={openPrint} />
       )}
+      {route.page === 'noticias' && <NewsListPage />}
+      {route.page === 'noticia' && <NewsArticlePage slug={route.slug} />}
+      {route.page === 'clubes' && <ClubsPage />}
+      {route.page === 'resoluciones' && <ResolutionsPage />}
+      {route.page === 'liga' && info && <AboutPage institution={info} />}
 
-      {/* Panel 2: Tabla de Posiciones */}
-      {activeTab === 'standings' && (
-        <section className="tab-panel" aria-label="Tabla de posiciones">
-          <div className="panel-actions">
-            <h4>Tabla de Posiciones Oficial</h4>
-            <button
-              type="button"
-              onClick={reloadStandings}
-              className="link-button"
-            >
-              Actualizar
-            </button>
-          </div>
-
-          {standingsState.kind === 'loading' && (
-            <output>Calculando tabla de posiciones…</output>
-          )}
-          {standingsState.kind === 'error' && (
-            <div className="catalog-error">
-              <p>Error: {standingsState.message}</p>
-            </div>
-          )}
-
-          {standingsState.kind === 'ready' && (
-            <div className="standings-table-container">
-              <table className="portal-table">
-                <thead>
-                  <tr>
-                    <th>Pos</th>
-                    <th>Participante</th>
-                    <th>Club</th>
-                    <th title="Partidos Jugados">PJ</th>
-                    <th title="Partidos Ganados">PG</th>
-                    <th title="Partidos Empatados">PE</th>
-                    <th title="Partidos Perdidos">PP</th>
-                    <th title="Goles / Puntos a favor">GF</th>
-                    <th title="Goles / Puntos en contra">GC</th>
-                    <th title="Diferencia de goles / puntos">DG</th>
-                    <th title="Puntos oficiales">Pts</th>
-                    <th>Nómina Oficial</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {standingsState.data.standings.map((row) => (
-                    <tr
-                      key={row.registrationId}
-                      className={row.position <= 2 ? 'top-row' : ''}
-                    >
-                      <td className="center bold">{row.position}°</td>
-                      <td className="bold">{row.name}</td>
-                      <td>{row.clubName}</td>
-                      <td className="center">{row.played}</td>
-                      <td className="center">{row.won}</td>
-                      <td className="center">{row.drawn}</td>
-                      <td className="center">{row.lost}</td>
-                      <td className="center">{row.goalsFor}</td>
-                      <td className="center">{row.goalsAgainst}</td>
-                      <td className="center">
-                        {row.goalDifference > 0
-                          ? `+${row.goalDifference}`
-                          : row.goalDifference}
-                      </td>
-                      <td className="center bold pts-cell">{row.points}</td>
-                      <td className="center">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            onOpenPrint('nomina', row.registrationId)
-                          }
-                          className="action-link"
-                        >
-                          📄 Ver Nómina
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* Panel 3: Información y Reglamentos */}
-      {activeTab === 'rules' && (
-        <section className="tab-panel" aria-label="Información y reglamento">
-          <div className="rules-info-box">
-            <h4>Bases y Reglamento del Campeonato</h4>
-            <p>
-              Campeonato oficial regido por las directrices de la{' '}
-              <strong>Liga Deportiva Cantonal de Quero</strong> y las
-              federaciones deportivas ecuatorianas correspondientes.
-            </p>
-            <ul>
-              <li>
-                <strong>Deporte:</strong> {championship.sport.name}
-              </li>
-              <li>
-                <strong>Categoría:</strong> {championship.category.name}
-              </li>
-              <li>
-                <strong>Modalidad de competencia:</strong>{' '}
-                {championship.format.replace(/_/g, ' ')}
-              </li>
-              <li>
-                <strong>Puntuación oficial:</strong> Reglamentada por acta
-                aprobada
-              </li>
-              <li>
-                <strong>Criterios de Desempate:</strong> Diferencia de
-                goles/puntos, mayor cantidad de goles/puntos a favor, juego
-                limpio (tarjetas amarillas y rojas) y confrontación directa.
-              </li>
-            </ul>
-          </div>
-        </section>
-      )}
+      <footer className="portal-footer">
+        <p>
+          <strong>{info?.name ?? 'Liga Deportiva Cantonal de Quero'}</strong>
+          {info?.canton ? ` · ${info.canton}` : ''}
+        </p>
+        {(info?.email || info?.phone) && (
+          <p>
+            {info.phone}
+            {info.phone && info.email ? ' · ' : ''}
+            {info.email}
+          </p>
+        )}
+        <p>
+          <a href="#/portal/liga">Contacto y política de privacidad</a>
+        </p>
+      </footer>
     </div>
   );
 }

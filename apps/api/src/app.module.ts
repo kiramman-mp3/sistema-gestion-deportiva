@@ -6,6 +6,7 @@ import { AuthzModule } from './authz/authz.module.js';
 import { CatalogsModule } from './catalogs/catalogs.module.js';
 import { ConfigModule } from './config/config.module.js';
 import { PrismaModule } from './database/prisma.module.js';
+import { ContentModule } from './content/content.module.js';
 import { DisciplineModule } from './discipline/discipline.module.js';
 import { HealthController } from './health/health.controller.js';
 import { InstitutionModule } from './institution/institution.module.js';
@@ -40,6 +41,7 @@ import { UsersModule } from './users/users.module.js';
     NotificationsModule,
     OfficialsModule,
     DisciplineModule,
+    ContentModule,
     PublicModule,
   ],
   controllers: [HealthController],
