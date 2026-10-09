@@ -28,3 +28,6 @@ Thumbs.db
 
 # Cliente de Prisma generado (npm run db:generate)
 apps/api/src/generated/
+
+# Grafo generado por graphify
+graphify-out/
