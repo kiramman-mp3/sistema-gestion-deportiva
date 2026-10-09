@@ -50,7 +50,7 @@ describe('protección CSRF y de origen', () => {
       for (const token of [
         '',
         'x',
-        mine.csrf.slice(0, -1) + 'A',
+        mine.csrf.slice(0, -1) + (mine.csrf.endsWith('A') ? 'B' : 'A'),
         other.csrf,
         mine.csrf + 'x',
       ]) {

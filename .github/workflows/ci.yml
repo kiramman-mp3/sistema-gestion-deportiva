@@ -41,3 +41,43 @@ jobs:
       - run: npm test
       - run: npm run test:integration
       - run: npm run build
+
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: liga
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: liga_quero
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U liga -d liga_quero"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # Credenciales descartables del servicio efímero de CI; no son secretos reales.
+      DATABASE_URL: postgresql://liga:ci-only-password@localhost:5432/liga_quero
+      SECURITY_HASH_KEY: ci-only-hash-key-not-a-real-secret-0123456789
+      E2E_PASSWORD: e2e-demostracion-2026
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install Playwright Chromium and system dependencies
+        run: npx playwright install --with-deps chromium
+      - name: Run E2E tests
+        run: npm run test:e2e
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
