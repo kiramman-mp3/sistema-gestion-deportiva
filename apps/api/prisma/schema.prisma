@@ -110,6 +110,9 @@ model User {
   institutionUpdates     InstitutionSettings[]    @relation("InstitutionUpdater")
   notifications          Notification[]           @relation("NotificationRecipient")
 
+  official         Official?         @relation("OfficialAccount")
+  eventAssignments EventAssignment[] @relation("AssignmentAuthor")
+
   @@map("users")
 }
 
@@ -284,6 +287,8 @@ model Sport {
   teamSeasons   TeamSeason[]
   championships Championship[]
 
+  officials OfficialSport[]
+
   @@map("sports")
 }
 
@@ -400,6 +405,8 @@ model Club {
   athletes        Athlete[]
   teams           Team[]
 
+  officials Official[]
+
   @@map("clubs")
 }
 
@@ -438,6 +445,8 @@ model Person {
   athlete         Athlete?
   consents        ConsentRecord[]
   representations ClubRepresentative[]
+
+  official Official?
 
   @@map("persons")
 }
@@ -979,6 +988,8 @@ model Event {
   participants EventParticipant[]
   result       Result?
 
+  assignments EventAssignment[]
+
   @@index([roundId])
   @@index([venueId, scheduledAt])
   @@index([scheduledAt])
@@ -1226,4 +1237,119 @@ model Notification {
   @@index([userId, channel, readAt, createdAt])
   @@index([channel, status, nextAttemptAt, createdAt])
   @@map("notifications")
+}
+
+// ───────────────────── Árbitros, jueces y designaciones ─────────────────────
+
+enum OfficialStatus {
+  activo
+  inactivo
+  suspendido
+
+  @@map("official_status")
+}
+
+/// Función que cumple un oficial en un encuentro. Una por encuentro (cada rol se designa una vez).
+enum AssignmentRole {
+  arbitro_central
+  asistente_1
+  asistente_2
+  cuarto_arbitro
+  juez_mesa
+  cronometrista
+  anotador
+  juez_taekwondo
+  arbitro_ajedrez
+  comisario
+
+  @@map("assignment_role")
+}
+
+enum AssignmentStatus {
+  designado
+  confirmado
+  rechazado
+
+  @@map("assignment_status")
+}
+
+/// Árbitro, juez o auxiliar de mesa. Reutiliza `Person` (nombre) y guarda solo los datos
+/// profesionales estrictamente necesarios: contacto, licencia, deportes y, si lo tiene, su club
+/// de afiliación (para impedir que arbitre a su propio club).
+model Official {
+  id            String         @id @default(uuid(7)) @db.Uuid
+  personId      String         @unique @map("person_id") @db.Uuid
+  /// Cuenta del sistema con la que consulta y responde sus designaciones.
+  userId        String?        @unique @map("user_id") @db.Uuid
+  clubId        String?        @map("club_id") @db.Uuid
+  status        OfficialStatus @default(activo)
+  licenseNumber String?        @map("license_number")
+  phone         String?
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  person           Person                   @relation(fields: [personId], references: [id], onDelete: Restrict)
+  user             User?                    @relation("OfficialAccount", fields: [userId], references: [id], onDelete: Restrict)
+  club             Club?                    @relation(fields: [clubId], references: [id], onDelete: Restrict)
+  sports           OfficialSport[]
+  unavailabilities OfficialUnavailability[]
+  assignments      EventAssignment[]
+
+  @@index([clubId])
+  @@index([status])
+  @@map("officials")
+}
+
+/// Deportes que puede arbitrar o juzgar un oficial.
+model OfficialSport {
+  officialId String @map("official_id") @db.Uuid
+  sportId    String @map("sport_id") @db.Uuid
+
+  official Official @relation(fields: [officialId], references: [id], onDelete: Cascade)
+  sport    Sport    @relation(fields: [sportId], references: [id], onDelete: Restrict)
+
+  @@id([officialId, sportId])
+  @@index([sportId])
+  @@map("official_sports")
+}
+
+/// Período en que el oficial no está disponible (viaje, trabajo, sanción administrativa…).
+model OfficialUnavailability {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  officialId String   @map("official_id") @db.Uuid
+  startsAt   DateTime @map("starts_at") @db.Timestamptz(3)
+  endsAt     DateTime @map("ends_at") @db.Timestamptz(3)
+  reason     String?
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  official Official @relation(fields: [officialId], references: [id], onDelete: Cascade)
+
+  @@index([officialId, startsAt, endsAt])
+  @@map("official_unavailabilities")
+}
+
+/// Designación de un oficial en un encuentro.
+model EventAssignment {
+  id           String           @id @default(uuid(7)) @db.Uuid
+  eventId      String           @map("event_id") @db.Uuid
+  officialId   String           @map("official_id") @db.Uuid
+  role         AssignmentRole
+  status       AssignmentStatus @default(designado)
+  notes        String?
+  /// Motivo cuando el oficial rechaza la designación.
+  responseNote String?          @map("response_note")
+  respondedAt  DateTime?        @map("responded_at") @db.Timestamptz(3)
+  assignedById String           @map("assigned_by_id") @db.Uuid
+  createdAt    DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  official   Official @relation(fields: [officialId], references: [id], onDelete: Restrict)
+  assignedBy User     @relation("AssignmentAuthor", fields: [assignedById], references: [id], onDelete: Restrict)
+
+  @@unique([eventId, officialId])
+  @@unique([eventId, role])
+  @@index([officialId])
+  @@index([assignedById])
+  @@map("event_assignments")
 }
