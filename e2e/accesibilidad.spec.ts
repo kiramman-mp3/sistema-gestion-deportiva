@@ -1,6 +1,10 @@
-import { expect, test } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
+import { expect, test, type Page } from '@playwright/test';
+import { AxeBuilder } from '@axe-core/playwright';
 import { ACCOUNTS, goToSection, login, logout } from './support.ts';
+
+function checkA11y(page: Page) {
+  return new AxeBuilder({ page: page as never }).analyze();
+}
 
 test.describe('accesibilidad web (axe-core)', () => {
   test.describe('portal público', () => {
@@ -15,7 +19,7 @@ test.describe('accesibilidad web (axe-core)', () => {
         }),
       ).toBeVisible();
 
-      const results = await new AxeBuilder({ page }).analyze();
+      const results = await checkA11y(page);
       expect(results.violations).toEqual([]);
     });
 
@@ -30,7 +34,7 @@ test.describe('accesibilidad web (axe-core)', () => {
         }),
       ).toBeVisible();
 
-      const results = await new AxeBuilder({ page }).analyze();
+      const results = await checkA11y(page);
       expect(results.violations).toEqual([]);
     });
 
@@ -45,7 +49,7 @@ test.describe('accesibilidad web (axe-core)', () => {
         }),
       ).toBeVisible();
 
-      const results = await new AxeBuilder({ page }).analyze();
+      const results = await checkA11y(page);
       expect(results.violations).toEqual([]);
     });
 
@@ -60,7 +64,7 @@ test.describe('accesibilidad web (axe-core)', () => {
         }),
       ).toBeVisible();
 
-      const results = await new AxeBuilder({ page }).analyze();
+      const results = await checkA11y(page);
       expect(results.violations).toEqual([]);
     });
 
@@ -75,7 +79,7 @@ test.describe('accesibilidad web (axe-core)', () => {
         }),
       ).toBeVisible();
 
-      const results = await new AxeBuilder({ page }).analyze();
+      const results = await checkA11y(page);
       expect(results.violations).toEqual([]);
     });
   });
@@ -89,7 +93,7 @@ test.describe('accesibilidad web (axe-core)', () => {
         page.getByRole('heading', { name: 'Iniciar sesión' }),
       ).toBeVisible();
 
-      const results = await new AxeBuilder({ page }).analyze();
+      const results = await checkA11y(page);
       expect(results.violations).toEqual([]);
     });
 
@@ -102,7 +106,7 @@ test.describe('accesibilidad web (axe-core)', () => {
         page.getByRole('heading', { level: 2, name: 'Campeonatos' }),
       ).toBeVisible();
 
-      const results = await new AxeBuilder({ page }).analyze();
+      const results = await checkA11y(page);
       expect(results.violations).toEqual([]);
       await logout(page);
     });
@@ -116,7 +120,7 @@ test.describe('accesibilidad web (axe-core)', () => {
         page.getByRole('heading', { level: 2, name: 'Deportistas' }),
       ).toBeVisible();
 
-      const results = await new AxeBuilder({ page }).analyze();
+      const results = await checkA11y(page);
       expect(results.violations).toEqual([]);
       await logout(page);
     });
@@ -130,7 +134,7 @@ test.describe('accesibilidad web (axe-core)', () => {
         page.getByRole('heading', { level: 2, name: 'Notificaciones' }),
       ).toBeVisible();
 
-      const results = await new AxeBuilder({ page }).analyze();
+      const results = await checkA11y(page);
       expect(results.violations).toEqual([]);
       await logout(page);
     });
