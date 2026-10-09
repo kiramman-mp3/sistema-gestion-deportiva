@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import { uuidSchema } from '../../auth/schemas.js';
-import { listQuerySchema, nameSchema, reasonSchema } from '../../catalogs/common.js';
+import {
+  listQuerySchema,
+  nameSchema,
+  reasonSchema,
+} from '../../catalogs/common.js';
 
 export const championshipFormatSchema = z.enum([
   'todos_contra_todos',
@@ -113,6 +117,8 @@ export const championshipListQuerySchema = listQuerySchema.extend({
 
 export type CreateChampionshipInput = z.infer<typeof createChampionshipSchema>;
 export type UpdateChampionshipInput = z.infer<typeof updateChampionshipSchema>;
-export type TransitionChampionshipInput = z.infer<typeof transitionChampionshipSchema>;
+export type TransitionChampionshipInput = z.infer<
+  typeof transitionChampionshipSchema
+>;
 export type CreateRuleVersionInput = z.infer<typeof createRuleVersionSchema>;
 export type ChampionshipListQuery = z.infer<typeof championshipListQuerySchema>;

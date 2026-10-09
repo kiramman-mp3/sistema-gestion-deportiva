@@ -24,7 +24,8 @@ export const createRegistrationSchema = z
       return false;
     },
     {
-      message: 'Debe especificar el equipo o el deportista según el tipo de participante',
+      message:
+        'Debe especificar el equipo o el deportista según el tipo de participante',
       path: ['teamId'],
     },
   );

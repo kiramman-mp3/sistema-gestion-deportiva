@@ -242,7 +242,9 @@ describe('calendario, etapas y programación de encuentros (fixtures)', () => {
       })
       .expect(409);
 
-    expect(venueConflictRes.body.message).toContain('escenario deportivo ya está ocupado');
+    expect(venueConflictRes.body.message).toContain(
+      'escenario deportivo ya está ocupado',
+    );
 
     // Conflicto de participante: reg1 ya juega el 2026-06-20 en otro escenario
     const otherVenue = await prisma.venue.create({
@@ -258,7 +260,9 @@ describe('calendario, etapas y programación de encuentros (fixtures)', () => {
       })
       .expect(409);
 
-    expect(participantConflictRes.body.message).toContain('ya tiene un encuentro programado en esa misma fecha');
+    expect(participantConflictRes.body.message).toContain(
+      'ya tiene un encuentro programado en esa misma fecha',
+    );
   });
 
   it('permite reprogramar un encuentro con motivo obligatorio y audita el cambio', async () => {
@@ -294,7 +298,9 @@ describe('calendario, etapas y programación de encuentros (fixtures)', () => {
       .expect(200);
 
     expect(rescheduleRes.body.status).toBe('postergado');
-    expect(rescheduleRes.body.postponementReason).toBe('Lluvia intensa e inundación del campo');
+    expect(rescheduleRes.body.postponementReason).toBe(
+      'Lluvia intensa e inundación del campo',
+    );
 
     // Comprobar auditoría
     const auditRecord = await prisma.auditLog.findFirst({

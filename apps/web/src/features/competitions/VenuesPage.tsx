@@ -12,7 +12,11 @@ import { LoadState, SelectField, TextField } from '../people/fields.tsx';
 import type { Page } from '../people/types.ts';
 import type { Venue } from './types.ts';
 
-export function VenuesPage({ permissions }: { permissions: readonly string[] }) {
+export function VenuesPage({
+  permissions,
+}: {
+  permissions: readonly string[];
+}) {
   const canManage = permissions.includes('venues:manage');
   const canDelete = permissions.includes('venues:delete');
   const [page, setPage] = useState(1);
@@ -129,10 +133,14 @@ export function VenuesPage({ permissions }: { permissions: readonly string[] }) 
                   </td>
                   <td data-label="Dirección">{v.address ?? '—'}</td>
                   <td data-label="Capacidad">
-                    {v.capacity ? `${v.capacity.toLocaleString()} espectadores` : '—'}
+                    {v.capacity
+                      ? `${v.capacity.toLocaleString()} espectadores`
+                      : '—'}
                   </td>
                   <td data-label="Estado">
-                    <span className={`badge ${v.status === 'activo' ? 'badge-ok' : ''}`}>
+                    <span
+                      className={`badge ${v.status === 'activo' ? 'badge-ok' : ''}`}
+                    >
                       {v.status === 'activo' ? 'Activo' : 'Inactivo'}
                     </span>
                   </td>
@@ -150,10 +158,7 @@ export function VenuesPage({ permissions }: { permissions: readonly string[] }) 
                         </button>
                       )}
                       {canDelete && (
-                        <button
-                          type="button"
-                          onClick={() => setDeleting(v)}
-                        >
+                        <button type="button" onClick={() => setDeleting(v)}>
                           Eliminar
                         </button>
                       )}
@@ -209,8 +214,12 @@ function VenueForm({
 }) {
   const [name, setName] = useState(venue?.name ?? '');
   const [address, setAddress] = useState(venue?.address ?? '');
-  const [capacity, setCapacity] = useState(venue?.capacity ? String(venue.capacity) : '');
-  const [status, setStatus] = useState<'activo' | 'inactivo'>(venue?.status ?? 'activo');
+  const [capacity, setCapacity] = useState(
+    venue?.capacity ? String(venue.capacity) : '',
+  );
+  const [status, setStatus] = useState<'activo' | 'inactivo'>(
+    venue?.status ?? 'activo',
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);

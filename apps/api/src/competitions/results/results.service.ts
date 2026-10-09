@@ -429,7 +429,9 @@ export class ResultsService {
     }
 
     const sportCode = champ.sport.code;
-    const activeRules = (champ.ruleVersions[0]?.rulesJson as Record<string, unknown> | null) ?? {};
+    const activeRules =
+      (champ.ruleVersions[0]?.rulesJson as Record<string, unknown> | null) ??
+      {};
 
     // Obtener todas las inscripciones activas
     const registrations = await this.prisma.client.registration.findMany({
@@ -487,7 +489,10 @@ export class ResultsService {
       if (reg.participant.kind === 'equipo' && reg.participant.team) {
         name = reg.participant.team.team.name;
         clubName = reg.participant.team.team.club.name;
-      } else if (reg.participant.kind === 'individual' && reg.participant.individual) {
+      } else if (
+        reg.participant.kind === 'individual' &&
+        reg.participant.individual
+      ) {
         const ind = reg.participant.individual;
         name = `${ind.athlete.person.firstName} ${ind.athlete.person.lastName}`;
         clubName = ind.athlete.club.name;
@@ -562,7 +567,9 @@ export class ResultsService {
 
       if (sportCode === 'ajedrez' && ev.result.chessPairings.length > 0) {
         for (const cp of ev.result.chessPairings) {
-          const part = ev.participants.find((p) => p.id === cp.eventParticipantId);
+          const part = ev.participants.find(
+            (p) => p.id === cp.eventParticipantId,
+          );
           if (part) {
             const row = tableMap.get(part.registrationId);
             if (row) {
@@ -583,8 +590,12 @@ export class ResultsService {
 
       const values = ev.result.values;
       if (values.length === 2 && values[0] && values[1]) {
-        const p0 = ev.participants.find((p) => p.id === values[0]!.eventParticipantId);
-        const p1 = ev.participants.find((p) => p.id === values[1]!.eventParticipantId);
+        const p0 = ev.participants.find(
+          (p) => p.id === values[0]!.eventParticipantId,
+        );
+        const p1 = ev.participants.find(
+          (p) => p.id === values[1]!.eventParticipantId,
+        );
 
         if (p0 && p1) {
           const row0 = tableMap.get(p0.registrationId);
@@ -623,7 +634,9 @@ export class ResultsService {
 
       // Tarjetas para juego limpio en fútbol
       for (const fe of ev.result.footballEvents) {
-        const p = ev.participants.find((part) => part.id === fe.eventParticipantId);
+        const p = ev.participants.find(
+          (part) => part.id === fe.eventParticipantId,
+        );
         if (p) {
           const row = tableMap.get(p.registrationId);
           if (row) {
@@ -635,7 +648,9 @@ export class ResultsService {
 
       // Faltas / Gam-jeom en taekwondo
       for (const tb of ev.result.taekwondoBouts) {
-        const p = ev.participants.find((part) => part.id === tb.eventParticipantId);
+        const p = ev.participants.find(
+          (part) => part.id === tb.eventParticipantId,
+        );
         if (p) {
           const row = tableMap.get(p.registrationId);
           if (row) {
@@ -659,7 +674,8 @@ export class ResultsService {
         return (b.buchholz ?? 0) - (a.buchholz ?? 0);
       }
       // 2. Diferencia
-      if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+      if (b.goalDifference !== a.goalDifference)
+        return b.goalDifference - a.goalDifference;
       // 3. Puntos / Goles a favor
       if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
       // 4. Juego limpio

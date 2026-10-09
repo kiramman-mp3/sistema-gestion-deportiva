@@ -76,7 +76,15 @@ export class ChampionshipsService {
         include: {
           season: { select: { id: true, name: true, status: true } },
           sport: { select: { id: true, code: true, name: true } },
-          category: { select: { id: true, code: true, name: true, ageMin: true, ageMax: true } },
+          category: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+              ageMin: true,
+              ageMax: true,
+            },
+          },
           _count: {
             select: {
               registrations: true,
@@ -108,7 +116,9 @@ export class ChampionshipsService {
         ruleVersions: {
           orderBy: { version: 'desc' },
           include: {
-            approvedBy: { select: { id: true, displayName: true, email: true } },
+            approvedBy: {
+              select: { id: true, displayName: true, email: true },
+            },
           },
         },
         _count: {
@@ -127,12 +137,16 @@ export class ChampionshipsService {
     const [season, sport, category] = await Promise.all([
       this.prisma.client.season.findUnique({ where: { id: input.seasonId } }),
       this.prisma.client.sport.findUnique({ where: { id: input.sportId } }),
-      this.prisma.client.category.findUnique({ where: { id: input.categoryId } }),
+      this.prisma.client.category.findUnique({
+        where: { id: input.categoryId },
+      }),
     ]);
 
     if (!season) throw new NotFoundException('Temporada no encontrada');
     if (season.status === 'archivada') {
-      throw new BadRequestException('No se pueden crear campeonatos en temporadas archivadas');
+      throw new BadRequestException(
+        'No se pueden crear campeonatos en temporadas archivadas',
+      );
     }
     if (!sport) throw new NotFoundException('Deporte no encontrado');
     if (sport.status !== 'activo') {
@@ -157,8 +171,12 @@ export class ChampionshipsService {
             categoryId: input.categoryId,
             name: input.name,
             format: input.format,
-            registrationStart: input.registrationStart ? new Date(input.registrationStart) : null,
-            registrationEnd: input.registrationEnd ? new Date(input.registrationEnd) : null,
+            registrationStart: input.registrationStart
+              ? new Date(input.registrationStart)
+              : null,
+            registrationEnd: input.registrationEnd
+              ? new Date(input.registrationEnd)
+              : null,
             startDate: input.startDate ? new Date(input.startDate) : null,
             endDate: input.endDate ? new Date(input.endDate) : null,
             ruleVersions: {
@@ -217,7 +235,9 @@ export class ChampionshipsService {
   ) {
     const current = await this.get(id);
     if (current.status === 'archivado') {
-      throw new BadRequestException('Los campeonatos archivados son de solo lectura');
+      throw new BadRequestException(
+        'Los campeonatos archivados son de solo lectura',
+      );
     }
 
     try {
@@ -228,10 +248,14 @@ export class ChampionshipsService {
             ...(input.name !== undefined && { name: input.name }),
             ...(input.format !== undefined && { format: input.format }),
             ...(input.registrationStart !== undefined && {
-              registrationStart: input.registrationStart ? new Date(input.registrationStart) : null,
+              registrationStart: input.registrationStart
+                ? new Date(input.registrationStart)
+                : null,
             }),
             ...(input.registrationEnd !== undefined && {
-              registrationEnd: input.registrationEnd ? new Date(input.registrationEnd) : null,
+              registrationEnd: input.registrationEnd
+                ? new Date(input.registrationEnd)
+                : null,
             }),
             ...(input.startDate !== undefined && {
               startDate: input.startDate ? new Date(input.startDate) : null,
@@ -246,16 +270,20 @@ export class ChampionshipsService {
           {
             name: current.name,
             format: current.format,
-            registrationStart: current.registrationStart?.toISOString().split('T')[0] ?? null,
-            registrationEnd: current.registrationEnd?.toISOString().split('T')[0] ?? null,
+            registrationStart:
+              current.registrationStart?.toISOString().split('T')[0] ?? null,
+            registrationEnd:
+              current.registrationEnd?.toISOString().split('T')[0] ?? null,
             startDate: current.startDate?.toISOString().split('T')[0] ?? null,
             endDate: current.endDate?.toISOString().split('T')[0] ?? null,
           },
           {
             name: updated.name,
             format: updated.format,
-            registrationStart: updated.registrationStart?.toISOString().split('T')[0] ?? null,
-            registrationEnd: updated.registrationEnd?.toISOString().split('T')[0] ?? null,
+            registrationStart:
+              updated.registrationStart?.toISOString().split('T')[0] ?? null,
+            registrationEnd:
+              updated.registrationEnd?.toISOString().split('T')[0] ?? null,
             startDate: updated.startDate?.toISOString().split('T')[0] ?? null,
             endDate: updated.endDate?.toISOString().split('T')[0] ?? null,
           },
@@ -332,7 +360,9 @@ export class ChampionshipsService {
   ) {
     const current = await this.get(id);
     if (current.status === 'archivado') {
-      throw new BadRequestException('No se pueden modificar reglas de un campeonato archivado');
+      throw new BadRequestException(
+        'No se pueden modificar reglas de un campeonato archivado',
+      );
     }
 
     const latest = await this.prisma.client.competitionRuleVersion.findFirst({
@@ -374,10 +404,14 @@ export class ChampionshipsService {
   async delete(id: string, auth: AuthContext, ip: string) {
     const current = await this.get(id);
     if (current.status !== 'borrador') {
-      throw new BadRequestException('Solo se pueden eliminar campeonatos en estado borrador');
+      throw new BadRequestException(
+        'Solo se pueden eliminar campeonatos en estado borrador',
+      );
     }
     if (current._count.registrations > 0) {
-      throw new BadRequestException('No se puede eliminar un campeonato con inscripciones');
+      throw new BadRequestException(
+        'No se puede eliminar un campeonato con inscripciones',
+      );
     }
 
     try {
@@ -399,7 +433,8 @@ export class ChampionshipsService {
     } catch (error) {
       translateDbError(error, {
         unique: {},
-        inUse: 'No se puede eliminar el campeonato porque tiene etapas o registros vinculados',
+        inUse:
+          'No se puede eliminar el campeonato porque tiene etapas o registros vinculados',
       });
     }
   }

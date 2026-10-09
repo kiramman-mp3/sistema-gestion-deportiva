@@ -1,16 +1,34 @@
 import { z } from 'zod';
-import { catalogStatusSchema, listQuerySchema, nameSchema } from '../../catalogs/common.js';
+import {
+  catalogStatusSchema,
+  listQuerySchema,
+  nameSchema,
+} from '../../catalogs/common.js';
 
 export const createVenueSchema = z.object({
   name: nameSchema,
-  address: z.string().trim().max(255).optional().transform((v) => v || undefined),
-  capacity: z.coerce.number().int().min(0, 'La capacidad no puede ser negativa').optional(),
+  address: z
+    .string()
+    .trim()
+    .max(255)
+    .optional()
+    .transform((v) => v || undefined),
+  capacity: z.coerce
+    .number()
+    .int()
+    .min(0, 'La capacidad no puede ser negativa')
+    .optional(),
 });
 
 export const updateVenueSchema = z.object({
   name: nameSchema.optional(),
   address: z.string().trim().max(255).nullable().optional(),
-  capacity: z.coerce.number().int().min(0, 'La capacidad no puede ser negativa').nullable().optional(),
+  capacity: z.coerce
+    .number()
+    .int()
+    .min(0, 'La capacidad no puede ser negativa')
+    .nullable()
+    .optional(),
   status: catalogStatusSchema.optional(),
 });
 

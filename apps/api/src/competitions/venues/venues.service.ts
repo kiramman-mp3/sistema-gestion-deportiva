@@ -198,7 +198,8 @@ export class VenuesService {
     } catch (error) {
       translateDbError(error, {
         unique: {},
-        inUse: 'No se puede eliminar el escenario porque tiene partidos o eventos asociados',
+        inUse:
+          'No se puede eliminar el escenario porque tiene partidos o eventos asociados',
       });
     }
   }

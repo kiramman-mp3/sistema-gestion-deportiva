@@ -154,10 +154,7 @@ export function ChampionshipsPage({
                     </span>
                   </td>
                   <td data-label="Acciones" className="row-actions">
-                    <a
-                      href={`#/campeonatos/${c.id}`}
-                      className="button-link"
-                    >
+                    <a href={`#/campeonatos/${c.id}`} className="button-link">
                       Ver detalle
                     </a>
                   </td>
@@ -184,9 +181,9 @@ function CreateChampionshipForm({
   onCancel: () => void;
   onCreated: (c: Championship) => void;
 }) {
-  const [seasons] = useFetch<Page<{ id: string; name: string; status: string }>>(
-    '/seasons?pageSize=100',
-  );
+  const [seasons] = useFetch<
+    Page<{ id: string; name: string; status: string }>
+  >('/seasons?pageSize=100');
   const [sports] = useFetch<Page<{ id: string; name: string; status: string }>>(
     '/sports?pageSize=100',
   );
@@ -198,7 +195,8 @@ function CreateChampionshipForm({
   const [sportId, setSportId] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [name, setName] = useState('');
-  const [format, setFormat] = useState<ChampionshipFormat>('todos_contra_todos');
+  const [format, setFormat] =
+    useState<ChampionshipFormat>('todos_contra_todos');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [registrationStart, setRegistrationStart] = useState('');

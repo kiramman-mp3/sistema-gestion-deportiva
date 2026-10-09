@@ -198,7 +198,9 @@ export class FixturesService {
                       include: {
                         team: {
                           include: {
-                            club: { select: { id: true, name: true, shortName: true } },
+                            club: {
+                              select: { id: true, name: true, shortName: true },
+                            },
                           },
                         },
                       },
@@ -587,22 +589,23 @@ export class FixturesService {
     const dayEnd = new Date(scheduledDate);
     dayEnd.setHours(23, 59, 59, 999);
 
-    const participantConflict = await this.prisma.client.eventParticipant.findFirst({
-      where: {
-        registrationId: { in: registrationIds },
-        event: {
-          ...(excludeEventId ? { id: { not: excludeEventId } } : {}),
-          scheduledAt: {
-            gte: dayStart,
-            lte: dayEnd,
+    const participantConflict =
+      await this.prisma.client.eventParticipant.findFirst({
+        where: {
+          registrationId: { in: registrationIds },
+          event: {
+            ...(excludeEventId ? { id: { not: excludeEventId } } : {}),
+            scheduledAt: {
+              gte: dayStart,
+              lte: dayEnd,
+            },
+            status: { notIn: ['cancelado', 'postergado'] },
           },
-          status: { notIn: ['cancelado', 'postergado'] },
         },
-      },
-      include: {
-        event: true,
-      },
-    });
+        include: {
+          event: true,
+        },
+      });
 
     if (participantConflict) {
       throw new ConflictException(

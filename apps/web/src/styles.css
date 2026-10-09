@@ -701,7 +701,9 @@ pre.json {
   flex-direction: column;
   gap: 0.75rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .championship-card:hover {
@@ -1296,5 +1298,3 @@ pre.json {
     size: A4 portrait;
   }
 }
-
-

@@ -8,13 +8,7 @@ import { DocumentsController } from './documents.controller.js';
 import { DocumentsService } from './documents.service.js';
 
 @Module({
-  imports: [
-    PrismaModule,
-    StorageModule,
-    AuditModule,
-    AuthModule,
-    ClubsModule,
-  ],
+  imports: [PrismaModule, StorageModule, AuditModule, AuthModule, ClubsModule],
   controllers: [DocumentsController],
   providers: [DocumentsService],
   exports: [DocumentsService],

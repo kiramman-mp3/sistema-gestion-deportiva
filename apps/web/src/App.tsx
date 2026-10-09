@@ -22,9 +22,7 @@ function readPrintRoute(): { kind: 'acta' | 'nomina'; id: string } | null {
   const match = /^#\/imprimir\/(acta|nomina)\/([0-9a-fA-F-]+)$/.exec(
     window.location.hash,
   );
-  return match
-    ? { kind: match[1] as 'acta' | 'nomina', id: match[2]! }
-    : null;
+  return match ? { kind: match[1] as 'acta' | 'nomina', id: match[2]! } : null;
 }
 
 function currentHash(): string {

@@ -212,7 +212,7 @@ describe('portal público y documentos institucionales imprimibles', () => {
         status: 'aprobada',
       },
     });
-    await prisma.registration.create({
+    const r2 = await prisma.registration.create({
       data: {
         championshipId: champ.id,
         participantId: p2.id,
@@ -254,7 +254,7 @@ describe('portal público y documentos institucionales imprimibles', () => {
         participants: {
           create: [
             { registrationId: r1.id, side: 'local' },
-            { registrationId: p2.registrations?.[0]?.id ?? (await prisma.registration.findFirstOrThrow({ where: { championshipId: champ.id, participantId: p2.id } })).id, side: 'visitante' },
+            { registrationId: r2.id, side: 'visitante' },
           ],
         },
       },
@@ -273,10 +273,7 @@ describe('portal público y documentos institucionales imprimibles', () => {
 
   test('lista y detalle público de campeonatos solo expone campeonatos activos', async () => {
     // Consulta anónima sin cookies de sesión
-    const listRes = await t
-      .http()
-      .get('/api/public/championships')
-      .expect(200);
+    const listRes = await t.http().get('/api/public/championships').expect(200);
     expect(listRes.body.total).toBe(1);
     expect(listRes.body.items[0].name).toBe(
       'Campeonato Cantonal de Fútbol 2026',
@@ -421,7 +418,9 @@ describe('portal público y documentos institucionales imprimibles', () => {
       'NÓMINA INSTITUCIONAL DE BUENA FE',
     );
     expect(rosterRes.body.participant.name).toBe('San Pedro FC');
-    expect(rosterRes.body.participant.clubName).toBe('Club Deportivo San Pedro');
+    expect(rosterRes.body.participant.clubName).toBe(
+      'Club Deportivo San Pedro',
+    );
     expect(rosterRes.body.members.length).toBe(1);
     expect(rosterRes.body.members[0].jerseyNumber).toBe(10);
     expect(rosterRes.body.members[0].name).toBe('Carlos Morocho');
@@ -429,7 +428,9 @@ describe('portal público y documentos institucionales imprimibles', () => {
 
     // Firmas institucionales
     expect(rosterRes.body.signatories.length).toBe(3);
-    expect(rosterRes.body.signatories[0].label).toContain('Presidente del Club');
+    expect(rosterRes.body.signatories[0].label).toContain(
+      'Presidente del Club',
+    );
     expect(rosterRes.body.signatories[1].label).toContain(
       'Presidente Liga Cantonal',
     );
