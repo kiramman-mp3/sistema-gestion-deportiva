@@ -4,6 +4,8 @@ export class ApiError extends Error {
     readonly status?: number,
     /** Segundos hasta poder reintentar (429). */
     readonly retryAfter?: number,
+    /** Errores de validación del servidor por campo (400). */
+    readonly fieldErrors?: Record<string, string>,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -37,17 +39,38 @@ interface RequestOptions {
   skipUnauthorizedHandler?: boolean;
 }
 
-async function messageFrom(
+interface ErrorBody {
+  message: string;
+  fieldErrors?: Record<string, string>;
+}
+
+async function readError(
   response: Response,
   fallback: string,
-): Promise<string> {
+): Promise<ErrorBody> {
   try {
-    const data = (await response.json()) as { message?: unknown };
-    if (typeof data.message === 'string') return data.message;
+    const data = (await response.json()) as {
+      message?: unknown;
+      errors?: { field?: unknown; message?: unknown }[];
+    };
+    const fieldErrors: Record<string, string> = {};
+    for (const e of data.errors ?? []) {
+      if (
+        typeof e.field === 'string' &&
+        typeof e.message === 'string' &&
+        !(e.field in fieldErrors)
+      ) {
+        fieldErrors[e.field] = e.message;
+      }
+    }
+    return {
+      message: typeof data.message === 'string' ? data.message : fallback,
+      fieldErrors: Object.keys(fieldErrors).length ? fieldErrors : undefined,
+    };
   } catch {
     // Cuerpo vacío o no JSON: se usa el mensaje genérico.
+    return { message: fallback };
   }
-  return fallback;
 }
 
 /** Cliente HTTP mínimo hacia la API. Las rutas son relativas a /api. */
@@ -81,13 +104,15 @@ export async function apiRequest<T>(
       onUnauthorized?.();
     }
     const retryAfter = Number(response.headers.get('Retry-After')) || undefined;
+    const error = await readError(
+      response,
+      `El servidor respondió con un error (${response.status}).`,
+    );
     throw new ApiError(
-      await messageFrom(
-        response,
-        `El servidor respondió con un error (${response.status}).`,
-      ),
+      error.message,
       response.status,
       retryAfter,
+      error.fieldErrors,
     );
   }
   if (response.status === 204) return undefined as T;

@@ -1,6 +1,6 @@
 import { AuthProvider, useAuth } from './features/auth/AuthContext.tsx';
 import { LoginForm } from './features/auth/LoginForm.tsx';
-import { ApiStatus } from './features/health/ApiStatus.tsx';
+import { CatalogsApp } from './features/catalogs/CatalogsApp.tsx';
 
 function Shell() {
   const { state, logout } = useAuth();
@@ -30,10 +30,7 @@ function Shell() {
           <LoginForm sessionExpired={state.expired} />
         )}
         {state.status === 'authenticated' && (
-          <>
-            <p>Sesión iniciada como {state.user.email}.</p>
-            <ApiStatus />
-          </>
+          <CatalogsApp permissions={state.permissions} />
         )}
       </main>
     </>
