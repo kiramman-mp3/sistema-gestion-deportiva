@@ -273,6 +273,36 @@ describe('contraseñas: activación, restablecimiento y cambio', () => {
       expect(await audits('auth.password_reset_completed')).toHaveLength(1);
     });
 
+    it('el enlace de restablecimiento también es de un solo uso (aunque la cuenta ya esté activa)', async () => {
+      const user = await createUser(prisma, { email: 'ana@liga.example' });
+      const link = await api()
+        .post(`/api/users/${user.id}/credential-link`)
+        .expect(200);
+      await complete(link.body.token, 'primera-contraseña-larga-1').expect(204);
+      await complete(link.body.token, 'segunda-contraseña-larga-2').expect(400);
+      await login(t, user.email, 'primera-contraseña-larga-1');
+      await t
+        .http()
+        .post('/api/auth/login')
+        .set('Origin', TEST_ORIGIN)
+        .send({ email: user.email, password: 'segunda-contraseña-larga-2' })
+        .expect(401);
+    });
+
+    it('dos canjes simultáneos de un restablecimiento: solo uno fija la contraseña', async () => {
+      const user = await createUser(prisma, { email: 'ana@liga.example' });
+      const link = await api()
+        .post(`/api/users/${user.id}/credential-link`)
+        .expect(200);
+      const results = await Promise.all([
+        complete(link.body.token, 'primera-contraseña-larga-1'),
+        complete(link.body.token, 'segunda-contraseña-larga-2'),
+        complete(link.body.token, 'tercera-contraseña-larga-3'),
+      ]);
+      expect(results.filter((r) => r.status === 204)).toHaveLength(1);
+      expect(await audits('auth.password_reset_completed')).toHaveLength(1);
+    });
+
     it('no sirve si la cuenta fue desactivada después de emitir el enlace', async () => {
       const user = await createUser(prisma, { email: 'ana@liga.example' });
       const link = await api()
