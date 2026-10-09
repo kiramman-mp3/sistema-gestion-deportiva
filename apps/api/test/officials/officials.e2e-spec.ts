@@ -445,7 +445,9 @@ describe('árbitros, jueces y designaciones', () => {
         assign(e1.id, official.id),
         assign(e2.id, official.id),
       ]);
-      expect(results.map((r) => r.status).sort()).toEqual([201, 409]);
+      expect(results.map((r) => r.status).sort((a, b) => a - b)).toEqual([
+        201, 409,
+      ]);
       expect(
         await prisma.eventAssignment.count({
           where: { officialId: official.id },
