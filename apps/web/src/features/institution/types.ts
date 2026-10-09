@@ -17,6 +17,7 @@ export interface Institution {
   publicAthletes: boolean;
   publicNews: boolean;
   publicResolutions: boolean;
+  allowSelfApproval: boolean;
   hasLogo: boolean;
 }
 

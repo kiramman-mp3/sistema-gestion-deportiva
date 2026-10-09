@@ -1178,6 +1178,8 @@ model InstitutionSettings {
   publicAthletes    Boolean  @default(true) @map("public_athletes")
   publicNews        Boolean  @default(true) @map("public_news")
   publicResolutions Boolean  @default(false) @map("public_resolutions")
+  /// Permite que quien registró el acta también la apruebe (§4.5: «salvo que la política institucional lo permita»).
+  allowSelfApproval Boolean  @default(false) @map("allow_self_approval")
   logoFileId        String?  @unique @map("logo_file_id") @db.Uuid
   updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
   updatedById       String?  @map("updated_by_id") @db.Uuid

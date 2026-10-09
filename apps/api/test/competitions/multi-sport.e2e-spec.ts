@@ -3,6 +3,7 @@ import { createTestApp, type TestApp } from '../support/app.js';
 import { createTestPrisma, resetDatabase } from '../support/db.js';
 import {
   adminWith,
+  allowSelfApproval,
   authed,
   createClub,
   seedCatalog,
@@ -42,6 +43,7 @@ describe('reglamentos y puntuación multideporte (básquet, taekwondo, ajedrez)'
   beforeEach(async () => {
     await resetDatabase(prisma);
     await seedCatalog(prisma);
+    await allowSelfApproval(prisma);
     admin = await adminWith(t, prisma, PERMISSIONS);
 
     club1 = await createClub(prisma, 'Club Libertad Quero');
@@ -173,6 +175,7 @@ describe('reglamentos y puntuación multideporte (básquet, taekwondo, ajedrez)'
       .expect(200);
 
     // Aprobar resultado
+    await api().post(`/api/events/${event.id}/result/submit`).expect(201);
     await api()
       .post(`/api/events/${event.id}/result/approve`)
       .send({
@@ -316,6 +319,7 @@ describe('reglamentos y puntuación multideporte (básquet, taekwondo, ajedrez)'
 
     expect(draftRes.body.taekwondoBouts).toHaveLength(4);
 
+    await api().post(`/api/events/${event.id}/result/submit`).expect(201);
     await api()
       .post(`/api/events/${event.id}/result/approve`)
       .send({
@@ -440,6 +444,7 @@ describe('reglamentos y puntuación multideporte (básquet, taekwondo, ajedrez)'
       })
       .expect(200);
 
+    await api().post(`/api/events/${event.id}/result/submit`).expect(201);
     await api()
       .post(`/api/events/${event.id}/result/approve`)
       .send({
