@@ -21,6 +21,30 @@ export const PERMISSIONS = {
   'seasons:read': 'Consultar temporadas',
   'seasons:manage': 'Crear, modificar y cambiar el estado de temporadas',
   'seasons:delete': 'Eliminar temporadas en borrador que no estén en uso',
+  'clubs:read':
+    'Consultar clubes (los vinculados al usuario, o todos con «acceso a todos los clubes»)',
+  'clubs:manage':
+    'Crear y modificar clubes, sus representantes y los usuarios vinculados a cada club',
+  'clubs:delete': 'Eliminar clubes que no estén en uso',
+  'clubs:access_all':
+    'Acceder a todos los clubes; sin este permiso solo se accede a los clubes vinculados',
+  'athletes:read':
+    'Consultar deportistas (datos resumidos, sin datos personales)',
+  'athletes:read_full':
+    'Consultar y editar los datos personales completos de los deportistas (fecha de nacimiento, documento, contacto, tutor)',
+  'athletes:manage':
+    'Registrar y modificar deportistas y registrar sus consentimientos',
+  'athletes:publish':
+    'Publicar o retirar el perfil público resumido de un deportista',
+  'athletes:validate':
+    'Validar la elegibilidad (habilitación) de los deportistas',
+  'athletes:transfer':
+    'Transferir deportistas a otro club al terminar la temporada',
+  'teams:read': 'Consultar equipos y plantillas',
+  'teams:manage':
+    'Crear y modificar equipos, inscribirlos en temporadas y gestionar sus plantillas',
+  'teams:delete':
+    'Eliminar equipos sin temporadas y anular altas de plantilla (excepciones a la regla de un equipo por temporada)',
 } as const satisfies Record<string, string>;
 
 export type PermissionCode = keyof typeof PERMISSIONS;
@@ -40,6 +64,9 @@ export const PERMISSION_MODULES = {
   sports: 'Deportes',
   categories: 'Categorías',
   seasons: 'Temporadas',
+  clubs: 'Clubes',
+  athletes: 'Deportistas',
+  teams: 'Equipos',
 } as const satisfies Record<string, string>;
 
 /**
@@ -48,10 +75,15 @@ export const PERMISSION_MODULES = {
  */
 export const PERMISSION_ACTIONS = {
   read: 'Consultar',
+  read_full: 'Consultar datos completos',
   create: 'Crear',
   update: 'Modificar',
   manage: 'Gestionar',
+  publish: 'Publicar',
+  validate: 'Validar',
+  transfer: 'Transferir',
   delete: 'Eliminar',
+  access_all: 'Acceso a todos los clubes',
 } as const satisfies Record<string, string>;
 
 export interface PermissionInfo {

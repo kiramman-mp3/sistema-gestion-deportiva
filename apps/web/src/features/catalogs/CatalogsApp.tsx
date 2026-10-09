@@ -5,6 +5,11 @@ import { RoleDetailPage } from '../admin/RoleDetailPage.tsx';
 import { RolesPage } from '../admin/RolesPage.tsx';
 import { UserDetailPage } from '../admin/UserDetailPage.tsx';
 import { UsersPage } from '../admin/UsersPage.tsx';
+import { AthleteDetailPage } from '../people/AthleteDetailPage.tsx';
+import { AthletesPage } from '../people/AthletesPage.tsx';
+import { ClubsPage } from '../people/ClubsPage.tsx';
+import { TeamDetailPage } from '../people/TeamDetailPage.tsx';
+import { TeamsPage } from '../people/TeamsPage.tsx';
 import { ApiStatus } from '../health/ApiStatus.tsx';
 import { CatalogAdmin } from './CatalogAdmin.tsx';
 import { categoriesConfig, seasonsConfig, sportsConfig } from './configs.tsx';
@@ -35,6 +40,9 @@ const SECTIONS: Section[] = [
     label: 'Temporadas',
     permission: seasonsConfig.permissions.read,
   },
+  { hash: '#/clubes', label: 'Clubes', permission: 'clubs:read' },
+  { hash: '#/deportistas', label: 'Deportistas', permission: 'athletes:read' },
+  { hash: '#/equipos', label: 'Equipos', permission: 'teams:read' },
   { hash: '#/auditoria', label: 'Auditoría', permission: 'audit:read' },
   { hash: '#/cuenta', label: 'Mi cuenta' },
 ];
@@ -133,6 +141,27 @@ export function CatalogsApp({
       {active.hash === '#/temporadas' && (
         <CatalogAdmin config={seasonsConfig} permissions={permissions} />
       )}
+      {active.hash === '#/clubes' && <ClubsPage permissions={permissions} />}
+      {active.hash === '#/deportistas' &&
+        (detailId && UUID.test(detailId) ? (
+          <AthleteDetailPage
+            key={detailId}
+            athleteId={detailId}
+            permissions={permissions}
+          />
+        ) : (
+          <AthletesPage permissions={permissions} />
+        ))}
+      {active.hash === '#/equipos' &&
+        (detailId && UUID.test(detailId) ? (
+          <TeamDetailPage
+            key={detailId}
+            teamId={detailId}
+            permissions={permissions}
+          />
+        ) : (
+          <TeamsPage permissions={permissions} />
+        ))}
       {active.hash === '#/auditoria' && <AuditPage />}
       {active.hash === '#/cuenta' && <ChangePasswordForm />}
     </>

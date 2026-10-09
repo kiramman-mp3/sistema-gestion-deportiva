@@ -96,6 +96,10 @@ model User {
   sessions               Session[]
   credentialTokens       CredentialToken[] @relation("CredentialTokenOwner")
   issuedCredentialTokens CredentialToken[] @relation("CredentialTokenIssuer")
+  clubLinks              ClubUser[]        @relation("ClubUserMember")
+  createdClubLinks       ClubUser[]        @relation("ClubUserCreator")
+  recordedConsents       ConsentRecord[]
+  teamMembershipsCreated TeamMembership[]
 
   @@map("users")
 }
@@ -267,6 +271,9 @@ model Sport {
   createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
+  teams       Team[]
+  teamSeasons TeamSeason[]
+
   @@map("sports")
 }
 
@@ -285,6 +292,8 @@ model Category {
   createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
+  teamSeasons TeamSeason[]
+
   @@map("categories")
 }
 
@@ -297,6 +306,303 @@ model Season {
   createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
 
+  teamSeasons TeamSeason[]
+  memberships TeamMembership[]
+
   @@index([status])
   @@map("seasons")
+}
+
+// ───────────────────── Clubes, personas y deportistas ─────────────────────
+
+enum ClubStatus {
+  activo
+  inactivo
+  suspendido
+  archivado
+
+  @@map("club_status")
+}
+
+enum PersonStatus {
+  activo
+  inactivo
+
+  @@map("person_status")
+}
+
+enum IdType {
+  cedula
+  pasaporte
+  otro
+
+  @@map("id_type")
+}
+
+/// Habilitación del deportista. La decide quien valida (no el club que lo inscribe).
+enum AthleteEligibility {
+  pendiente
+  habilitado
+  inhabilitado
+
+  @@map("athlete_eligibility")
+}
+
+enum ConsentType {
+  /// Publicar el perfil resumido en el portal público.
+  publicacion_perfil
+  /// Publicar la fotografía en el portal público.
+  publicacion_foto
+  /// Tratamiento de datos personales para la gestión deportiva.
+  tratamiento_datos
+
+  @@map("consent_type")
+}
+
+enum ConsentStatus {
+  otorgado
+  revocado
+
+  @@map("consent_status")
+}
+
+model Club {
+  id           String     @id @default(uuid(7)) @db.Uuid
+  name         String
+  /// Nombre normalizado (minúsculas, sin tildes ni signos): evita duplicados evidentes.
+  nameKey      String     @unique @map("name_key")
+  /// Identificador público estable para las direcciones del portal.
+  slug         String     @unique
+  shortName    String?    @map("short_name")
+  /// Código institucional, si existe.
+  code         String?    @unique
+  sector       String?
+  contactEmail String?    @map("contact_email")
+  contactPhone String?    @map("contact_phone")
+  status       ClubStatus @default(activo)
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  users           ClubUser[]
+  representatives ClubRepresentative[]
+  athletes        Athlete[]
+  teams           Team[]
+
+  @@map("clubs")
+}
+
+/// Alcance por club: un usuario sin el permiso `clubs:access_all` solo ve y gestiona
+/// los clubes con los que tiene un vínculo aquí. Los permisos dicen QUÉ puede hacer;
+/// este vínculo dice EN QUÉ clubes.
+model ClubUser {
+  clubId      String   @map("club_id") @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdById String?  @map("created_by_id") @db.Uuid
+
+  club      Club  @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  user      User  @relation("ClubUserMember", fields: [userId], references: [id], onDelete: Cascade)
+  createdBy User? @relation("ClubUserCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@id([clubId, userId])
+  @@index([userId])
+  @@index([createdById])
+  @@map("club_users")
+}
+
+/// Identidad básica de una persona. Los datos de contacto e identificación viven en
+/// `person_private_data`, con acceso restringido.
+model Person {
+  id        String       @id @default(uuid(7)) @db.Uuid
+  firstName String       @map("first_name")
+  lastName  String       @map("last_name")
+  /// Necesaria para validar la categoría. Nunca se publica.
+  birthDate DateTime?    @map("birth_date") @db.Date
+  status    PersonStatus @default(activo)
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  privateData     PersonPrivateData?
+  athlete         Athlete?
+  consents        ConsentRecord[]
+  representations ClubRepresentative[]
+
+  @@map("persons")
+}
+
+model PersonPrivateData {
+  personId         String   @id @map("person_id") @db.Uuid
+  idType           IdType?  @map("id_type")
+  idNumber         String?  @map("id_number")
+  /// `tipo:número` normalizado. Único: impide registrar dos veces a la misma persona.
+  idKey            String?  @unique @map("id_key")
+  phone            String?
+  guardianName     String?  @map("guardian_name")
+  guardianRelation String?  @map("guardian_relation")
+  guardianPhone    String?  @map("guardian_phone")
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@map("person_private_data")
+}
+
+model ClubRepresentative {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  clubId     String    @map("club_id") @db.Uuid
+  personId   String    @map("person_id") @db.Uuid
+  /// Cargo: representante, delegado, presidente…
+  roleName   String    @map("role_name")
+  validFrom  DateTime  @map("valid_from") @db.Date
+  validUntil DateTime? @map("valid_until") @db.Date
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  club   Club   @relation(fields: [clubId], references: [id], onDelete: Restrict)
+  person Person @relation(fields: [personId], references: [id], onDelete: Restrict)
+
+  @@index([clubId, validUntil])
+  @@index([personId])
+  @@map("club_representatives")
+}
+
+model Athlete {
+  id            String             @id @default(uuid(7)) @db.Uuid
+  personId      String             @unique @map("person_id") @db.Uuid
+  /// Club que lo tiene registrado. Solo cambia al terminar la temporada (transferencia).
+  clubId        String             @map("club_id") @db.Uuid
+  /// Número correlativo para el código interno visible (DEP-000123).
+  codeNumber    Int                @unique @default(autoincrement()) @map("code_number")
+  eligibility   AthleteEligibility @default(pendiente)
+  /// El perfil resumido es público solo si esta marca está activa Y hay consentimiento vigente.
+  publicProfile Boolean            @default(false) @map("public_profile")
+  createdAt     DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  person Person @relation(fields: [personId], references: [id], onDelete: Restrict)
+  club   Club   @relation(fields: [clubId], references: [id], onDelete: Restrict)
+
+  memberships TeamMembership[]
+
+  @@index([clubId])
+  @@map("athletes")
+}
+
+/// Consentimientos de tratamiento y publicación. Si el titular es menor, lo otorga su
+/// tutor (`grantedByRelation`). Los registros no se borran: se revocan.
+model ConsentRecord {
+  id                String        @id @default(uuid(7)) @db.Uuid
+  personId          String        @map("person_id") @db.Uuid
+  type              ConsentType
+  status            ConsentStatus @default(otorgado)
+  purpose           String?
+  /// Quién otorgó el consentimiento (la propia persona o su tutor).
+  grantedByName     String        @map("granted_by_name")
+  /// «propio» o el parentesco del tutor (madre, padre, tutor legal…).
+  grantedByRelation String        @map("granted_by_relation")
+  recordedAt        DateTime      @default(now()) @map("recorded_at") @db.Timestamptz(3)
+  expiresAt         DateTime?     @map("expires_at") @db.Timestamptz(3)
+  revokedAt         DateTime?     @map("revoked_at") @db.Timestamptz(3)
+  revokeReason      String?       @map("revoke_reason")
+  recordedById      String        @map("recorded_by_id") @db.Uuid
+
+  person     Person @relation(fields: [personId], references: [id], onDelete: Restrict)
+  recordedBy User   @relation(fields: [recordedById], references: [id], onDelete: Restrict)
+
+  @@index([personId, type, status])
+  @@index([recordedById])
+  @@map("consent_records")
+}
+
+// ───────────────────── Equipos y plantillas ─────────────────────
+
+enum MembershipStatus {
+  activo
+  baja
+
+  @@map("membership_status")
+}
+
+/// Un equipo de un club en un deporte. `name` es el nombre por defecto para nuevas
+/// temporadas; el nombre vigente en cada temporada vive en `TeamSeason.name`, de modo
+/// que un equipo puede llamarse distinto de una temporada a otra sin perder el historial.
+model Team {
+  id        String        @id @default(uuid(7)) @db.Uuid
+  clubId    String        @map("club_id") @db.Uuid
+  sportId   String        @map("sport_id") @db.Uuid
+  name      String
+  nameKey   String        @map("name_key")
+  status    CatalogStatus @default(activo)
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  club    Club         @relation(fields: [clubId], references: [id], onDelete: Restrict)
+  sport   Sport        @relation(fields: [sportId], references: [id], onDelete: Restrict)
+  seasons TeamSeason[]
+
+  @@unique([clubId, sportId, nameKey])
+  @@unique([id, sportId])
+  @@index([sportId])
+  @@map("teams")
+}
+
+/// Inscripción de un equipo en una temporada, con su nombre y categoría de ese período.
+/// `sportId` se repite aquí (clave compuesta con `Team`) para que la base de datos pueda
+/// garantizar «un deportista, un equipo por deporte y temporada».
+model TeamSeason {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  teamId       String   @map("team_id") @db.Uuid
+  sportId      String   @map("sport_id") @db.Uuid
+  seasonId     String   @map("season_id") @db.Uuid
+  categoryId   String   @map("category_id") @db.Uuid
+  name         String
+  nameKey      String   @map("name_key")
+  /// Con la plantilla cerrada no se admiten altas (las bajas siguen permitidas).
+  rosterClosed Boolean  @default(false) @map("roster_closed")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  team        Team             @relation(fields: [teamId, sportId], references: [id, sportId], onDelete: Restrict)
+  sport       Sport            @relation(fields: [sportId], references: [id], onDelete: Restrict)
+  season      Season           @relation(fields: [seasonId], references: [id], onDelete: Restrict)
+  category    Category         @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  memberships TeamMembership[]
+
+  @@unique([teamId, seasonId])
+  /// Dos equipos del mismo deporte no pueden llamarse igual en una misma temporada.
+  @@unique([seasonId, sportId, nameKey])
+  @@unique([id, sportId, seasonId])
+  @@index([seasonId])
+  @@index([categoryId])
+  @@index([sportId])
+  @@map("team_seasons")
+}
+
+/// Pertenencia de un deportista a la plantilla de un equipo en una temporada.
+/// REGLA: un deportista solo puede estar en un equipo por deporte y temporada (puede
+/// estar en varios deportes). La causa la garantiza la restricción única
+/// (athlete_id, sport_id, season_id). Una baja NO libera el cupo; solo la anulación
+/// (permiso `teams:delete`) lo hace.
+model TeamMembership {
+  id           String           @id @default(uuid(7)) @db.Uuid
+  teamSeasonId String           @map("team_season_id") @db.Uuid
+  athleteId    String           @map("athlete_id") @db.Uuid
+  sportId      String           @map("sport_id") @db.Uuid
+  seasonId     String           @map("season_id") @db.Uuid
+  status       MembershipStatus @default(activo)
+  jerseyNumber Int?             @map("jersey_number")
+  joinedAt     DateTime         @default(now()) @map("joined_at") @db.Timestamptz(3)
+  leftAt       DateTime?        @map("left_at") @db.Timestamptz(3)
+  leaveReason  String?          @map("leave_reason")
+  createdById  String           @map("created_by_id") @db.Uuid
+
+  teamSeason TeamSeason @relation(fields: [teamSeasonId, sportId, seasonId], references: [id, sportId, seasonId], onDelete: Restrict)
+  season     Season     @relation(fields: [seasonId], references: [id], onDelete: Restrict)
+  athlete    Athlete    @relation(fields: [athleteId], references: [id], onDelete: Restrict)
+  createdBy  User       @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@unique([athleteId, sportId, seasonId])
+  @@index([teamSeasonId])
+  @@index([seasonId])
+  @@index([createdById])
+  @@map("team_memberships")
 }

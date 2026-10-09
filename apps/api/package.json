@@ -10,6 +10,7 @@
     "db:deploy": "prisma migrate deploy",
     "db:status": "prisma migrate status",
     "db:seed": "nest build && node dist/database/seed.cli.js",
+    "db:seed:provisional": "nest build && node dist/database/seed-provisional.cli.js",
     "admin:create-superadmin": "nest build && node dist/auth/bootstrap-superadmin.cli.js",
     "prebuild": "npm run db:generate",
     "build": "nest build",

@@ -158,3 +158,131 @@ export async function adminWith(
   const user = await createUser(prisma, { permissions });
   return { user, session: await login(t, user.email) };
 }
+
+// ───────────────────── Clubes y personas ─────────────────────
+
+/** Cédula ecuatoriana válida a partir de 9 dígitos (calcula el verificador). */
+export function cedula(first9 = '171003406'): string {
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    let n = Number(first9[i]) * (i % 2 === 0 ? 2 : 1);
+    if (n > 9) n -= 9;
+    sum += n;
+  }
+  return first9 + String((10 - (sum % 10)) % 10);
+}
+
+let clubCounter = 0;
+export async function createClub(
+  prisma: PrismaClient,
+  name?: string,
+  status: 'activo' | 'inactivo' | 'suspendido' | 'archivado' = 'activo',
+) {
+  const { normalizeKey, slugify } = await import('../../src/common/keys.js');
+  const label = name ?? `Club de Prueba ${++clubCounter}`;
+  return prisma.club.create({
+    data: {
+      name: label,
+      nameKey: normalizeKey(label),
+      slug: slugify(label),
+      status,
+    },
+  });
+}
+
+/**
+ * Usuario con exactamente esos permisos, vinculado a esos clubes (alcance), con la
+ * sesión iniciada. Sin `clubs:access_all` solo alcanza a los clubes indicados.
+ */
+export async function leaderWith(
+  t: TestApp,
+  prisma: PrismaClient,
+  permissions: string[],
+  clubIds: string[] = [],
+) {
+  const user = await createUser(prisma, { permissions });
+  for (const clubId of clubIds)
+    await prisma.clubUser.create({ data: { clubId, userId: user.id } });
+  return { user, session: await login(t, user.email) };
+}
+
+// ───────────────────── Deporte, temporadas, equipos ─────────────────────
+
+let athleteCounter = 0;
+/** Deportista creado directamente en la base de datos (habilitado por defecto). */
+export async function createAthlete(
+  prisma: PrismaClient,
+  clubId: string,
+  over: {
+    birthDate?: string | null;
+    eligibility?: 'pendiente' | 'habilitado' | 'inhabilitado';
+    status?: 'activo' | 'inactivo';
+    firstName?: string;
+  } = {},
+) {
+  const n = ++athleteCounter;
+  const person = await prisma.person.create({
+    data: {
+      firstName: over.firstName ?? `Jugador${n}`,
+      lastName: `Prueba${n}`,
+      birthDate:
+        over.birthDate === null
+          ? null
+          : new Date(`${over.birthDate ?? '2013-06-15'}T00:00:00.000Z`),
+      status: over.status ?? 'activo',
+    },
+  });
+  return prisma.athlete.create({
+    data: {
+      personId: person.id,
+      clubId,
+      eligibility: over.eligibility ?? 'habilitado',
+    },
+  });
+}
+
+const codeOf = (name: string) =>
+  name
+    .normalize('NFD')
+    .replace(/[^A-Za-z0-9]/g, '')
+    .toLowerCase()
+    .slice(0, 8);
+
+export async function createSport(prisma: PrismaClient, name: string) {
+  return prisma.sport.create({
+    data: { code: codeOf(name), name },
+  });
+}
+
+export async function createCategory(
+  prisma: PrismaClient,
+  name: string,
+  ageMin: number | null = null,
+  ageMax: number | null = null,
+) {
+  return prisma.category.create({
+    data: {
+      code: codeOf(name),
+      name,
+      ageMin,
+      ageMax,
+    },
+  });
+}
+
+export async function createSeason(
+  prisma: PrismaClient,
+  name: string,
+  status: 'borrador' | 'activa' | 'finalizada' | 'archivada' = 'activa',
+  startDate = '2026-01-01',
+  endDate = '2026-12-31',
+) {
+  return prisma.season.create({
+    data: {
+      name,
+      status,
+      startDate: new Date(`${startDate}T00:00:00.000Z`),
+      endDate: new Date(`${endDate}T00:00:00.000Z`),
+    },
+  });
+}
