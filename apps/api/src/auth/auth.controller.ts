@@ -137,6 +137,7 @@ export class AuthController {
    */
   @Authenticated()
   @Post('password/change')
+  @HttpCode(200)
   async changePassword(
     @CurrentAuth() auth: AuthContext,
     @Req() req: AuthedRequest,
