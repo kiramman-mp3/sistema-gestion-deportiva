@@ -1,4 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
+import '../config/zod-locale.js';
 import { z } from 'zod';
 
 export const emailSchema = z
