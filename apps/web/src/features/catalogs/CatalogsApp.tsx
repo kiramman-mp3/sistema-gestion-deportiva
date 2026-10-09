@@ -10,6 +10,9 @@ import { AthletesPage } from '../people/AthletesPage.tsx';
 import { ClubsPage } from '../people/ClubsPage.tsx';
 import { TeamDetailPage } from '../people/TeamDetailPage.tsx';
 import { TeamsPage } from '../people/TeamsPage.tsx';
+import { ChampionshipDetailPage } from '../competitions/ChampionshipDetailPage.tsx';
+import { ChampionshipsPage } from '../competitions/ChampionshipsPage.tsx';
+import { VenuesPage } from '../competitions/VenuesPage.tsx';
 import { ApiStatus } from '../health/ApiStatus.tsx';
 import { CatalogAdmin } from './CatalogAdmin.tsx';
 import { categoriesConfig, seasonsConfig, sportsConfig } from './configs.tsx';
@@ -43,6 +46,16 @@ const SECTIONS: Section[] = [
   { hash: '#/clubes', label: 'Clubes', permission: 'clubs:read' },
   { hash: '#/deportistas', label: 'Deportistas', permission: 'athletes:read' },
   { hash: '#/equipos', label: 'Equipos', permission: 'teams:read' },
+  {
+    hash: '#/campeonatos',
+    label: 'Campeonatos',
+    permission: 'championships:read',
+  },
+  {
+    hash: '#/escenarios',
+    label: 'Escenarios',
+    permission: 'venues:read',
+  },
   { hash: '#/auditoria', label: 'Auditoría', permission: 'audit:read' },
   { hash: '#/cuenta', label: 'Mi cuenta' },
 ];
@@ -162,6 +175,19 @@ export function CatalogsApp({
         ) : (
           <TeamsPage permissions={permissions} />
         ))}
+      {active.hash === '#/campeonatos' &&
+        (detailId && UUID.test(detailId) ? (
+          <ChampionshipDetailPage
+            key={detailId}
+            championshipId={detailId}
+            permissions={permissions}
+          />
+        ) : (
+          <ChampionshipsPage permissions={permissions} />
+        ))}
+      {active.hash === '#/escenarios' && (
+        <VenuesPage permissions={permissions} />
+      )}
       {active.hash === '#/auditoria' && <AuditPage />}
       {active.hash === '#/cuenta' && <ChangePasswordForm />}
     </>
