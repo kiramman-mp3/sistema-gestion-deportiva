@@ -5,6 +5,10 @@ import { SecurityHashService } from '../auth/security-hash.service.js';
 import type { Page } from '../catalogs/common.js';
 import { ClubAccessService } from '../clubs/club-access.service.js';
 import { ENV, type Env } from '../config/config.module.js';
+import {
+  describeParticipants,
+  EVENT_LABEL_INCLUDE,
+} from '../competitions/event-label.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { InstitutionService } from '../institution/institution.service.js';
 import type {
@@ -179,44 +183,29 @@ export class NotificationsService {
     const event = await tx.event.findUniqueOrThrow({
       where: { id: eventId },
       include: {
+        ...EVENT_LABEL_INCLUDE,
         round: { include: { stage: { include: { championship: true } } } },
-        participants: {
-          include: {
-            registration: {
-              include: {
-                participant: {
-                  include: {
-                    team: { include: { team: true } },
-                    individual: {
-                      include: { athlete: { include: { person: true } } },
-                    },
-                  },
-                },
-              },
-            },
-          },
+        assignments: {
+          where: { status: { not: 'rechazado' } },
+          select: { official: { select: { userId: true } } },
         },
       },
     });
-    const names: string[] = [];
-    const clubIds = new Set<string>();
-    for (const ep of event.participants) {
-      const p = ep.registration.participant;
-      if (p.team) {
-        names.push(p.team.team.name);
-        clubIds.add(p.team.team.clubId);
-      } else if (p.individual) {
-        const { person, clubId } = p.individual.athlete;
-        names.push(`${person.firstName} ${person.lastName}`);
-        clubIds.add(clubId);
-      }
-    }
+    const participants = describeParticipants(event);
+    const officialUsers = event.assignments
+      .map((a) => a.official.userId)
+      .filter((id): id is string => id !== null);
     return {
       championship: event.round.stage.championship.name,
-      match: names.length > 0 ? names.join(' vs ') : 'Partido por definir',
+      match: participants.label,
       when: event.scheduledAt ? formatLocalDateTime(event.scheduledAt) : null,
-      clubIds: [...clubIds],
-      audience: await this.clubUserIds(tx, [...clubIds]),
+      clubIds: participants.clubIds,
+      audience: [
+        ...new Set([
+          ...(await this.clubUserIds(tx, participants.clubIds)),
+          ...officialUsers,
+        ]),
+      ],
     };
   }
 

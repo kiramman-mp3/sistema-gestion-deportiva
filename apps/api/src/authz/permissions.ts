@@ -64,6 +64,18 @@ export const PERMISSIONS = {
   'results:read': 'Consultar resultados y actas',
   'results:manage': 'Registrar y corregir resultados y actas en borrador',
   'results:approve': 'Aprobar, rechazar o anular resultados oficiales',
+  'officials:read':
+    'Consultar árbitros, jueces y auxiliares, su disponibilidad e historial',
+  'officials:manage':
+    'Registrar y modificar oficiales, su disponibilidad y su cuenta vinculada',
+  'officials:delete': 'Eliminar oficiales sin designaciones',
+  'assignments:read':
+    'Consultar las designaciones de oficiales en los partidos',
+  'assignments:manage': 'Designar y retirar oficiales de un partido',
+  'assignments:read_own':
+    'Consultar y responder las propias designaciones (árbitro o juez)',
+  'results:manage_assigned':
+    'Registrar y enviar a revisión el acta de los partidos en que el usuario está designado',
   'notifications:manage':
     'Consultar la cola de correos, reintentar envíos y enviar recordatorios de documentación',
   'institution:read': 'Consultar la configuración institucional',
@@ -99,6 +111,8 @@ export const PERMISSION_MODULES = {
   results: 'Resultados',
   institution: 'Institución',
   notifications: 'Notificaciones',
+  officials: 'Árbitros y jueces',
+  assignments: 'Designaciones',
 } as const satisfies Record<string, string>;
 
 /**
@@ -117,6 +131,8 @@ export const PERMISSION_ACTIONS = {
   delete: 'Eliminar',
   access_all: 'Acceso a todos los clubes',
   approve: 'Aprobar',
+  read_own: 'Consultar y responder las propias',
+  manage_assigned: 'Gestionar los partidos designados',
 } as const satisfies Record<string, string>;
 
 export interface PermissionInfo {
