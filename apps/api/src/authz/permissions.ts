@@ -76,6 +76,21 @@ export const PERMISSIONS = {
     'Consultar y responder las propias designaciones (árbitro o juez)',
   'results:manage_assigned':
     'Registrar y enviar a revisión el acta de los partidos en que el usuario está designado',
+  'incidents:report':
+    'Reportar incidencias de los partidos en que se está designado (o de cualquiera con gestión de expedientes)',
+  'incidents:read': 'Consultar las incidencias reportadas',
+  'complaints:submit':
+    'Presentar reclamos en nombre de los clubes a los que se pertenece',
+  'complaints:read':
+    'Consultar reclamos (los de los clubes vinculados, o todos con «acceso a todos los clubes»)',
+  'cases:read': 'Consultar expedientes disciplinarios',
+  'cases:manage':
+    'Abrir expedientes, asignar revisores, anexar notas y recursos y desestimar reclamos',
+  'cases:resolve': 'Resolver, reabrir y archivar expedientes disciplinarios',
+  'cases:publish': 'Publicar o retirar resoluciones en el portal público',
+  'sanctions:read':
+    'Consultar sanciones (las de los clubes vinculados, o todas con «acceso a todos los clubes»)',
+  'sanctions:manage': 'Registrar, cumplir y anular sanciones',
   'notifications:manage':
     'Consultar la cola de correos, reintentar envíos y enviar recordatorios de documentación',
   'institution:read': 'Consultar la configuración institucional',
@@ -113,6 +128,10 @@ export const PERMISSION_MODULES = {
   notifications: 'Notificaciones',
   officials: 'Árbitros y jueces',
   assignments: 'Designaciones',
+  incidents: 'Incidencias',
+  complaints: 'Reclamos',
+  cases: 'Expedientes disciplinarios',
+  sanctions: 'Sanciones',
 } as const satisfies Record<string, string>;
 
 /**
@@ -133,6 +152,9 @@ export const PERMISSION_ACTIONS = {
   approve: 'Aprobar',
   read_own: 'Consultar y responder las propias',
   manage_assigned: 'Gestionar los partidos designados',
+  report: 'Reportar',
+  submit: 'Presentar',
+  resolve: 'Resolver',
 } as const satisfies Record<string, string>;
 
 export interface PermissionInfo {
