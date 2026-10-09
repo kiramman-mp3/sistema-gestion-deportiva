@@ -16,10 +16,13 @@ Leyenda: `[x]` hecho · `[ ]` pendiente
 - [x] Pruebas de integración contra PostgreSQL aislado (local y CI)
 - [x] Decisión del modelo de participantes (ADR‑001; implementación diferida)
 - [x] Servicio de auditoría (`AuditService`) y seed de permisos/superadmin
-- [ ] Autenticación (sesiones seguras, hash de contraseñas, límite de intentos)
-- [ ] Autorización por permisos (roles, permisos, alcance por club)
-- [ ] Auditoría: registrar automáticamente las operaciones sensibles de cada módulo
-- [ ] Gestión de usuarios
+- [x] Autenticación: sesiones de servidor, Argon2id, CSRF, límite de intentos, login/logout en la interfaz (`authentication.md`)
+- [x] Autorización por permisos en el backend (guards con denegación por defecto; asignación de roles con prevención de escalada)
+- [ ] Alcance organizativo de los roles (p. ej. por club): llega con el módulo de clubes
+- [x] Auditoría de eventos de acceso, cuentas y roles (transaccional)
+- [ ] Auditoría de las operaciones sensibles de cada módulo nuevo (resultados, calendario, etc.)
+- [x] Primer superadministrador (CLI) y administración básica: estado de cuenta, revocación de sesiones, asignación de roles
+- [ ] Gestión de usuarios completa: alta de usuarios, roles y permisos editables, cambio y recuperación de contraseña, MFA para administradores
 - [ ] Deportes, categorías y temporadas: API y pantallas de administración (el esquema ya existe)
 
 ## Fase 3 — Participantes y fútbol piloto
@@ -52,4 +55,4 @@ Leyenda: `[x]` hecho · `[ ]` pendiente
 
 ## Siguiente bloque recomendado
 
-`feature/authentication`: login/logout con sesiones seguras (cookie `HttpOnly`/`Secure`/`SameSite`, CSRF), hash de contraseñas moderno, límite de intentos, guard de permisos en el backend y alta del primer superadministrador; con auditoría de inicios de sesión. Después, `feature/catalogs-admin` (API de deportes, categorías y temporadas con permisos y auditoría).
+`feature/catalogs-admin`: API y pantallas de deportes, categorías y temporadas con permisos (`sports|categories|seasons:*`) y auditoría, usando los guards existentes. Después, `feature/users-admin` (alta de usuarios, roles y permisos editables, cambio/recuperación de contraseña) y el módulo de clubes y personas.

@@ -10,6 +10,7 @@ import {
   ApiServiceUnavailableResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { Public } from '../auth/decorators.js';
 import { PrismaService } from '../database/prisma.service.js';
 
 export interface HealthStatus {
@@ -19,6 +20,7 @@ export interface HealthStatus {
 }
 
 @ApiTags('health')
+@Public()
 @Controller('health')
 export class HealthController {
   private readonly logger = new Logger(HealthController.name);

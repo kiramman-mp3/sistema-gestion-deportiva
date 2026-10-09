@@ -27,6 +27,7 @@ jobs:
       # Credenciales descartables del servicio efímero de CI; no son secretos reales.
       DATABASE_URL: postgresql://liga:ci-only-password@localhost:5432/liga_quero
       TEST_DATABASE_URL: postgresql://liga:ci-only-password@localhost:5432/liga_quero_test
+      SECURITY_HASH_KEY: ci-only-hash-key-not-a-real-secret-0123456789
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
