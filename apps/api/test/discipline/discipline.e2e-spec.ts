@@ -562,6 +562,10 @@ describe('disciplina: incidencias, reclamos, expedientes y sanciones', () => {
 
     it('asigna un revisor con acceso a expedientes y le avisa', async () => {
       const created = await openCase();
+      const candidates = await api().get('/api/cases/reviewers').expect(200);
+      expect(candidates.body).toEqual([
+        { id: manager.user.id, displayName: manager.user.displayName },
+      ]);
       const noAccess = await createUser(prisma, {
         permissions: ['sports:read'],
       });

@@ -116,6 +116,25 @@ export class CasesService {
     };
   }
 
+  /** Usuarios activos que pueden revisar expedientes (tienen `cases:read`): candidatos a revisor. */
+  async reviewerCandidates() {
+    return this.prisma.client.user.findMany({
+      where: {
+        status: 'activo',
+        roles: {
+          some: {
+            role: {
+              permissions: { some: { permission: { code: 'cases:read' } } },
+            },
+          },
+        },
+      },
+      select: { id: true, displayName: true },
+      orderBy: [{ displayName: 'asc' }, { id: 'asc' }],
+      take: 200,
+    });
+  }
+
   async get(id: string) {
     const row = await this.prisma.client.disciplinaryCase.findUnique({
       where: { id },
