@@ -5,10 +5,13 @@ import {
   NotFoundException,
   Param,
   Query,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { ApiTags } from '@nestjs/swagger';
+import { AthletesService } from '../athletes/athletes.service.js';
 import { Public } from '../auth/decorators.js';
-import { parseOrThrow } from '../auth/schemas.js';
+import { parseOrThrow, uuidSchema } from '../auth/schemas.js';
 import { listQuerySchema } from '../catalogs/common.js';
 import { PrismaService } from '../database/prisma.service.js';
 
@@ -21,7 +24,10 @@ import { PrismaService } from '../database/prisma.service.js';
 @Public()
 @Controller('public')
 export class PublicController {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(AthletesService) private readonly athletes: AthletesService,
+  ) {}
 
   /** Clubes activos: nombre, nombre corto, identificador y sector. */
   @Get('clubs')
@@ -49,5 +55,19 @@ export class PublicController {
     });
     if (!club) throw new NotFoundException('Club no encontrado');
     return club;
+  }
+
+  /**
+   * Perfil resumido de un deportista: solo nombre para mostrar y club, y únicamente si
+   * está publicado con consentimiento vigente. Sin indexación en buscadores.
+   */
+  @Get('athletes/:id')
+  async athlete(
+    @Param('id') id: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+    res.setHeader('Cache-Control', 'no-store');
+    return this.athletes.publicProfile(parseOrThrow(uuidSchema, id));
   }
 }
