@@ -1298,3 +1298,72 @@ pre.json {
     size: A4 portrait;
   }
 }
+
+/* Casillas de verificación y formularios de configuración */
+.check-field {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 0.5rem;
+  align-items: center;
+}
+
+.check-field input {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.check-field label {
+  margin-bottom: 0;
+}
+
+.check-field .hint {
+  grid-column: 2;
+}
+
+.settings-form {
+  max-width: 44rem;
+}
+
+.settings-form fieldset {
+  margin: 0 0 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+}
+
+.settings-form legend {
+  padding: 0 0.5rem;
+  font-weight: 700;
+}
+
+.logo-preview {
+  max-width: 12rem;
+  max-height: 8rem;
+  margin: 0.5rem 0;
+  object-fit: contain;
+  border: 1px solid var(--border);
+  background: #fff;
+}
+
+.label-like {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.button-like {
+  display: inline-block;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--primary);
+  border-radius: 0.25rem;
+  color: var(--primary);
+  background: var(--surface);
+  font: inherit;
+  cursor: pointer;
+}
+
+.button-like:focus-within {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
