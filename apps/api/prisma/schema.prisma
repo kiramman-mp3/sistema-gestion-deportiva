@@ -108,6 +108,7 @@ model User {
   approvedResults        Result[]                 @relation("ResultApprover")
   resultRevisions        ResultRevision[]         @relation("ResultRevisionAuthor")
   institutionUpdates     InstitutionSettings[]    @relation("InstitutionUpdater")
+  notifications          Notification[]           @relation("NotificationRecipient")
 
   @@map("users")
 }
@@ -1175,4 +1176,54 @@ model InstitutionSettings {
 
   @@index([updatedById])
   @@map("institution_settings")
+}
+
+// ───────────────────────────── Notificaciones ─────────────────────────────
+
+enum NotificationChannel {
+  /// Aviso dentro del sistema (bandeja del usuario).
+  sistema
+  /// Correo electrónico (cola de envío).
+  correo
+
+  @@map("notification_channel")
+}
+
+enum NotificationStatus {
+  pendiente
+  enviada
+  fallida
+
+  @@map("notification_status")
+}
+
+/// Notificación a un usuario por un canal. Los avisos del sistema nacen «enviada»; los
+/// correos nacen «pendiente» y los envía el despachador. El correo nunca lleva datos
+/// del caso: solo el título genérico y un enlace al sistema (ver docs/notifications.md).
+model Notification {
+  id            String              @id @default(uuid(7)) @db.Uuid
+  userId        String              @map("user_id") @db.Uuid
+  channel       NotificationChannel
+  /// Plantilla de origen, ej. `event.rescheduled`.
+  templateKey   String              @map("template_key")
+  title         String
+  body          String
+  entityType    String?             @map("entity_type")
+  entityId      String?             @map("entity_id")
+  /// Ruta interna de la interfaz (`#/campeonatos/<id>`).
+  link          String?
+  status        NotificationStatus  @default(pendiente)
+  attempts      Int                 @default(0)
+  /// Arrendamiento y espera entre reintentos: no se envía antes de esta hora.
+  nextAttemptAt DateTime?           @map("next_attempt_at") @db.Timestamptz(3)
+  lastError     String?             @map("last_error")
+  readAt        DateTime?           @map("read_at") @db.Timestamptz(3)
+  sentAt        DateTime?           @map("sent_at") @db.Timestamptz(3)
+  createdAt     DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, channel, readAt, createdAt])
+  @@index([channel, status, nextAttemptAt, createdAt])
+  @@map("notifications")
 }
