@@ -15,6 +15,9 @@ import {
   type Club,
   type Consent,
   type ConsentType,
+  DOCUMENT_TYPE_LABELS,
+  type AthleteDocument,
+  type DocumentType,
   ELIGIBILITY_LABELS,
   type Eligibility,
   PERSON_STATUS_LABELS,
@@ -25,7 +28,9 @@ type Pending =
   | { kind: 'eligibility'; eligibility: Eligibility }
   | { kind: 'status'; status: 'activo' | 'inactivo' }
   | { kind: 'revoke'; consent: Consent }
-  | { kind: 'transfer'; club: Club };
+  | { kind: 'transfer'; club: Club }
+  | { kind: 'deletePhoto' }
+  | { kind: 'deleteDocument'; document: AthleteDocument };
 
 const date = (value: string | null) =>
   value
@@ -49,6 +54,12 @@ export function AthleteDetailPage({
   const [teams, reloadTeams] = useFetch<AthleteTeam[]>(
     can('teams:read') ? `/athletes/${athleteId}/teams` : null,
   );
+  const [documents, reloadDocuments] = useFetch<AthleteDocument[]>(
+    can('documents:read') ? `/athletes/${athleteId}/documents` : null,
+  );
+  const [photoNonce, setPhotoNonce] = useState(0);
+  const [photoError, setPhotoError] = useState(false);
+  const [addingDoc, setAddingDoc] = useState(false);
   const [pending, setPending] = useState<Pending | null>(null);
   const [editing, setEditing] = useState(false);
   const [addingConsent, setAddingConsent] = useState(false);
@@ -58,6 +69,9 @@ export function AthleteDetailPage({
     reload();
     reloadConsents();
     reloadTeams();
+    reloadDocuments();
+    setPhotoNonce((c) => c + 1);
+    setPhotoError(false);
   };
   async function perform(operation: () => Promise<unknown>, success: string) {
     try {
@@ -109,6 +123,67 @@ export function AthleteDetailPage({
         <dt>Perfil público</dt>
         <dd>{a.publicProfile ? 'Publicado' : 'No publicado'}</dd>
       </dl>
+
+      <div className="athlete-profile-media">
+        {!photoError ? (
+          <img
+            src={`/api/athletes/${athleteId}/photo?t=${photoNonce}`}
+            alt={`Foto de ${a.firstName} ${a.lastName}`}
+            className="athlete-photo-img"
+            onError={() => setPhotoError(true)}
+          />
+        ) : (
+          <div
+            className="athlete-photo-placeholder"
+            aria-label="Sin fotografía"
+          >
+            Sin foto
+          </div>
+        )}
+        <div>
+          <h4>Fotografía del deportista</h4>
+          <p className="hint">
+            Formatos admitidos: JPEG, PNG o WebP (máx. 5 MB).
+          </p>
+          <div className="form-actions">
+            {can('documents:manage') && (
+              <label className="button-like">
+                <span>
+                  {photoError ? 'Subir fotografía' : 'Cambiar fotografía'}
+                </span>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="visually-hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const fd = new FormData();
+                    fd.append('file', file);
+                    await perform(
+                      () =>
+                        apiRequest(`${url}/photo`, {
+                          method: 'POST',
+                          body: fd,
+                        }),
+                      'Fotografía actualizada con éxito.',
+                    );
+                    e.target.value = '';
+                  }}
+                />
+              </label>
+            )}
+            {can('documents:manage') && !photoError && (
+              <button
+                type="button"
+                onClick={() => setPending({ kind: 'deletePhoto' })}
+              >
+                Eliminar foto
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
 
       {a.full ? (
         <>
@@ -289,6 +364,135 @@ export function AthleteDetailPage({
         />
       )}
 
+      {can('documents:read') && (
+        <>
+          <h3>Documentos de respaldo</h3>
+          {documents.kind === 'loading' && (
+            <p className="loading">Cargando documentos…</p>
+          )}
+          {documents.kind === 'ready' && documents.data.length === 0 && (
+            <p className="empty">
+              No hay documentos registrados para este deportista.
+            </p>
+          )}
+          {documents.kind === 'ready' && documents.data.length > 0 && (
+            <table className="responsive-table">
+              <caption className="visually-hidden">
+                Documentos del deportista
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Título</th>
+                  <th scope="col">Tipo</th>
+                  <th scope="col">Archivo</th>
+                  <th scope="col">Tamaño</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {documents.data.map((doc) => (
+                  <tr key={doc.id}>
+                    <td data-label="Título">{doc.title}</td>
+                    <td data-label="Tipo">
+                      {DOCUMENT_TYPE_LABELS[doc.type] ?? doc.type}
+                    </td>
+                    <td data-label="Archivo">
+                      <a
+                        href={`/api/athletes/${athleteId}/documents/${doc.id}/file`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {doc.originalName}
+                      </a>
+                    </td>
+                    <td data-label="Tamaño">
+                      {(doc.sizeBytes / 1024).toFixed(0)} KB
+                    </td>
+                    <td data-label="Estado">
+                      {doc.verified ? (
+                        <span className="badge badge-ok">
+                          Verificado (
+                          {doc.verifiedBy?.displayName ?? 'Oficial'})
+                        </span>
+                      ) : (
+                        <span className="badge">
+                          Pendiente de verificación
+                        </span>
+                      )}
+                    </td>
+                    <td data-label="Acciones" className="row-actions">
+                      <a
+                        href={`/api/athletes/${athleteId}/documents/${doc.id}/file`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="button-link"
+                      >
+                        Ver
+                      </a>
+                      {can('documents:manage') && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void perform(
+                                () =>
+                                  apiRequest(
+                                    `${url}/documents/${doc.id}/verify`,
+                                    {
+                                      method: 'PATCH',
+                                      body: { verified: !doc.verified },
+                                    },
+                                  ),
+                                doc.verified
+                                  ? 'Documento desmarcado.'
+                                  : 'Documento verificado.',
+                              )
+                            }
+                          >
+                            {doc.verified ? 'Desmarcar' : 'Verificar'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setPending({
+                                kind: 'deleteDocument',
+                                document: doc,
+                              })
+                            }
+                          >
+                            Eliminar
+                          </button>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          {can('documents:manage') && !addingDoc && (
+            <button type="button" onClick={() => setAddingDoc(true)}>
+              Subir documento
+            </button>
+          )}
+          {addingDoc && (
+            <DocumentUploadForm
+              athleteId={athleteId}
+              onCancel={() => setAddingDoc(false)}
+              onSaved={() => {
+                setAddingDoc(false);
+                setNotice({
+                  type: 'success',
+                  text: 'Documento subido con éxito.',
+                });
+                refresh();
+              }}
+            />
+          )}
+        </>
+      )}
+
       {can('teams:read') && (
         <>
           <h3>Equipos</h3>
@@ -353,7 +557,7 @@ export function AthleteDetailPage({
                   }),
                 'Se revocó el consentimiento.',
               );
-            else
+            else if (p.kind === 'transfer')
               await perform(
                 () =>
                   apiRequest(`${url}/transfer`, {
@@ -361,6 +565,19 @@ export function AthleteDetailPage({
                     body: { clubId: p.club.id, reason },
                   }),
                 `Se transfirió al deportista a ${p.club.name}.`,
+              );
+            else if (p.kind === 'deletePhoto')
+              await perform(
+                () => apiRequest(`${url}/photo`, { method: 'DELETE' }),
+                'Se eliminó la fotografía.',
+              );
+            else if (p.kind === 'deleteDocument')
+              await perform(
+                () =>
+                  apiRequest(`${url}/documents/${p.document.id}`, {
+                    method: 'DELETE',
+                  }),
+                'Se eliminó el documento.',
               );
           }}
         />
@@ -379,6 +596,10 @@ function dialogTitle(p: Pending): string {
       return 'Revocar consentimiento';
     case 'transfer':
       return 'Transferir de club';
+    case 'deletePhoto':
+      return 'Eliminar fotografía';
+    case 'deleteDocument':
+      return 'Eliminar documento de respaldo';
   }
 }
 
@@ -394,6 +615,10 @@ function dialogText(p: Pending, a: Athlete): string {
       return `Se revocará el consentimiento de «${CONSENT_LABELS[p.consent.type]}». Si es el de publicación del perfil, se retirará el perfil público.`;
     case 'transfer':
       return `Pasará al club ${p.club.name} y deberá validarse de nuevo. Solo es posible cuando no tiene inscripciones en la temporada vigente.`;
+    case 'deletePhoto':
+      return 'Se eliminará la fotografía del deportista de forma permanente.';
+    case 'deleteDocument':
+      return `Se eliminará el documento «${p.document.title}» y su archivo asociado de forma permanente.`;
   }
 }
 
@@ -700,3 +925,98 @@ function EditAthleteForm({
     </form>
   );
 }
+
+function DocumentUploadForm({
+  athleteId,
+  onCancel,
+  onSaved,
+}: {
+  athleteId: string;
+  onCancel: () => void;
+  onSaved: () => void;
+}) {
+  const [title, setTitle] = useState('');
+  const [type, setType] = useState<DocumentType>('identificacion');
+  const [file, setFile] = useState<File | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (!title.trim()) {
+      setError('El título es obligatorio.');
+      return;
+    }
+    if (!file) {
+      setError('Debe seleccionar un archivo.');
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    try {
+      const fd = new FormData();
+      fd.append('title', title.trim());
+      fd.append('type', type);
+      fd.append('file', file);
+      await apiRequest(`/athletes/${athleteId}/documents`, {
+        method: 'POST',
+        body: fd,
+      });
+      onSaved();
+    } catch (err) {
+      setError(describeError(err));
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="record-form">
+      <h4>Subir documento de respaldo</h4>
+      <TextField
+        label="Título del documento"
+        value={title}
+        onChange={setTitle}
+        required
+        maxLength={150}
+        disabled={submitting}
+      />
+      <SelectField
+        label="Tipo de documento"
+        value={type}
+        onChange={(val) => setType(val as DocumentType)}
+        options={Object.entries(DOCUMENT_TYPE_LABELS).map(([value, label]) => ({
+          value,
+          label,
+        }))}
+        disabled={submitting}
+      />
+      <div className="field">
+        <label htmlFor="doc-file-input">
+          Archivo (PDF o imagen, máx. 10 MB)
+        </label>
+        <input
+          id="doc-file-input"
+          type="file"
+          accept="application/pdf,image/jpeg,image/png,image/webp"
+          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          disabled={submitting}
+          required
+        />
+      </div>
+      {error && (
+        <p className="form-error" role="alert">
+          {error}
+        </p>
+      )}
+      <div className="form-actions">
+        <button type="submit" className="primary" disabled={submitting}>
+          {submitting ? 'Subiendo…' : 'Subir'}
+        </button>
+        <button type="button" onClick={onCancel} disabled={submitting}>
+          Cancelar
+        </button>
+      </div>
+    </form>
+  );
+}
+

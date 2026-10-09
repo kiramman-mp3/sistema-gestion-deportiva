@@ -6,6 +6,7 @@ import {
   Inject,
   Injectable,
   Logger,
+  Optional,
   UnauthorizedException,
   UnsupportedMediaTypeException,
 } from '@nestjs/common';
@@ -15,6 +16,7 @@ import { PermissionsService } from '../authz/permissions.service.js';
 import { ENV, type Env } from '../config/config.module.js';
 import { type AuthedRequest, CSRF_HEADER } from './auth.types.js';
 import {
+  ALLOW_MULTIPART_KEY,
   AUTHENTICATED_KEY,
   PERMISSIONS_KEY,
   PUBLIC_KEY,
@@ -34,8 +36,8 @@ function constantTimeEqual(a: string, b: string): boolean {
  * 1.º guard. Defensa CSRF a nivel de origen para peticiones que modifican estado
  * (incluido el login, que no tiene sesión previa):
  *  - si hay `Origin` (o `Referer`), debe ser uno de los orígenes configurados;
- *  - si traen cuerpo, debe ser JSON (los formularios entre sitios no pueden
- *    enviar `application/json` sin pasar por CORS).
+ *  - si traen cuerpo, debe ser JSON (o multipart/form-data si la ruta lo permite
+ *    explícitamente con @AllowMultipart).
  * Los clientes que no son navegadores y no envían ninguno de los dos pasan este
  * guard, pero siguen necesitando cookie de sesión + token CSRF (ver AuthGuard).
  */
@@ -43,7 +45,10 @@ function constantTimeEqual(a: string, b: string): boolean {
 export class OriginGuard implements CanActivate {
   private readonly allowed: ReadonlySet<string>;
 
-  constructor(@Inject(ENV) env: Env) {
+  constructor(
+    @Inject(ENV) env: Env,
+    @Optional() @Inject(Reflector) private readonly reflector?: Reflector,
+  ) {
     this.allowed = new Set(env.WEB_ORIGIN);
   }
 
@@ -68,9 +73,23 @@ export class OriginGuard implements CanActivate {
       }
     }
 
+    const allowMultipart =
+      this.reflector?.getAllAndOverride<boolean>(ALLOW_MULTIPART_KEY, [
+        context.getHandler(),
+        context.getClass(),
+      ]) ?? false;
+
     const contentType = req.headers['content-type'];
-    if (contentType && !/^application\/json\s*(;|$)/i.test(contentType)) {
-      throw new UnsupportedMediaTypeException('Se requiere application/json');
+    if (allowMultipart) {
+      if (!contentType || !/^multipart\/form-data\s*(;|$)/i.test(contentType)) {
+        throw new UnsupportedMediaTypeException(
+          'Se requiere multipart/form-data',
+        );
+      }
+    } else {
+      if (contentType && !/^application\/json\s*(;|$)/i.test(contentType)) {
+        throw new UnsupportedMediaTypeException('Se requiere application/json');
+      }
     }
     return true;
   }

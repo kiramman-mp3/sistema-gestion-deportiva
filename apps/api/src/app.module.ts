@@ -10,6 +10,8 @@ import { HealthController } from './health/health.controller.js';
 import { ClubsModule } from './clubs/clubs.module.js';
 import { PeopleModule } from './people/people.module.js';
 import { PublicModule } from './public/public.module.js';
+import { StorageModule } from './storage/storage.module.js';
+import { DocumentsModule } from './documents/documents.module.js';
 import { TeamsModule } from './teams/teams.module.js';
 import { UsersModule } from './users/users.module.js';
 
@@ -26,6 +28,8 @@ import { UsersModule } from './users/users.module.js';
     ClubsModule,
     AthletesModule,
     TeamsModule,
+    StorageModule,
+    DocumentsModule,
     PublicModule,
   ],
   controllers: [HealthController],

@@ -100,6 +100,8 @@ model User {
   createdClubLinks       ClubUser[]        @relation("ClubUserCreator")
   recordedConsents       ConsentRecord[]
   teamMembershipsCreated TeamMembership[]
+  createdFiles           StoredFile[]      @relation("StoredFileCreator")
+  verifiedDocuments      AthleteDocument[] @relation("DocumentVerifier")
 
   @@map("users")
 }
@@ -482,6 +484,8 @@ model Athlete {
   club   Club   @relation(fields: [clubId], references: [id], onDelete: Restrict)
 
   memberships TeamMembership[]
+  photo       AthletePhoto?
+  documents   AthleteDocument[]
 
   @@index([clubId])
   @@map("athletes")
@@ -606,3 +610,69 @@ model TeamMembership {
   @@index([createdById])
   @@map("team_memberships")
 }
+
+// ───────────────────── Archivos y documentos ─────────────────────
+
+enum DocumentType {
+  identificacion
+  certificado_medico
+  formulario_inscripcion
+  otro
+
+  @@map("document_type")
+}
+
+/// Almacenamiento seguro de archivos. El archivo real vive en el sistema de
+/// archivos fuera de la raíz web, con nombre aleatorio opaco.
+model StoredFile {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  filename       String   @unique
+  originalName   String   @map("original_name")
+  mimeType       String   @map("mime_type")
+  sizeBytes      Int      @map("size_bytes")
+  checksumSha256 String   @map("checksum_sha256")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdById    String   @map("created_by_id") @db.Uuid
+
+  createdBy    User             @relation("StoredFileCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  athletePhoto AthletePhoto?
+  athleteDoc   AthleteDocument?
+
+  @@index([createdById])
+  @@map("stored_files")
+}
+
+/// Fotografía de un deportista. Se publica solo con consentimiento vigente y perfil publicado.
+model AthletePhoto {
+  athleteId String   @id @map("athlete_id") @db.Uuid
+  fileId    String   @unique @map("file_id") @db.Uuid
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  athlete Athlete    @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  file    StoredFile @relation(fields: [fileId], references: [id], onDelete: Restrict)
+
+  @@map("athlete_photos")
+}
+
+/// Documento de inscripción o respaldo de un deportista.
+model AthleteDocument {
+  id           String       @id @default(uuid(7)) @db.Uuid
+  athleteId    String       @map("athlete_id") @db.Uuid
+  fileId       String       @unique @map("file_id") @db.Uuid
+  type         DocumentType
+  title        String
+  verified     Boolean      @default(false)
+  verifiedAt   DateTime?    @map("verified_at") @db.Timestamptz(3)
+  verifiedById String?      @map("verified_by_id") @db.Uuid
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  athlete    Athlete    @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  file       StoredFile @relation(fields: [fileId], references: [id], onDelete: Restrict)
+  verifiedBy User?      @relation("DocumentVerifier", fields: [verifiedById], references: [id], onDelete: Restrict)
+
+  @@index([athleteId])
+  @@index([verifiedById])
+  @@map("athlete_documents")
+}
+
