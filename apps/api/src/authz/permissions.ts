@@ -48,6 +48,22 @@ export const PERMISSIONS = {
   'documents:read': 'Consultar y descargar documentos de deportistas',
   'documents:manage':
     'Subir, verificar y eliminar documentos y fotos de deportistas',
+  'venues:read': 'Consultar escenarios deportivos',
+  'venues:manage': 'Crear y modificar escenarios deportivos',
+  'venues:delete': 'Eliminar escenarios deportivos que no estén en uso',
+  'championships:read': 'Consultar campeonatos y reglamentos',
+  'championships:manage':
+    'Crear y modificar campeonatos, reglamentos y cambiar su estado',
+  'championships:delete': 'Eliminar campeonatos en borrador',
+  'registrations:read': 'Consultar inscripciones de participantes',
+  'registrations:manage':
+    'Inscribir participantes y revisar o cambiar el estado de inscripción',
+  'fixtures:read': 'Consultar etapas, jornadas y partidos programados',
+  'fixtures:manage':
+    'Programar, reprogramar y asignar escenarios y horarios a partidos',
+  'results:read': 'Consultar resultados y actas',
+  'results:manage': 'Registrar y corregir resultados y actas en borrador',
+  'results:approve': 'Aprobar, rechazar o anular resultados oficiales',
 } as const satisfies Record<string, string>;
 
 export type PermissionCode = keyof typeof PERMISSIONS;
@@ -71,6 +87,11 @@ export const PERMISSION_MODULES = {
   athletes: 'Deportistas',
   teams: 'Equipos',
   documents: 'Documentos',
+  venues: 'Escenarios',
+  championships: 'Campeonatos',
+  registrations: 'Inscripciones',
+  fixtures: 'Calendario',
+  results: 'Resultados',
 } as const satisfies Record<string, string>;
 
 /**
@@ -88,6 +109,7 @@ export const PERMISSION_ACTIONS = {
   transfer: 'Transferir',
   delete: 'Eliminar',
   access_all: 'Acceso a todos los clubes',
+  approve: 'Aprobar',
 } as const satisfies Record<string, string>;
 
 export interface PermissionInfo {

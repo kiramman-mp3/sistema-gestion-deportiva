@@ -102,6 +102,11 @@ model User {
   teamMembershipsCreated TeamMembership[]
   createdFiles           StoredFile[]      @relation("StoredFileCreator")
   verifiedDocuments      AthleteDocument[] @relation("DocumentVerifier")
+  approvedRuleVersions   CompetitionRuleVersion[] @relation("RuleVersionApprover")
+  reviewedRegistrations  Registration[]    @relation("RegistrationReviewer")
+  submittedResults       Result[]          @relation("ResultSubmitter")
+  approvedResults        Result[]          @relation("ResultApprover")
+  resultRevisions        ResultRevision[]  @relation("ResultRevisionAuthor")
 
   @@map("users")
 }
@@ -273,8 +278,9 @@ model Sport {
   createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  teams       Team[]
-  teamSeasons TeamSeason[]
+  teams         Team[]
+  teamSeasons   TeamSeason[]
+  championships Championship[]
 
   @@map("sports")
 }
@@ -294,7 +300,8 @@ model Category {
   createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  teamSeasons TeamSeason[]
+  teamSeasons   TeamSeason[]
+  championships Championship[]
 
   @@map("categories")
 }
@@ -308,8 +315,9 @@ model Season {
   createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  teamSeasons TeamSeason[]
-  memberships TeamMembership[]
+  teamSeasons   TeamSeason[]
+  memberships   TeamMembership[]
+  championships Championship[]
 
   @@index([status])
   @@map("seasons")
@@ -483,9 +491,11 @@ model Athlete {
   person Person @relation(fields: [personId], references: [id], onDelete: Restrict)
   club   Club   @relation(fields: [clubId], references: [id], onDelete: Restrict)
 
-  memberships TeamMembership[]
-  photo       AthletePhoto?
-  documents   AthleteDocument[]
+  memberships    TeamMembership[]
+  photo          AthletePhoto?
+  documents      AthleteDocument[]
+  participant    IndividualParticipant?
+  footballEvents FootballEvent[]
 
   @@index([clubId])
   @@map("athletes")
@@ -539,9 +549,10 @@ model Team {
   createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  club    Club         @relation(fields: [clubId], references: [id], onDelete: Restrict)
-  sport   Sport        @relation(fields: [sportId], references: [id], onDelete: Restrict)
-  seasons TeamSeason[]
+  club        Club             @relation(fields: [clubId], references: [id], onDelete: Restrict)
+  sport       Sport            @relation(fields: [sportId], references: [id], onDelete: Restrict)
+  seasons     TeamSeason[]
+  participant TeamParticipant?
 
   @@unique([clubId, sportId, nameKey])
   @@unique([id, sportId])
@@ -674,5 +685,453 @@ model AthleteDocument {
   @@index([athleteId])
   @@index([verifiedById])
   @@map("athlete_documents")
+}
+
+// ───────────────────── Campeonatos, competencias y participantes ─────────────────────
+
+enum ChampionshipFormat {
+  todos_contra_todos
+  eliminatoria_simple
+  fase_grupos_y_eliminatoria
+  sistema_suizo
+  cuadro_combates
+
+  @@map("championship_format")
+}
+
+enum ChampionshipStatus {
+  borrador
+  inscripciones_abiertas
+  inscripciones_cerradas
+  en_curso
+  finalizado
+  archivado
+
+  @@map("championship_status")
+}
+
+enum ParticipantKind {
+  equipo
+  individual
+
+  @@map("participant_kind")
+}
+
+enum RegistrationStatus {
+  borrador
+  pendiente
+  observada
+  aprobada
+  rechazada
+  retirada
+
+  @@map("registration_status")
+}
+
+enum StageType {
+  grupo
+  eliminatoria
+  unico
+
+  @@map("stage_type")
+}
+
+enum EventStatus {
+  programado
+  en_curso
+  finalizado
+  suspendido
+  postergado
+  cancelado
+
+  @@map("event_status")
+}
+
+enum ParticipantSide {
+  local
+  visitante
+  individual
+
+  @@map("participant_side")
+}
+
+enum ResultStatus {
+  borrador
+  pendiente_revision
+  aprobado
+  rechazado
+  anulado
+
+  @@map("result_status")
+}
+
+enum ResultOutcome {
+  victoria
+  empate
+  derrota
+  no_presentado
+
+  @@map("result_outcome")
+}
+
+enum FootballEventType {
+  gol
+  tarjeta_amarilla
+  tarjeta_roja
+  sustitucion
+
+  @@map("football_event_type")
+}
+
+enum ChessColor {
+  blancas
+  negras
+
+  @@map("chess_color")
+}
+
+/// Escenarios deportivos (canchas, coliseos, estadios, mesas).
+model Venue {
+  id        String        @id @default(uuid(7)) @db.Uuid
+  name      String        @unique
+  address   String?
+  capacity  Int?
+  status    CatalogStatus @default(activo)
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  events Event[]
+
+  @@map("venues")
+}
+
+/// Campeonato deportivo: edición de competencia en una temporada, deporte y categoría.
+model Championship {
+  id                String             @id @default(uuid(7)) @db.Uuid
+  seasonId          String             @map("season_id") @db.Uuid
+  sportId           String             @map("sport_id") @db.Uuid
+  categoryId        String             @map("category_id") @db.Uuid
+  name              String
+  format            ChampionshipFormat
+  status            ChampionshipStatus @default(borrador)
+  registrationStart DateTime?          @map("registration_start") @db.Date
+  registrationEnd   DateTime?          @map("registration_end") @db.Date
+  startDate         DateTime?          @map("start_date") @db.Date
+  endDate           DateTime?          @map("end_date") @db.Date
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  season        Season                   @relation(fields: [seasonId], references: [id], onDelete: Restrict)
+  sport         Sport                    @relation(fields: [sportId], references: [id], onDelete: Restrict)
+  category      Category                 @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  ruleVersions  CompetitionRuleVersion[]
+  registrations Registration[]
+  stages        Stage[]
+
+  @@unique([seasonId, sportId, categoryId, name])
+  @@index([seasonId])
+  @@index([sportId])
+  @@index([categoryId])
+  @@index([status])
+  @@map("championships")
+}
+
+/// Reglamento versionado y aprobado para un campeonato (puntos, desempates, reglas).
+model CompetitionRuleVersion {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  championshipId String    @map("championship_id") @db.Uuid
+  version        Int
+  rulesJson      Json      @map("rules_json")
+  approvedById   String?   @map("approved_by_id") @db.Uuid
+  approvedAt     DateTime? @map("approved_at") @db.Timestamptz(3)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  championship Championship @relation(fields: [championshipId], references: [id], onDelete: Cascade)
+  approvedBy   User?        @relation("RuleVersionApprover", fields: [approvedById], references: [id], onDelete: Restrict)
+
+  @@unique([championshipId, version])
+  @@index([approvedById])
+  @@map("competition_rule_versions")
+}
+
+/// Entidad común de participantes (ADR-001).
+model Participant {
+  id        String          @id @default(uuid(7)) @db.Uuid
+  kind      ParticipantKind
+  createdAt DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  team          TeamParticipant?
+  individual    IndividualParticipant?
+  registrations Registration[]
+
+  @@unique([id, kind])
+  @@map("participants")
+}
+
+/// Participante de tipo equipo (ADR-001).
+model TeamParticipant {
+  participantId String          @id @map("participant_id") @db.Uuid
+  kind          ParticipantKind @default(equipo)
+  teamId        String          @unique @map("team_id") @db.Uuid
+
+  participant Participant @relation(fields: [participantId, kind], references: [id, kind], onDelete: Cascade)
+  team        Team        @relation(fields: [teamId], references: [id], onDelete: Restrict)
+
+  @@unique([participantId, kind])
+  @@map("team_participants")
+}
+
+/// Participante de tipo individual (ADR-001).
+model IndividualParticipant {
+  participantId String          @id @map("participant_id") @db.Uuid
+  kind          ParticipantKind @default(individual)
+  athleteId     String          @unique @map("athlete_id") @db.Uuid
+
+  participant Participant @relation(fields: [participantId, kind], references: [id, kind], onDelete: Cascade)
+  athlete     Athlete     @relation(fields: [athleteId], references: [id], onDelete: Restrict)
+
+  @@unique([participantId, kind])
+  @@map("individual_participants")
+}
+
+/// Inscripción de un participante en un campeonato concreto.
+model Registration {
+  id             String             @id @default(uuid(7)) @db.Uuid
+  championshipId String             @map("championship_id") @db.Uuid
+  participantId  String             @map("participant_id") @db.Uuid
+  status         RegistrationStatus @default(pendiente)
+  notes          String?
+  submittedAt    DateTime           @default(now()) @map("submitted_at") @db.Timestamptz(3)
+  reviewedById   String?            @map("reviewed_by_id") @db.Uuid
+  reviewedAt     DateTime?          @map("reviewed_at") @db.Timestamptz(3)
+  reviewNotes    String?            @map("review_notes")
+  createdAt      DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  championship      Championship       @relation(fields: [championshipId], references: [id], onDelete: Restrict)
+  participant       Participant        @relation(fields: [participantId], references: [id], onDelete: Restrict)
+  reviewedBy        User?              @relation("RegistrationReviewer", fields: [reviewedById], references: [id], onDelete: Restrict)
+  eventParticipants EventParticipant[]
+
+  @@unique([championshipId, participantId])
+  @@index([participantId])
+  @@index([status])
+  @@index([reviewedById])
+  @@map("registrations")
+}
+
+/// Etapa de un campeonato (fase de grupos, eliminación, etapa única).
+model Stage {
+  id             String        @id @default(uuid(7)) @db.Uuid
+  championshipId String        @map("championship_id") @db.Uuid
+  name           String
+  stageType      StageType     @default(grupo) @map("stage_type")
+  sequence       Int           @default(1)
+  status         CatalogStatus @default(activo)
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  championship Championship @relation(fields: [championshipId], references: [id], onDelete: Cascade)
+  rounds       Round[]
+
+  @@unique([championshipId, sequence])
+  @@index([championshipId])
+  @@map("stages")
+}
+
+/// Jornada o ronda de una etapa.
+model Round {
+  id          String        @id @default(uuid(7)) @db.Uuid
+  stageId     String        @map("stage_id") @db.Uuid
+  roundNumber Int           @default(1) @map("round_number")
+  name        String
+  status      CatalogStatus @default(activo)
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  stage  Stage   @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  events Event[]
+
+  @@unique([stageId, roundNumber])
+  @@index([stageId])
+  @@map("rounds")
+}
+
+/// Encuentro o partido deportivo.
+model Event {
+  id                 String      @id @default(uuid(7)) @db.Uuid
+  roundId            String      @map("round_id") @db.Uuid
+  venueId            String?     @map("venue_id") @db.Uuid
+  scheduledAt        DateTime?   @map("scheduled_at") @db.Timestamptz(3)
+  actualStartAt      DateTime?   @map("actual_start_at") @db.Timestamptz(3)
+  actualEndAt        DateTime?   @map("actual_end_at") @db.Timestamptz(3)
+  status             EventStatus @default(programado)
+  postponementReason String?     @map("postponement_reason")
+  createdAt          DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  round        Round              @relation(fields: [roundId], references: [id], onDelete: Restrict)
+  venue        Venue?             @relation(fields: [venueId], references: [id], onDelete: Restrict)
+  participants EventParticipant[]
+  result       Result?
+
+  @@index([roundId])
+  @@index([venueId, scheduledAt])
+  @@index([scheduledAt])
+  @@index([status])
+  @@map("events")
+}
+
+/// Participante en un encuentro deportivo.
+model EventParticipant {
+  id             String          @id @default(uuid(7)) @db.Uuid
+  eventId        String          @map("event_id") @db.Uuid
+  registrationId String          @map("registration_id") @db.Uuid
+  side           ParticipantSide @default(individual)
+  seed           Int?
+
+  event          Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  registration   Registration       @relation(fields: [registrationId], references: [id], onDelete: Restrict)
+  resultValues   ResultValue[]
+  periodScores   EventPeriodScore[]
+  footballEvents FootballEvent[]
+  taekwondoBouts TaekwondoBout[]
+  chessPairings  ChessPairing[]
+
+  @@unique([eventId, registrationId])
+  @@index([registrationId])
+  @@map("event_participants")
+}
+
+/// Resultado oficial y acta de un encuentro deportivo.
+model Result {
+  id            String       @id @default(uuid(7)) @db.Uuid
+  eventId       String       @unique @map("event_id") @db.Uuid
+  status        ResultStatus @default(borrador)
+  submittedById String?      @map("submitted_by_id") @db.Uuid
+  submittedAt   DateTime?    @map("submitted_at") @db.Timestamptz(3)
+  approvedById  String?      @map("approved_by_id") @db.Uuid
+  approvedAt    DateTime?    @map("approved_at") @db.Timestamptz(3)
+  approvalNotes String?      @map("approval_notes")
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  event          Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  submittedBy    User?              @relation("ResultSubmitter", fields: [submittedById], references: [id], onDelete: Restrict)
+  approvedBy     User?              @relation("ResultApprover", fields: [approvedById], references: [id], onDelete: Restrict)
+  values         ResultValue[]
+  revisions      ResultRevision[]
+  periodScores   EventPeriodScore[]
+  footballEvents FootballEvent[]
+  taekwondoBouts TaekwondoBout[]
+  chessPairings  ChessPairing[]
+
+  @@index([status])
+  @@index([submittedById])
+  @@index([approvedById])
+  @@map("results")
+}
+
+/// Puntuación y resultado de cada participante en el evento.
+model ResultValue {
+  id                 String        @id @default(uuid(7)) @db.Uuid
+  resultId           String        @map("result_id") @db.Uuid
+  eventParticipantId String        @map("event_participant_id") @db.Uuid
+  score              Int           @default(0)
+  outcome            ResultOutcome @default(empate)
+  rank               Int?
+
+  result           Result           @relation(fields: [resultId], references: [id], onDelete: Cascade)
+  eventParticipant EventParticipant @relation(fields: [eventParticipantId], references: [id], onDelete: Cascade)
+
+  @@unique([resultId, eventParticipantId])
+  @@map("result_values")
+}
+
+/// Historial inmutable de modificaciones y revisiones de un resultado.
+model ResultRevision {
+  id               String   @id @default(uuid(7)) @db.Uuid
+  resultId         String   @map("result_id") @db.Uuid
+  previousSnapshot Json     @map("previous_snapshot")
+  newSnapshot      Json     @map("new_snapshot")
+  reason           String
+  changedById      String   @map("changed_by_id") @db.Uuid
+  changedAt        DateTime @default(now()) @map("changed_at") @db.Timestamptz(3)
+
+  result    Result @relation(fields: [resultId], references: [id], onDelete: Cascade)
+  changedBy User   @relation("ResultRevisionAuthor", fields: [changedById], references: [id], onDelete: Restrict)
+
+  @@index([resultId])
+  @@index([changedById])
+  @@map("result_revisions")
+}
+
+/// Incidencias y estadísticas de fútbol (goles, tarjetas, sustituciones).
+model FootballEvent {
+  id                 String            @id @default(uuid(7)) @db.Uuid
+  resultId           String            @map("result_id") @db.Uuid
+  eventParticipantId String            @map("event_participant_id") @db.Uuid
+  athleteId          String?           @map("athlete_id") @db.Uuid
+  eventType          FootballEventType @map("event_type")
+  minute             Int
+  notes              String?
+  createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  result           Result           @relation(fields: [resultId], references: [id], onDelete: Cascade)
+  eventParticipant EventParticipant @relation(fields: [eventParticipantId], references: [id], onDelete: Cascade)
+  athlete          Athlete?         @relation(fields: [athleteId], references: [id], onDelete: Restrict)
+
+  @@index([resultId])
+  @@index([athleteId])
+  @@map("football_events")
+}
+
+/// Puntuación por período (Básquet: Q1..Q4, OT).
+model EventPeriodScore {
+  id                 String @id @default(uuid(7)) @db.Uuid
+  resultId           String @map("result_id") @db.Uuid
+  eventParticipantId String @map("event_participant_id") @db.Uuid
+  periodNumber       Int    @map("period_number")
+  score              Int
+
+  result           Result           @relation(fields: [resultId], references: [id], onDelete: Cascade)
+  eventParticipant EventParticipant @relation(fields: [eventParticipantId], references: [id], onDelete: Cascade)
+
+  @@unique([resultId, eventParticipantId, periodNumber])
+  @@map("event_period_scores")
+}
+
+/// Asaltos y puntos de combate (Taekwondo).
+model TaekwondoBout {
+  id                 String  @id @default(uuid(7)) @db.Uuid
+  resultId           String  @map("result_id") @db.Uuid
+  eventParticipantId String  @map("event_participant_id") @db.Uuid
+  roundNumber        Int     @map("round_number")
+  points             Int
+  penalties          Int     @default(0)
+  decision           String?
+
+  result           Result           @relation(fields: [resultId], references: [id], onDelete: Cascade)
+  eventParticipant EventParticipant @relation(fields: [eventParticipantId], references: [id], onDelete: Cascade)
+
+  @@index([resultId])
+  @@map("taekwondo_bouts")
+}
+
+/// Emparejamiento individual y puntuación (Ajedrez: 1.0, 0.5, 0.0, Buchholz).
+model ChessPairing {
+  id                 String     @id @default(uuid(7)) @db.Uuid
+  resultId           String     @map("result_id") @db.Uuid
+  eventParticipantId String     @map("event_participant_id") @db.Uuid
+  color              ChessColor
+  points             Decimal    @db.Decimal(3, 1)
+  buchholz           Decimal?   @db.Decimal(5, 2)
+
+  result           Result           @relation(fields: [resultId], references: [id], onDelete: Cascade)
+  eventParticipant EventParticipant @relation(fields: [eventParticipantId], references: [id], onDelete: Cascade)
+
+  @@index([resultId])
+  @@map("chess_pairings")
 }
 
