@@ -45,6 +45,9 @@ export const PERMISSIONS = {
     'Crear y modificar equipos, inscribirlos en temporadas y gestionar sus plantillas',
   'teams:delete':
     'Eliminar equipos sin temporadas y anular altas de plantilla (excepciones a la regla de un equipo por temporada)',
+  'documents:read': 'Consultar y descargar documentos de deportistas',
+  'documents:manage':
+    'Subir, verificar y eliminar documentos y fotos de deportistas',
 } as const satisfies Record<string, string>;
 
 export type PermissionCode = keyof typeof PERMISSIONS;
@@ -67,6 +70,7 @@ export const PERMISSION_MODULES = {
   clubs: 'Clubes',
   athletes: 'Deportistas',
   teams: 'Equipos',
+  documents: 'Documentos',
 } as const satisfies Record<string, string>;
 
 /**

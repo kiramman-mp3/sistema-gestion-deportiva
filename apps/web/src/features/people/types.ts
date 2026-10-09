@@ -137,3 +137,32 @@ export interface CatalogItem {
 
 /** Temporadas en las que aún se puede cambiar la información (las demás son historial). */
 export const EDITABLE_SEASONS = ['borrador', 'activa'];
+
+export type DocumentType =
+  | 'identificacion'
+  | 'certificado_medico'
+  | 'formulario_inscripcion'
+  | 'otro';
+
+export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
+  identificacion: 'Cédula / Identificación',
+  certificado_medico: 'Certificado Médico',
+  formulario_inscripcion: 'Formulario de Inscripción',
+  otro: 'Otro Documento',
+};
+
+export interface AthleteDocument {
+  id: string;
+  athleteId: string;
+  fileId: string;
+  type: DocumentType;
+  title: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  verified: boolean;
+  verifiedAt: string | null;
+  verifiedBy: { id: string; displayName: string } | null;
+  createdAt: string;
+}
+
