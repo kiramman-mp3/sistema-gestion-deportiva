@@ -1,9 +1,11 @@
 import {
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import type { AuthContext } from '../../auth/auth.types.js';
 import { AuditService } from '../../audit/audit.service.js';
 import { PrismaService } from '../../database/prisma.service.js';
 import { NotificationsService } from '../../notifications/notifications.service.js';
@@ -21,6 +23,26 @@ export class ResultsService {
     @Inject(NotificationsService)
     private readonly notifications: NotificationsService,
   ) {}
+
+  /**
+   * Quién puede escribir el acta de un partido: `results:manage` en cualquiera, o
+   * `results:manage_assigned` solo si está designado en ese partido (y no rechazó la designación).
+   */
+  async assertCanWrite(auth: AuthContext, eventId: string): Promise<void> {
+    if (auth.permissions.has('results:manage')) return;
+    if (auth.permissions.has('results:manage_assigned')) {
+      const assignment = await this.prisma.client.eventAssignment.findFirst({
+        where: {
+          eventId,
+          status: { not: 'rechazado' },
+          official: { userId: auth.user.id },
+        },
+        select: { id: true },
+      });
+      if (assignment) return;
+    }
+    throw new ForbiddenException('No tiene permisos para esta operación');
+  }
 
   async getResult(eventId: string) {
     const event = await this.prisma.client.event.findUnique({
