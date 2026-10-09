@@ -42,7 +42,7 @@ export async function logout(page: Page): Promise<void> {
 export async function goToSection(page: Page, name: string): Promise<void> {
   await page
     .getByRole('navigation', { name: 'Secciones' })
-    .getByRole('link', { name, exact: true })
+    .getByRole('link', { name: new RegExp(`^${name}(\\b|\\s|$)`) })
     .click();
 }
 

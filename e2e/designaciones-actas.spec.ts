@@ -17,9 +17,12 @@ test.describe('flujo de designación de árbitros, registro de acta y aprobació
     // Va a la pestaña de partidos
     await page.getByRole('tab', { name: 'Calendario y partidos' }).click();
 
-    // Localiza un partido programado en el fixture
+    // Localiza un partido programado en el fixture (evitando filas finalizadas con botón «Reprogramar»)
     const scheduledRow = page
-      .locator('tbody tr', { hasText: 'programado' })
+      .locator('tbody tr')
+      .filter({
+        has: page.getByRole('cell', { name: 'Programado', exact: true }),
+      })
       .first();
     await expect(scheduledRow).toBeVisible();
 
@@ -28,28 +31,35 @@ test.describe('flujo de designación de árbitros, registro de acta y aprobació
     const assignDialog = page.locator('dialog[open]');
     await expect(assignDialog).toBeVisible();
 
+    // Espera a que carguen las designaciones existentes y los candidatos
+    await expect(assignDialog.locator('ul.plain-list, p.empty')).toBeVisible();
+    await expect(
+      assignDialog.getByRole('button', { name: 'Designar' }),
+    ).toBeVisible();
+
     // Obtiene los roles ya ocupados en este partido
     const occupiedRoles = (
-      await assignDialog.locator('li strong').allInnerTexts()
+      await assignDialog.locator('ul.plain-list li strong').allInnerTexts()
     )
       .join(' ')
       .toLowerCase();
 
     // Elige un rol que no esté ocupado
     const candidateRoles: { value: string; match: string }[] = [
-      { value: 'cronometrista', match: 'cronometrista' },
+      { value: 'comisario', match: 'comisario' },
       { value: 'anotador', match: 'anotador' },
       { value: 'juez_de_mesa', match: 'juez de mesa' },
-      { value: 'comisario', match: 'comisario' },
       { value: 'cuarto_arbitro', match: 'cuarto' },
+      { value: 'cronometrista', match: 'cronometrista' },
     ];
     const freeRole =
       candidateRoles.find((r) => !occupiedRoles.includes(r.match))?.value ??
-      'cronometrista';
+      'comisario';
 
     // Elige un oficial candidato disponible
     const officialSelect = assignDialog.getByLabel('Oficial');
     await expect(officialSelect).toBeVisible();
+    await expect(officialSelect.locator('option')).not.toHaveCount(1);
     const availableOptions = await officialSelect
       .locator('option')
       .allInnerTexts();
