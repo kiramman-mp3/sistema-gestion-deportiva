@@ -427,6 +427,66 @@ export class AthletesService {
     return this.get(actor, id);
   }
 
+  // ───────────────────────────── transferencia de club ─────────────────────────────
+
+  /**
+   * Cambio de club. Solo se habilita cuando el deportista no tiene inscripciones en una
+   * temporada vigente (borrador o activa): es decir, al terminar la temporada. El nuevo
+   * club debe validar de nuevo al deportista, así que la elegibilidad vuelve a «pendiente».
+   */
+  async transfer(
+    actor: Actor,
+    id: string,
+    clubId: string,
+    reason: string,
+    ip: string,
+  ): Promise<AthleteView> {
+    await this.prisma.client.$transaction(async (tx) => {
+      await this.load(tx, actor, id);
+      await this.lockAthlete(tx, id);
+      const row = await tx.athlete.findUniqueOrThrow({ where: { id } });
+      if (row.clubId === clubId) {
+        throw new ConflictException('El deportista ya pertenece a ese club');
+      }
+      await this.access.assertAccess(actor, clubId, tx);
+      const target = await tx.club.findUniqueOrThrow({
+        where: { id: clubId },
+        select: { status: true },
+      });
+      if (target.status !== 'activo') {
+        throw new ConflictException('El club de destino no está activo');
+      }
+      const open = await tx.teamMembership.count({
+        where: {
+          athleteId: id,
+          season: { status: { in: ['borrador', 'activa'] } },
+        },
+      });
+      if (open > 0) {
+        throw new ConflictException(
+          'El deportista tiene inscripciones en la temporada vigente: el cambio de club se habilita al finalizarla',
+        );
+      }
+      await tx.athlete.update({
+        where: { id },
+        data: { clubId, eligibility: 'pendiente' },
+      });
+      await this.record(
+        tx,
+        actor,
+        ip,
+        'athlete.transfer',
+        id,
+        {
+          before: { clubId: row.clubId, eligibility: row.eligibility },
+          after: { clubId, eligibility: 'pendiente' },
+        },
+        reason,
+      );
+    });
+    return this.get(actor, id);
+  }
+
   // ───────────────────────────── elegibilidad ─────────────────────────────
 
   /**
