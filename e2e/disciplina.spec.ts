@@ -155,6 +155,16 @@ test.describe('flujo disciplinario: reclamos, expedientes, resolución y publica
     });
     await expect(resolutionArticle).toBeVisible();
     await expect(resolutionArticle).toContainText(publicSummary);
+
+    // Restaurar parámetro a false para mantener aislamiento entre pruebas
+    await login(page, ACCOUNTS.admin);
+    const adminCleanup = await page.request.get('/api/auth/session');
+    const { csrfToken: cleanupCsrf } = await adminCleanup.json();
+    await page.request.patch('/api/institution', {
+      headers: { 'x-csrf-token': cleanupCsrf },
+      data: { publicResolutions: false },
+    });
+    await logout(page);
   });
 
   test('restringe operaciones disciplinarias a usuarios sin autorización y valida nombres protegidos', async ({

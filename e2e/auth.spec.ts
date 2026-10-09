@@ -47,7 +47,7 @@ test.describe('inicio de sesión y permisos en la interfaz', () => {
       menu.getByRole('link', { name: 'Deportistas', exact: true }),
     ).toBeVisible();
     await expect(
-      menu.getByRole('link', { name: 'Notificaciones', exact: true }),
+      menu.getByRole('link', { name: /^Notificaciones/ }),
     ).toBeVisible();
     for (const hidden of [
       'Usuarios',

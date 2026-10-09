@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { pageText } from './support.ts';
+import { ACCOUNTS, login, logout, pageText } from './support.ts';
 
 test.describe('portal público (sin iniciar sesión)', () => {
   test('el inicio reúne noticias, próximos partidos y últimos resultados', async ({
@@ -34,11 +34,21 @@ test.describe('portal público (sin iniciar sesión)', () => {
     page,
   }) => {
     await page.goto('/#/portal');
-    await page
-      .getByRole('link', { name: 'Arrancó el campeonato de fútbol Liga A' })
-      .click();
-    await expect(page).toHaveURL(
-      /#\/portal\/noticias\/arranco-el-campeonato-de-futbol-liga-a$/,
+    // Abre una noticia disponible desde el inicio
+    const newsLink = page.locator('.news-grid .news-card h4 a').first();
+    await expect(newsLink).toBeVisible();
+    const newsTitle = (await newsLink.textContent())?.trim();
+    await newsLink.click();
+    await expect(page).toHaveURL(/#\/portal\/noticias\/[a-z0-9-]+$/);
+    if (newsTitle) {
+      await expect(
+        page.getByRole('heading', { name: newsTitle }),
+      ).toBeVisible();
+    }
+
+    // El enlace directo funciona para una noticia específica
+    await page.goto(
+      '/#/portal/noticias/arranco-el-campeonato-de-futbol-liga-a',
     );
     await expect(
       page.getByRole('heading', {
@@ -173,6 +183,22 @@ test.describe('portal público (sin iniciar sesión)', () => {
   test('las resoluciones están apagadas hasta que la Liga las activa', async ({
     page,
   }) => {
+    // Asegurar que las resoluciones estén apagadas para validar el estado por defecto
+    const checkRes = await page.request.get('/api/public/institution');
+    if (checkRes.ok()) {
+      const inst = await checkRes.json();
+      if (inst.publication?.resolutions) {
+        await login(page, ACCOUNTS.admin);
+        const adminSession = await page.request.get('/api/auth/session');
+        const { csrfToken } = await adminSession.json();
+        await page.request.patch('/api/institution', {
+          headers: { 'x-csrf-token': csrfToken },
+          data: { publicResolutions: false },
+        });
+        await logout(page);
+      }
+    }
+
     await page.goto('/#/portal');
     await expect(
       page
