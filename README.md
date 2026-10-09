@@ -26,6 +26,7 @@ cp .env.example .env              # reemplazar cambiar-… (contraseña de Postg
 docker compose up -d db           # PostgreSQL en 127.0.0.1:5432 (ver POSTGRES_PORT)
 npm run db:deploy -w @liga/api    # migraciones
 npm run db:seed -w @liga/api      # permisos y rol superadmin
+npm run db:seed:provisional -w @liga/api   # opcional: deportes y categorías provisionales (no sobrescribe)
 npm run admin:create-superadmin -w @liga/api   # primer superadministrador (interactivo)
 npm run dev:api                   # http://localhost:3000/api/health/ready
 npm run dev:web                   # http://localhost:5173
