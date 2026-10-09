@@ -27,6 +27,13 @@ export interface TemplateParams {
   'assignment.rejected': { official: string; match: string; role: string };
   'result.pending_review': { championship: string; match: string };
   'case.assigned': { number: string; subject: string };
+  'incident.reported': { match: string; type: string };
+  'sanction.registered': { type: string; subject: string; code: string };
+  'complaint.updated': {
+    subject: string;
+    status: string;
+    reason?: string | null;
+  };
   'complaint.received': { club: string | null; subject: string };
   'resolution.published': { title: string };
   'documents.reminder': { club: string; pending: number };
@@ -96,6 +103,18 @@ const RENDERERS: { [K in TemplateKey]: (p: TemplateParams[K]) => Rendered } = {
   'result.pending_review': (p) => ({
     title: 'Hay un resultado pendiente de revisión',
     body: `El acta de ${p.match} («${p.championship}») espera su revisión.`,
+  }),
+  'sanction.registered': (p) => ({
+    title: 'Se registró una sanción',
+    body: `Expediente ${p.code}: ${p.type} para ${p.subject}.`,
+  }),
+  'incident.reported': (p) => ({
+    title: 'Se reportó una incidencia en un partido',
+    body: `Incidencia (${p.type}) reportada en ${p.match}.`,
+  }),
+  'complaint.updated': (p) => ({
+    title: 'Su reclamo tiene una novedad',
+    body: withReason(`Su reclamo «${p.subject}» quedó ${p.status}.`, p.reason),
   }),
   'case.assigned': (p) => ({
     title: 'Se le asignó un expediente',
