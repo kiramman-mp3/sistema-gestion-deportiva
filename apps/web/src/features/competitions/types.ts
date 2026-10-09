@@ -112,3 +112,82 @@ export interface Registration {
     } | null;
   };
 }
+
+export type StageType = 'grupo' | 'eliminatoria' | 'unico';
+
+export type EventStatus =
+  | 'programado'
+  | 'en_curso'
+  | 'finalizado'
+  | 'suspendido'
+  | 'postergado'
+  | 'cancelado';
+
+export const STAGE_TYPE_LABELS: Record<StageType, string> = {
+  grupo: 'Fase de grupos / Serie',
+  eliminatoria: 'Eliminatoria directa / Playoff',
+  unico: 'Etapa única',
+};
+
+export const EVENT_STATUS_LABELS: Record<EventStatus, string> = {
+  programado: 'Programado',
+  en_curso: 'En juego',
+  finalizado: 'Finalizado',
+  suspendido: 'Suspendido',
+  postergado: 'Postergado / Reprogramado',
+  cancelado: 'Cancelado',
+};
+
+export interface Round {
+  id: string;
+  stageId: string;
+  roundNumber: number;
+  name: string;
+  status: string;
+  _count?: { events: number };
+}
+
+export interface Stage {
+  id: string;
+  championshipId: string;
+  name: string;
+  stageType: StageType;
+  sequence: number;
+  status: string;
+  rounds: Round[];
+}
+
+export interface EventParticipantItem {
+  id: string;
+  side: 'local' | 'visitante' | 'individual';
+  registration: Registration;
+}
+
+export interface CompetitionEvent {
+  id: string;
+  scheduledAt?: string | null;
+  actualStartAt?: string | null;
+  actualEndAt?: string | null;
+  status: EventStatus;
+  postponementReason?: string | null;
+  venue?: { id: string; name: string; capacity?: number | null } | null;
+  round: {
+    id: string;
+    name: string;
+    roundNumber: number;
+    stage: { id: string; name: string; sequence: number; stageType: StageType };
+  };
+  participants: EventParticipantItem[];
+  result?: {
+    id: string;
+    status: string;
+    values: Array<{
+      id: string;
+      eventParticipantId: string;
+      score: number;
+      outcome: string;
+      rank?: number | null;
+    }>;
+  } | null;
+}
+

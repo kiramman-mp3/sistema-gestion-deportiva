@@ -18,6 +18,7 @@ import {
   type Registration,
   type RegistrationStatus,
 } from './types.ts';
+import { FixturesTab } from './FixturesTab.tsx';
 
 export function ChampionshipDetailPage({
   championshipId,
@@ -29,7 +30,7 @@ export function ChampionshipDetailPage({
   const canManage = permissions.includes('championships:manage');
   const canRegManage = permissions.includes('registrations:manage');
 
-  const [activeTab, setActiveTab] = useState<'registrations' | 'rules'>('registrations');
+  const [activeTab, setActiveTab] = useState<'registrations' | 'fixtures' | 'rules'>('registrations');
   const [notice, setNotice] = useState<NoticeState | null>(null);
   const [transitioning, setTransitioning] = useState<ChampionshipStatus | null>(null);
   const [addingRegistration, setAddingRegistration] = useState(false);
@@ -169,6 +170,15 @@ export function ChampionshipDetailPage({
               onClick={() => setActiveTab('registrations')}
             >
               Inscripciones
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'fixtures'}
+              className={activeTab === 'fixtures' ? 'tab-active' : ''}
+              onClick={() => setActiveTab('fixtures')}
+            >
+              Calendario y partidos
             </button>
             <button
               type="button"
@@ -319,6 +329,14 @@ export function ChampionshipDetailPage({
                 </table>
               )}
             </div>
+          )}
+
+          {activeTab === 'fixtures' && (
+            <FixturesTab
+              championship={champState.data}
+              registrations={regsState.kind === 'ready' ? regsState.data : []}
+              permissions={permissions}
+            />
           )}
 
           {activeTab === 'rules' && (
