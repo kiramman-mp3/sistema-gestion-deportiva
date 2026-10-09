@@ -80,7 +80,10 @@ export async function apiRequest<T>(
 ): Promise<T> {
   const method = options.method ?? 'GET';
   const headers: Record<string, string> = { Accept: 'application/json' };
-  if (options.body !== undefined) headers['Content-Type'] = 'application/json';
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+  if (options.body !== undefined && !isFormData) {
+    headers['Content-Type'] = 'application/json';
+  }
   if (method !== 'GET' && csrfToken) headers['X-CSRF-Token'] = csrfToken;
 
   let response: Response;
@@ -89,7 +92,11 @@ export async function apiRequest<T>(
       method,
       headers,
       body:
-        options.body === undefined ? undefined : JSON.stringify(options.body),
+        options.body === undefined
+          ? undefined
+          : isFormData
+            ? (options.body as BodyInit)
+            : JSON.stringify(options.body),
       credentials: 'include',
       signal: options.signal,
     });

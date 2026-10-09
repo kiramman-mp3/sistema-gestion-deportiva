@@ -50,6 +50,8 @@ const envSchema = z
     LOGIN_MAX_FAILURES_PER_IP: positiveInt(1, 10_000, 30),
     LOGIN_MAX_FAILURES_PER_ACCOUNT_IP: positiveInt(1, 1_000, 5),
     LOGIN_MAX_FAILURES_PER_ACCOUNT: positiveInt(1, 10_000, 50),
+    /** Ruta de almacenamiento de archivos en disco (fuera de la raíz web). */
+    STORAGE_PATH: z.string().default('./uploads'),
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV === 'production') {
