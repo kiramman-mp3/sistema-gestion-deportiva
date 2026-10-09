@@ -1,10 +1,12 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { AuditService } from '../../audit/audit.service.js';
 import { PrismaService } from '../../database/prisma.service.js';
+import { NotificationsService } from '../../notifications/notifications.service.js';
 import type { Prisma } from '../../generated/prisma/client.js';
 import type {
   ApproveResultInput,
@@ -16,6 +18,8 @@ export class ResultsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    @Inject(NotificationsService)
+    private readonly notifications: NotificationsService,
   ) {}
 
   async getResult(eventId: string) {
@@ -324,6 +328,20 @@ export class ResultsService {
         },
         tx,
       );
+
+      const context = await this.notifications.eventContext(tx, eventId);
+      await this.notifications.notify(tx, {
+        userIds: await this.notifications.permissionUserIds(
+          tx,
+          'results:approve',
+        ),
+        template: 'result.pending_review',
+        params: { championship: context.championship, match: context.match },
+        entityType: 'result',
+        entityId: result.id,
+        link: '#/campeonatos',
+        excludeUserId: userId,
+      });
 
       return updated;
     });
