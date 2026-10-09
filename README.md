@@ -57,6 +57,7 @@ Cada comprobación también está disponible por separado: `format:check`, `lint
 - [`docs/discipline.md`](docs/discipline.md): incidencias, reclamos, expedientes, sanciones y publicación de resoluciones.
 - [`docs/content-portal.md`](docs/content-portal.md): noticias, comunicados, imágenes y páginas del portal público.
 - [`docs/reports.md`](docs/reports.md): reportes PDF y CSV, carnés, certificados y verificación pública.
+- [`docs/demo-data.md`](docs/demo-data.md): datos de demostración y cuentas de prueba (`db:seed:demo`).
 - [`docs/deployment.md`](docs/deployment.md): despliegue en producción (servidor, variables de entorno, servicio systemd, Nginx con SSL y verificación).
 - [`docs/backup-restore.md`](docs/backup-restore.md): copias de seguridad y restauración verificada (`db:backup` / `db:restore`).
 - [`docs/user-manual.md`](docs/user-manual.md): manual de usuario del sistema privado y del portal público.
