@@ -90,23 +90,24 @@ model User {
   createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  roles                  UserRole[]        @relation("UserRoles")
-  grantedRoles           UserRole[]        @relation("UserRoleGrantedBy")
+  roles                  UserRole[]               @relation("UserRoles")
+  grantedRoles           UserRole[]               @relation("UserRoleGrantedBy")
   auditLogs              AuditLog[]
   sessions               Session[]
-  credentialTokens       CredentialToken[] @relation("CredentialTokenOwner")
-  issuedCredentialTokens CredentialToken[] @relation("CredentialTokenIssuer")
-  clubLinks              ClubUser[]        @relation("ClubUserMember")
-  createdClubLinks       ClubUser[]        @relation("ClubUserCreator")
+  credentialTokens       CredentialToken[]        @relation("CredentialTokenOwner")
+  issuedCredentialTokens CredentialToken[]        @relation("CredentialTokenIssuer")
+  clubLinks              ClubUser[]               @relation("ClubUserMember")
+  createdClubLinks       ClubUser[]               @relation("ClubUserCreator")
   recordedConsents       ConsentRecord[]
   teamMembershipsCreated TeamMembership[]
-  createdFiles           StoredFile[]      @relation("StoredFileCreator")
-  verifiedDocuments      AthleteDocument[] @relation("DocumentVerifier")
+  createdFiles           StoredFile[]             @relation("StoredFileCreator")
+  verifiedDocuments      AthleteDocument[]        @relation("DocumentVerifier")
   approvedRuleVersions   CompetitionRuleVersion[] @relation("RuleVersionApprover")
-  reviewedRegistrations  Registration[]    @relation("RegistrationReviewer")
-  submittedResults       Result[]          @relation("ResultSubmitter")
-  approvedResults        Result[]          @relation("ResultApprover")
-  resultRevisions        ResultRevision[]  @relation("ResultRevisionAuthor")
+  reviewedRegistrations  Registration[]           @relation("RegistrationReviewer")
+  submittedResults       Result[]                 @relation("ResultSubmitter")
+  approvedResults        Result[]                 @relation("ResultApprover")
+  resultRevisions        ResultRevision[]         @relation("ResultRevisionAuthor")
+  institutionUpdates     InstitutionSettings[]    @relation("InstitutionUpdater")
 
   @@map("users")
 }
@@ -645,9 +646,10 @@ model StoredFile {
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   createdById    String   @map("created_by_id") @db.Uuid
 
-  createdBy    User             @relation("StoredFileCreator", fields: [createdById], references: [id], onDelete: Restrict)
-  athletePhoto AthletePhoto?
-  athleteDoc   AthleteDocument?
+  createdBy       User                 @relation("StoredFileCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  athletePhoto    AthletePhoto?
+  athleteDoc      AthleteDocument?
+  institutionLogo InstitutionSettings? @relation("InstitutionLogo")
 
   @@index([createdById])
   @@map("stored_files")
@@ -1135,3 +1137,42 @@ model ChessPairing {
   @@map("chess_pairings")
 }
 
+// ───────────────────── Configuración institucional ─────────────────────
+
+/// Datos institucionales y parámetros de publicación. Fila única (`id = 1`, CHECK en la
+/// migración), creada por la propia migración con los valores por defecto.
+model InstitutionSettings {
+  id                Int      @id @default(1)
+  name              String
+  shortName         String?  @map("short_name")
+  affiliation       String?
+  canton            String?
+  address           String?
+  email             String?
+  phone             String?
+  website           String?
+  /// Texto de «Quiénes somos» del portal público.
+  about             String?
+  /// Texto de la página de contacto del portal público.
+  contactInfo       String?  @map("contact_info")
+  /// Política de privacidad publicada.
+  privacyPolicy     String?  @map("privacy_policy")
+  /// Pie de los documentos oficiales generados.
+  documentFooter    String?  @map("document_footer")
+  presidentName     String?  @map("president_name")
+  secretaryName     String?  @map("secretary_name")
+  /// Parámetros de publicación del portal.
+  publicClubs       Boolean  @default(true) @map("public_clubs")
+  publicAthletes    Boolean  @default(true) @map("public_athletes")
+  publicNews        Boolean  @default(true) @map("public_news")
+  publicResolutions Boolean  @default(false) @map("public_resolutions")
+  logoFileId        String?  @unique @map("logo_file_id") @db.Uuid
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedById       String?  @map("updated_by_id") @db.Uuid
+
+  logoFile  StoredFile? @relation("InstitutionLogo", fields: [logoFileId], references: [id], onDelete: Restrict)
+  updatedBy User?       @relation("InstitutionUpdater", fields: [updatedById], references: [id], onDelete: Restrict)
+
+  @@index([updatedById])
+  @@map("institution_settings")
+}
