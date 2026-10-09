@@ -44,6 +44,26 @@ enum SeasonStatus {
   @@map("season_status")
 }
 
+/// Motivo por el que una sesión dejó de ser válida.
+enum SessionRevocationReason {
+  cierre_sesion
+  reemplazada
+  revocada_por_usuario
+  revocada_por_administrador
+  cuenta_desactivada
+
+  @@map("session_revocation_reason")
+}
+
+/// Clave por la que se cuentan los intentos de acceso fallidos.
+enum LoginFailureScope {
+  ip
+  cuenta_ip
+  cuenta
+
+  @@map("login_failure_scope")
+}
+
 // ───────────────────── Usuarios, roles y permisos ─────────────────────
 
 model User {
@@ -61,6 +81,7 @@ model User {
   roles        UserRole[] @relation("UserRoles")
   grantedRoles UserRole[] @relation("UserRoleGrantedBy")
   auditLogs    AuditLog[]
+  sessions     Session[]
 
   @@map("users")
 }
@@ -126,6 +147,48 @@ model UserRole {
   @@index([roleId])
   @@index([grantedById])
   @@map("user_roles")
+}
+
+// ───────────────────────────── Sesiones ─────────────────────────────
+
+/// Sesión de servidor. El navegador solo conoce un identificador opaco; aquí se
+/// guarda su hash SHA-256, de modo que una filtración de la base de datos no
+/// permite suplantar sesiones. El token CSRF está ligado a la sesión.
+model Session {
+  id               String                   @id @default(uuid(7)) @db.Uuid
+  userId           String                   @map("user_id") @db.Uuid
+  /// SHA-256 (hex) del identificador entregado en la cookie.
+  tokenHash        String                   @unique @map("token_hash")
+  csrfToken        String                   @map("csrf_token")
+  userAgent        String?                  @map("user_agent")
+  /// Hash con clave de la IP (nunca en claro).
+  ipHash           String?                  @map("ip_hash")
+  createdAt        DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+  lastSeenAt       DateTime                 @default(now()) @map("last_seen_at") @db.Timestamptz(3)
+  /// Caducidad absoluta: no se renueva con la actividad.
+  expiresAt        DateTime                 @map("expires_at") @db.Timestamptz(3)
+  revokedAt        DateTime?                @map("revoked_at") @db.Timestamptz(3)
+  revocationReason SessionRevocationReason? @map("revocation_reason")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+/// Intentos de acceso fallidos recientes, para limitar la fuerza bruta. Se
+/// guarda en PostgreSQL para que un reinicio no los borre y para que funcione
+/// con varias instancias de la API. `keyHash` es un hash con clave.
+model LoginFailure {
+  id        String            @id @default(uuid(7)) @db.Uuid
+  scope     LoginFailureScope
+  keyHash   String            @map("key_hash")
+  createdAt DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([scope, keyHash, createdAt])
+  @@index([createdAt])
+  @@map("login_failures")
 }
 
 // ───────────────────────────── Auditoría ─────────────────────────────
