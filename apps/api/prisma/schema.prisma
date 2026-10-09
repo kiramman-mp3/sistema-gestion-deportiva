@@ -122,6 +122,10 @@ model User {
   caseEntries         CaseEntry[]        @relation("CaseEntryAuthor")
   sanctionsCreated    Sanction[]         @relation("SanctionAuthor")
 
+  mediaUploaded         MediaAsset[]   @relation("MediaUploader")
+  announcementsAuthored Announcement[] @relation("AnnouncementAuthor")
+  announcementsEdited   Announcement[] @relation("AnnouncementEditor")
+
   @@map("users")
 }
 
@@ -681,6 +685,8 @@ model StoredFile {
   institutionLogo InstitutionSettings? @relation("InstitutionLogo")
 
   complaintFile ComplaintAttachment?
+
+  mediaAsset MediaAsset?
 
   @@index([createdById])
   @@map("stored_files")
@@ -1623,4 +1629,75 @@ model Sanction {
   @@index([championshipId])
   @@index([createdById])
   @@map("sanctions")
+}
+
+// ───────────────────── Noticias, comunicados e imágenes ─────────────────────
+
+enum AnnouncementKind {
+  noticia
+  comunicado
+
+  @@map("announcement_kind")
+}
+
+enum AnnouncementStatus {
+  borrador
+  publicado
+  archivado
+
+  @@map("announcement_status")
+}
+
+enum MediaVisibility {
+  publico
+  privado
+
+  @@map("media_visibility")
+}
+
+/// Imagen subida para el contenido del portal. El texto alternativo es obligatorio (accesibilidad).
+model MediaAsset {
+  id           String          @id @default(uuid(7)) @db.Uuid
+  fileId       String          @unique @map("file_id") @db.Uuid
+  altText      String          @map("alt_text")
+  visibility   MediaVisibility @default(publico)
+  uploadedById String          @map("uploaded_by_id") @db.Uuid
+  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  file          StoredFile     @relation(fields: [fileId], references: [id], onDelete: Restrict)
+  uploadedBy    User           @relation("MediaUploader", fields: [uploadedById], references: [id], onDelete: Restrict)
+  announcements Announcement[]
+
+  @@index([uploadedById])
+  @@map("media_assets")
+}
+
+/// Noticia o comunicado. El contenido es texto plano (párrafos separados por una línea en blanco):
+/// nunca HTML, para que el portal no pueda ejecutar código incrustado.
+model Announcement {
+  id          String             @id @default(uuid(7)) @db.Uuid
+  kind        AnnouncementKind   @default(noticia)
+  title       String
+  /// Identificador estable de la dirección pública; no cambia al editar el título.
+  slug        String             @unique
+  summary     String
+  content     String
+  status      AnnouncementStatus @default(borrador)
+  publishedAt DateTime?          @map("published_at") @db.Timestamptz(3)
+  authorId    String             @map("author_id") @db.Uuid
+  updatedById String?            @map("updated_by_id") @db.Uuid
+  coverId     String?            @map("cover_id") @db.Uuid
+  createdAt   DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  author    User        @relation("AnnouncementAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  updatedBy User?       @relation("AnnouncementEditor", fields: [updatedById], references: [id], onDelete: Restrict)
+  cover     MediaAsset? @relation(fields: [coverId], references: [id], onDelete: Restrict)
+
+  @@index([status, publishedAt])
+  @@index([kind, status])
+  @@index([authorId])
+  @@index([updatedById])
+  @@index([coverId])
+  @@map("announcements")
 }
