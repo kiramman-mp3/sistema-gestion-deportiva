@@ -99,6 +99,7 @@ model User {
   clubLinks              ClubUser[]        @relation("ClubUserMember")
   createdClubLinks       ClubUser[]        @relation("ClubUserCreator")
   recordedConsents       ConsentRecord[]
+  teamMembershipsCreated TeamMembership[]
 
   @@map("users")
 }
@@ -270,6 +271,9 @@ model Sport {
   createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
+  teams       Team[]
+  teamSeasons TeamSeason[]
+
   @@map("sports")
 }
 
@@ -288,6 +292,8 @@ model Category {
   createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
+  teamSeasons TeamSeason[]
+
   @@map("categories")
 }
 
@@ -299,6 +305,9 @@ model Season {
   status    SeasonStatus @default(borrador)
   createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  teamSeasons TeamSeason[]
+  memberships TeamMembership[]
 
   @@index([status])
   @@map("seasons")
@@ -377,6 +386,7 @@ model Club {
   users           ClubUser[]
   representatives ClubRepresentative[]
   athletes        Athlete[]
+  teams           Team[]
 
   @@map("clubs")
 }
@@ -471,6 +481,8 @@ model Athlete {
   person Person @relation(fields: [personId], references: [id], onDelete: Restrict)
   club   Club   @relation(fields: [clubId], references: [id], onDelete: Restrict)
 
+  memberships TeamMembership[]
+
   @@index([clubId])
   @@map("athletes")
 }
@@ -499,4 +511,98 @@ model ConsentRecord {
   @@index([personId, type, status])
   @@index([recordedById])
   @@map("consent_records")
+}
+
+// ───────────────────── Equipos y plantillas ─────────────────────
+
+enum MembershipStatus {
+  activo
+  baja
+
+  @@map("membership_status")
+}
+
+/// Un equipo de un club en un deporte. `name` es el nombre por defecto para nuevas
+/// temporadas; el nombre vigente en cada temporada vive en `TeamSeason.name`, de modo
+/// que un equipo puede llamarse distinto de una temporada a otra sin perder el historial.
+model Team {
+  id        String        @id @default(uuid(7)) @db.Uuid
+  clubId    String        @map("club_id") @db.Uuid
+  sportId   String        @map("sport_id") @db.Uuid
+  name      String
+  nameKey   String        @map("name_key")
+  status    CatalogStatus @default(activo)
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  club    Club         @relation(fields: [clubId], references: [id], onDelete: Restrict)
+  sport   Sport        @relation(fields: [sportId], references: [id], onDelete: Restrict)
+  seasons TeamSeason[]
+
+  @@unique([clubId, sportId, nameKey])
+  @@unique([id, sportId])
+  @@index([sportId])
+  @@map("teams")
+}
+
+/// Inscripción de un equipo en una temporada, con su nombre y categoría de ese período.
+/// `sportId` se repite aquí (clave compuesta con `Team`) para que la base de datos pueda
+/// garantizar «un deportista, un equipo por deporte y temporada».
+model TeamSeason {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  teamId       String   @map("team_id") @db.Uuid
+  sportId      String   @map("sport_id") @db.Uuid
+  seasonId     String   @map("season_id") @db.Uuid
+  categoryId   String   @map("category_id") @db.Uuid
+  name         String
+  nameKey      String   @map("name_key")
+  /// Con la plantilla cerrada no se admiten altas (las bajas siguen permitidas).
+  rosterClosed Boolean  @default(false) @map("roster_closed")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  team        Team             @relation(fields: [teamId, sportId], references: [id, sportId], onDelete: Restrict)
+  sport       Sport            @relation(fields: [sportId], references: [id], onDelete: Restrict)
+  season      Season           @relation(fields: [seasonId], references: [id], onDelete: Restrict)
+  category    Category         @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  memberships TeamMembership[]
+
+  @@unique([teamId, seasonId])
+  /// Dos equipos del mismo deporte no pueden llamarse igual en una misma temporada.
+  @@unique([seasonId, sportId, nameKey])
+  @@unique([id, sportId, seasonId])
+  @@index([seasonId])
+  @@index([categoryId])
+  @@index([sportId])
+  @@map("team_seasons")
+}
+
+/// Pertenencia de un deportista a la plantilla de un equipo en una temporada.
+/// REGLA: un deportista solo puede estar en un equipo por deporte y temporada (puede
+/// estar en varios deportes). La causa la garantiza la restricción única
+/// (athlete_id, sport_id, season_id). Una baja NO libera el cupo; solo la anulación
+/// (permiso `teams:delete`) lo hace.
+model TeamMembership {
+  id           String           @id @default(uuid(7)) @db.Uuid
+  teamSeasonId String           @map("team_season_id") @db.Uuid
+  athleteId    String           @map("athlete_id") @db.Uuid
+  sportId      String           @map("sport_id") @db.Uuid
+  seasonId     String           @map("season_id") @db.Uuid
+  status       MembershipStatus @default(activo)
+  jerseyNumber Int?             @map("jersey_number")
+  joinedAt     DateTime         @default(now()) @map("joined_at") @db.Timestamptz(3)
+  leftAt       DateTime?        @map("left_at") @db.Timestamptz(3)
+  leaveReason  String?          @map("leave_reason")
+  createdById  String           @map("created_by_id") @db.Uuid
+
+  teamSeason TeamSeason @relation(fields: [teamSeasonId, sportId, seasonId], references: [id, sportId, seasonId], onDelete: Restrict)
+  season     Season     @relation(fields: [seasonId], references: [id], onDelete: Restrict)
+  athlete    Athlete    @relation(fields: [athleteId], references: [id], onDelete: Restrict)
+  createdBy  User       @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@unique([athleteId, sportId, seasonId])
+  @@index([teamSeasonId])
+  @@index([seasonId])
+  @@index([createdById])
+  @@map("team_memberships")
 }
