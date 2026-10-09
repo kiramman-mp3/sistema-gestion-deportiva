@@ -15,6 +15,7 @@ import { parseOrThrow, uuidSchema } from '../auth/schemas.js';
 import { escapeLike, listQuerySchema } from '../catalogs/common.js';
 import { ResultsService } from '../competitions/results/results.service.js';
 import { PrismaService } from '../database/prisma.service.js';
+import { InstitutionService } from '../institution/institution.service.js';
 import { DocumentsService } from '../documents/documents.service.js';
 import type { ChampionshipStatus, Prisma } from '../generated/prisma/client.js';
 import { publicChampionshipsQuerySchema } from './public.schemas.js';
@@ -33,11 +34,14 @@ export class PublicController {
     @Inject(AthletesService) private readonly athletes: AthletesService,
     @Inject(DocumentsService) private readonly documents: DocumentsService,
     @Inject(ResultsService) private readonly results: ResultsService,
+    @Inject(InstitutionService)
+    private readonly institution: InstitutionService,
   ) {}
 
   /** Clubes activos: nombre, nombre corto, identificador y sector. */
   @Get('clubs')
   async clubs(@Query() query: unknown) {
+    await this.institution.assertPublished('publicClubs');
     const { page, pageSize } = parseOrThrow(listQuerySchema, query);
     const where = { status: 'activo' as const };
     const [items, total] = await this.prisma.client.$transaction([
@@ -55,6 +59,7 @@ export class PublicController {
 
   @Get('clubs/:slug')
   async club(@Param('slug') slug: string) {
+    await this.institution.assertPublished('publicClubs');
     const club = await this.prisma.client.club.findFirst({
       where: { slug, status: 'activo' },
       select: { name: true, shortName: true, slug: true, sector: true },
@@ -72,6 +77,7 @@ export class PublicController {
     @Param('id') id: string,
     @Res({ passthrough: true }) res: Response,
   ) {
+    await this.institution.assertPublished('publicAthletes');
     res.setHeader('X-Robots-Tag', 'noindex, nofollow');
     res.setHeader('Cache-Control', 'no-store');
     return this.athletes.publicProfile(parseOrThrow(uuidSchema, id));
@@ -83,6 +89,7 @@ export class PublicController {
    */
   @Get('athletes/:id/photo')
   async athletePhoto(@Param('id') id: string, @Res() res: Response) {
+    await this.institution.assertPublished('publicAthletes');
     const athleteId = parseOrThrow(uuidSchema, id);
     const result = await this.documents.getPublicPhoto(athleteId);
     res.setHeader('Content-Type', result.mimeType);
@@ -431,6 +438,7 @@ export class PublicController {
     }
 
     const champ = event.round.stage.championship;
+    const header = await this.institution.documentHeader();
 
     const participantsWithRoster = await Promise.all(
       event.participants.map(async (ep) => {
@@ -515,9 +523,10 @@ export class PublicController {
     return {
       documentMetadata: {
         title: 'ACTA OFICIAL DE ENCUENTRO',
-        institution: 'LIGA DEPORTIVA CANTONAL DE QUERO',
-        affiliation: 'Afiliada a Federación Deportiva de Tungurahua',
-        canton: 'Quero - Tungurahua - Ecuador',
+        institution: header.institution,
+        affiliation: header.affiliation,
+        canton: header.canton,
+        footer: header.footer,
         generatedAt: new Date().toISOString(),
       },
       championship: {
@@ -631,6 +640,7 @@ export class PublicController {
     }
 
     const champ = reg.championship;
+    const header = await this.institution.documentHeader();
     let participantName = 'Desconocido';
     let clubName = '';
     let clubSector = '';
@@ -697,9 +707,10 @@ export class PublicController {
     return {
       documentMetadata: {
         title: 'NÓMINA INSTITUCIONAL DE BUENA FE',
-        institution: 'LIGA DEPORTIVA CANTONAL DE QUERO',
-        affiliation: 'Afiliada a Federación Deportiva de Tungurahua',
-        canton: 'Quero - Tungurahua - Ecuador',
+        institution: header.institution,
+        affiliation: header.affiliation,
+        canton: header.canton,
+        footer: header.footer,
         generatedAt: new Date().toISOString(),
       },
       championship: {
