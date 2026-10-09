@@ -31,3 +31,65 @@ export const SUPERADMIN_ROLE = {
   description:
     'Configura la plataforma, usuarios, roles y catálogos. Rol de sistema.',
 } as const;
+
+/** Módulos del catálogo, en el orden en que se presentan. */
+export const PERMISSION_MODULES = {
+  users: 'Usuarios',
+  roles: 'Roles y permisos',
+  audit: 'Auditoría',
+  sports: 'Deportes',
+  categories: 'Categorías',
+  seasons: 'Temporadas',
+} as const satisfies Record<string, string>;
+
+/**
+ * Capacidades distintas y no intercambiables: «consultar» no permite cambiar nada,
+ * «gestionar» no permite eliminar, y «eliminar» es un permiso aparte.
+ */
+export const PERMISSION_ACTIONS = {
+  read: 'Consultar',
+  create: 'Crear',
+  update: 'Modificar',
+  manage: 'Gestionar',
+  delete: 'Eliminar',
+} as const satisfies Record<string, string>;
+
+export interface PermissionInfo {
+  code: PermissionCode;
+  description: string;
+  module: string;
+  moduleLabel: string;
+  action: string;
+  actionLabel: string;
+}
+
+/** Catálogo completo con su módulo y acción, listo para agrupar en una interfaz. */
+export function listPermissions(): PermissionInfo[] {
+  const moduleOrder = Object.keys(PERMISSION_MODULES);
+  return (Object.keys(PERMISSIONS) as PermissionCode[])
+    .map((code) => {
+      const [module = '', action = ''] = code.split(':');
+      return {
+        code,
+        description: PERMISSIONS[code],
+        module,
+        moduleLabel:
+          PERMISSION_MODULES[module as keyof typeof PERMISSION_MODULES] ??
+          module,
+        action,
+        actionLabel:
+          PERMISSION_ACTIONS[action as keyof typeof PERMISSION_ACTIONS] ??
+          action,
+      };
+    })
+    .sort(
+      (a, b) =>
+        moduleOrder.indexOf(a.module) - moduleOrder.indexOf(b.module) ||
+        Object.keys(PERMISSION_ACTIONS).indexOf(a.action) -
+          Object.keys(PERMISSION_ACTIONS).indexOf(b.action),
+    );
+}
+
+export function isPermissionCode(value: string): value is PermissionCode {
+  return Object.hasOwn(PERMISSIONS, value);
+}
