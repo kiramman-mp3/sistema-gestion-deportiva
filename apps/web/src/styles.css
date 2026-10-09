@@ -1,0 +1,1300 @@
+:root {
+  color-scheme: light dark;
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --text: #1b1f24;
+  --muted: #4a5560;
+  --primary: #0b5cad;
+  --ok: #0f6b32;
+  --error: #a4161a;
+  --border: #d3d9df;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12161b;
+    --surface: #1b2128;
+    --text: #e8ecf0;
+    --muted: #aab4be;
+    --primary: #6cb2f5;
+    --ok: #5fd08a;
+    --error: #ff8a8d;
+    --border: #36404a;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  padding: 0.5rem 1rem;
+  background: var(--primary);
+  color: var(--bg);
+  border-radius: 0.25rem;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+.site-header {
+  padding: 1.5rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.site-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.site-header p {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+}
+
+.container {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.status {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+}
+
+.status h2 {
+  margin-top: 0;
+  font-size: 1.125rem;
+}
+
+.status-ok {
+  color: var(--ok);
+}
+
+.status-error {
+  color: var(--error);
+}
+
+button {
+  font: inherit;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--primary);
+  border-radius: 0.25rem;
+  background: transparent;
+  color: var(--primary);
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.session-info {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.login-form {
+  max-width: 24rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+}
+
+.login-form h2 {
+  margin-top: 0;
+  font-size: 1.25rem;
+}
+
+.field {
+  margin-bottom: 1rem;
+}
+
+.field label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.field input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--muted);
+  border-radius: 0.25rem;
+}
+
+.field input[aria-invalid='true'] {
+  border-color: var(--error);
+  border-width: 2px;
+}
+
+.field-error,
+.form-error {
+  margin: 0.25rem 0 0;
+  color: var(--error);
+}
+
+.form-error {
+  margin-bottom: 1rem;
+}
+
+.notice {
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  border-radius: 0.25rem;
+}
+
+button[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ───────── Administración de catálogos ───────── */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.main-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  list-style: none;
+  border-bottom: 1px solid var(--border);
+}
+
+.main-nav a {
+  display: block;
+  padding: 0.6rem 1rem;
+  color: var(--text);
+  text-decoration: none;
+  border-bottom: 3px solid transparent;
+}
+
+.main-nav a:hover {
+  background: var(--surface);
+}
+
+.main-nav a[aria-current='page'] {
+  font-weight: 700;
+  border-bottom-color: var(--primary);
+}
+
+.catalog-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.catalog-header h2 {
+  margin: 0;
+}
+
+button.primary {
+  color: var(--bg);
+  background: var(--primary);
+}
+
+button.danger {
+  color: #fff;
+  background: var(--error-strong, #a4161a);
+  border-color: var(--error-strong, #a4161a);
+}
+
+button.danger-outline {
+  color: var(--error);
+  border-color: var(--error);
+}
+
+button.link {
+  padding: 0;
+  border: 0;
+  text-decoration: underline;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+  margin: 1rem 0;
+}
+
+.filters .field {
+  margin-bottom: 0;
+}
+
+.field select,
+.field textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--muted);
+  border-radius: 0.25rem;
+}
+
+.hint {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.field input[readonly] {
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.catalog-form {
+  max-width: 28rem;
+  margin: 1rem 0;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+}
+
+.catalog-form h3 {
+  margin-top: 0;
+}
+
+.form-actions,
+.dialog-actions,
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.dialog-actions {
+  justify-content: flex-end;
+}
+
+.notice.success {
+  border-left-color: var(--ok);
+}
+
+.notice.error {
+  border-left-color: var(--error);
+  color: var(--error);
+}
+
+.empty,
+.state-error,
+.loading {
+  padding: 1rem;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.responsive-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+}
+
+.responsive-table th,
+.responsive-table td {
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.badge {
+  white-space: nowrap;
+}
+
+.badge-ok {
+  color: var(--ok);
+}
+
+.badge-off {
+  color: var(--muted);
+}
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgb(0 0 0 / 55%);
+}
+
+.dialog {
+  width: 100%;
+  max-width: 28rem;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.dialog h2 {
+  margin-top: 0;
+  font-size: 1.125rem;
+}
+
+/* En pantallas pequeñas la tabla se apila: cada fila es una tarjeta */
+@media (max-width: 40rem) {
+  .responsive-table,
+  .responsive-table tbody,
+  .responsive-table tr,
+  .responsive-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .responsive-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  .responsive-table tr {
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+  }
+
+  .responsive-table td {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .responsive-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+  }
+
+  .responsive-table td.row-actions {
+    justify-content: flex-start;
+  }
+
+  .responsive-table td.row-actions::before {
+    display: none;
+  }
+}
+
+/* ───────── Administración de usuarios, roles y auditoría ───────── */
+
+.button-link {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  color: var(--primary);
+  text-decoration: none;
+  border: 1px solid var(--primary);
+  border-radius: 0.25rem;
+}
+
+.definition-list {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0 0 1rem;
+}
+
+.definition-list dt {
+  font-weight: 600;
+}
+
+.definition-list dd {
+  margin: 0;
+}
+
+.plain-list {
+  padding-left: 1.25rem;
+}
+
+.plain-list li {
+  margin-bottom: 0.5rem;
+}
+
+.plain-list li button {
+  margin-left: 0.75rem;
+}
+
+.token-box {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 2px solid var(--primary);
+  border-radius: 0.5rem;
+  background: var(--surface);
+}
+
+.token-box input {
+  font-family: ui-monospace, monospace;
+}
+
+.permission-group {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+}
+
+.permission-group legend {
+  padding: 0 0.5rem;
+  font-weight: 700;
+}
+
+.permission {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.permission input {
+  margin-top: 0.3rem;
+}
+
+.detail-label {
+  margin: 0.5rem 0 0.25rem;
+  font-weight: 600;
+}
+
+pre.json {
+  max-width: 100%;
+  margin: 0;
+  padding: 0.5rem;
+  overflow-x: auto;
+  font-size: 0.8125rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+}
+
+.athlete-profile-media {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin: 1rem 0;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+}
+
+.athlete-photo-img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+}
+
+.athlete-photo-placeholder {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2px dashed var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8125rem;
+  color: var(--muted);
+  text-align: center;
+  padding: 0.5rem;
+}
+
+/* ───────────────────── Portal Público ───────────────────── */
+
+.public-portal {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.portal-hero {
+  background: linear-gradient(135deg, #0b5cad 0%, #083c70 100%);
+  color: #ffffff;
+  padding: 2.5rem 2rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.hero-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.portal-hero h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.hero-description {
+  margin: 0;
+  font-size: 1.05rem;
+  opacity: 0.9;
+  max-width: 45rem;
+  line-height: 1.6;
+}
+
+.hero-actions {
+  margin-top: 1.5rem;
+}
+
+.portal-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sport-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sport-tab-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sport-tab-button:hover {
+  border-color: var(--primary);
+}
+
+.sport-tab-button.active {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+
+.search-box input {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  min-width: 16rem;
+}
+
+.portal-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.count-badge {
+  font-size: 0.8125rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.championships-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: 1.5rem;
+}
+
+.championship-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.championship-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sport-tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--primary);
+  letter-spacing: 0.04em;
+}
+
+.status-badge {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.25rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-en_curso {
+  background: rgba(15, 107, 50, 0.15);
+  color: var(--ok);
+}
+
+.status-finalizado {
+  background: rgba(100, 110, 120, 0.15);
+  color: var(--muted);
+}
+
+.status-inscripciones_abiertas {
+  background: rgba(11, 92, 173, 0.15);
+  color: var(--primary);
+}
+
+.champ-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.season-meta {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.champ-stats {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.champ-stats .stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.stat-value {
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+
+.format-val {
+  text-transform: capitalize;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.clubs-pills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 0.75rem;
+}
+
+.club-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+}
+
+.club-icon {
+  font-size: 1.5rem;
+}
+
+.club-info strong {
+  display: block;
+  font-size: 0.875rem;
+}
+
+.club-info small {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+/* ───────────────────── Detalle de Campeonato Público ───────────────────── */
+
+.champ-detail-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.champ-detail-header {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+}
+
+.champ-detail-header h2 {
+  margin: 0.25rem 0 0.75rem 0;
+  font-size: 1.75rem;
+}
+
+.champ-tags {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.badge {
+  padding: 0.25rem 0.5rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+  font-size: 0.8125rem;
+  text-transform: capitalize;
+}
+
+.detail-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.tab-btn {
+  padding: 0.75rem 1.25rem;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  margin-bottom: -2px;
+}
+
+.tab-btn.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.match-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.match-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.match-teams-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+.match-team {
+  display: flex;
+  flex-direction: column;
+}
+
+.match-team.local {
+  text-align: right;
+}
+
+.match-team.away {
+  text-align: left;
+}
+
+.match-team .team-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.match-team .team-club {
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.match-score {
+  text-align: center;
+  min-width: 6rem;
+}
+
+.score-numbers {
+  font-size: 1.5rem;
+  font-weight: 800;
+  padding: 0.25rem 0.75rem;
+  background: var(--bg);
+  border-radius: 0.5rem;
+  letter-spacing: 0.1em;
+}
+
+.vs-badge {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 0.25rem 0.5rem;
+  background: var(--bg);
+  border-radius: 0.25rem;
+}
+
+.print-link-button {
+  background: none;
+  border: 1px dashed var(--border);
+  color: var(--primary);
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.35rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.print-link-button:hover {
+  background: var(--bg);
+  border-color: var(--primary);
+}
+
+.portal-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  font-size: 0.875rem;
+}
+
+.portal-table th,
+.portal-table td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.portal-table th {
+  background: var(--bg);
+  font-weight: 600;
+  text-align: left;
+}
+
+.center {
+  text-align: center;
+}
+
+.bold {
+  font-weight: 700;
+}
+
+.pts-cell {
+  background: rgba(11, 92, 173, 0.08);
+  font-weight: 800;
+}
+
+.top-row {
+  background: rgba(15, 107, 50, 0.04);
+}
+
+.action-link {
+  background: none;
+  border: none;
+  color: var(--primary);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.8125rem;
+}
+
+/* ───────────────────── Documentos Imprimibles Oficiales ───────────────────── */
+
+.printable-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin: 0 auto;
+}
+
+.print-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+}
+
+.institutional-sheet {
+  background: #ffffff;
+  color: #000000;
+  padding: 2.5rem 3rem;
+  border: 1px solid #d0d0d0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  max-width: 52rem;
+  margin: 0 auto;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.institutional-header {
+  text-align: center;
+  border-bottom: 2px double #000000;
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.republic-text {
+  margin: 0;
+  font-size: 0.875rem;
+  letter-spacing: 0.15em;
+  font-weight: 700;
+}
+
+.league-title {
+  margin: 0.25rem 0;
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+}
+
+.affiliation-text,
+.location-text {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-style: italic;
+}
+
+.document-subtitle {
+  margin: 1rem 0 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-decoration: underline;
+  letter-spacing: 0.05em;
+}
+
+.document-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem 1rem;
+  font-size: 0.875rem;
+  padding: 0.75rem;
+  background: #fbfbfb;
+  border: 1px solid #000000;
+  margin-bottom: 1.5rem;
+}
+
+.scoresheet-scoreboard {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  border: 2px solid #000000;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.scoresheet-scoreboard .team-box {
+  text-align: center;
+}
+
+.scoresheet-scoreboard .side-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.scoresheet-scoreboard .team-name {
+  margin: 0.25rem 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.scoresheet-scoreboard .team-club {
+  margin: 0;
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+.scoresheet-scoreboard .score-display {
+  margin-top: 0.5rem;
+  font-size: 2.25rem;
+  font-weight: 900;
+  border: 1px solid #000000;
+  display: inline-block;
+  min-width: 4rem;
+  padding: 0.25rem;
+}
+
+.scoresheet-scoreboard .vs-divider {
+  font-size: 1.25rem;
+  font-weight: 800;
+  padding: 0 1.5rem;
+}
+
+.print-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+}
+
+.print-table th,
+.print-table td {
+  border: 1px solid #000000;
+  padding: 0.35rem 0.5rem;
+}
+
+.print-table th {
+  background: #ececec;
+  text-align: center;
+  font-weight: 700;
+}
+
+.print-table.small {
+  font-size: 0.8125rem;
+}
+
+.code-cell {
+  font-family: monospace;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.signature-cell {
+  width: 6rem;
+  min-height: 1.5rem;
+}
+
+.lineups-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.lineup-column h5 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9375rem;
+  text-align: center;
+}
+
+.remarks-box {
+  border: 1px solid #000000;
+  padding: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.remarks-box h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.875rem;
+}
+
+.remarks-content {
+  min-height: 4rem;
+  font-size: 0.875rem;
+}
+
+.handwritten-space {
+  color: #777777;
+  line-height: 1.6;
+}
+
+.legal-commitment-box {
+  border: 1px solid #000000;
+  padding: 0.75rem;
+  font-size: 0.8125rem;
+  margin-bottom: 2rem;
+  background: #fafafa;
+}
+
+.legal-commitment-box p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.institutional-signatures {
+  margin-top: 2.5rem;
+}
+
+.signatures-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem 1.5rem;
+  text-align: center;
+}
+
+.signature-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.signature-line {
+  width: 80%;
+  border-bottom: 1px solid #000000;
+  margin-bottom: 0.4rem;
+  height: 2.5rem;
+}
+
+.signature-title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.8125rem;
+}
+
+.signature-placeholder {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #555555;
+}
+
+.footer-certificate {
+  text-align: center;
+  font-size: 0.75rem;
+  color: #666666;
+  margin-top: 2rem;
+  border-top: 1px solid #cccccc;
+  padding-top: 0.5rem;
+}
+
+/* ───────────────────── Media Print ───────────────────── */
+
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .site-header,
+  .main-nav,
+  .skip-link,
+  .no-print,
+  .print-toolbar {
+    display: none !important;
+  }
+
+  .container {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .institutional-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  @page {
+    margin: 1.5cm;
+    size: A4 portrait;
+  }
+}
