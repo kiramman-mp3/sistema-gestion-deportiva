@@ -279,6 +279,18 @@ function ChampionshipDetailView({
         <section className="tab-panel" aria-label="Calendario y resultados">
           <div className="panel-actions">
             <h4>Encuentros y Jornadas Oficiales</h4>
+            <span className="row-actions">
+              <a
+                href={`/api/public/championships/${championship.id}/export/fixtures?format=pdf`}
+              >
+                PDF
+              </a>
+              <a
+                href={`/api/public/championships/${championship.id}/export/fixtures?format=csv`}
+              >
+                CSV
+              </a>
+            </span>
             <button
               type="button"
               onClick={reloadFixtures}
@@ -400,6 +412,18 @@ function ChampionshipDetailView({
         <section className="tab-panel" aria-label="Tabla de posiciones">
           <div className="panel-actions">
             <h4>Tabla de Posiciones Oficial</h4>
+            <span className="row-actions">
+              <a
+                href={`/api/public/championships/${championship.id}/export/standings?format=pdf`}
+              >
+                PDF
+              </a>
+              <a
+                href={`/api/public/championships/${championship.id}/export/standings?format=csv`}
+              >
+                CSV
+              </a>
+            </span>
             <button
               type="button"
               onClick={reloadStandings}
