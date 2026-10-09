@@ -53,6 +53,13 @@ export class ResultsService {
               },
               orderBy: { minute: 'asc' },
             },
+            periodScores: {
+              orderBy: { periodNumber: 'asc' },
+            },
+            taekwondoBouts: {
+              orderBy: { roundNumber: 'asc' },
+            },
+            chessPairings: true,
             revisions: {
               include: {
                 changedBy: {
@@ -102,6 +109,9 @@ export class ResultsService {
           include: {
             values: true,
             footballEvents: true,
+            periodScores: true,
+            taekwondoBouts: true,
+            chessPairings: true,
           },
         },
       },
@@ -191,11 +201,71 @@ export class ResultsService {
         }
       }
 
+      // Si hay puntuación por período (Básquet), reemplazarlos
+      if (input.periodScores !== undefined) {
+        await tx.eventPeriodScore.deleteMany({
+          where: { resultId: result.id },
+        });
+
+        if (input.periodScores.length > 0) {
+          await tx.eventPeriodScore.createMany({
+            data: input.periodScores.map((ps) => ({
+              resultId: result.id,
+              eventParticipantId: ps.eventParticipantId,
+              periodNumber: ps.periodNumber,
+              score: ps.score,
+            })),
+          });
+        }
+      }
+
+      // Si hay asaltos de combate (Taekwondo), reemplazarlos
+      if (input.taekwondoBouts !== undefined) {
+        await tx.taekwondoBout.deleteMany({
+          where: { resultId: result.id },
+        });
+
+        if (input.taekwondoBouts.length > 0) {
+          await tx.taekwondoBout.createMany({
+            data: input.taekwondoBouts.map((tb) => ({
+              resultId: result.id,
+              eventParticipantId: tb.eventParticipantId,
+              roundNumber: tb.roundNumber,
+              points: tb.points,
+              penalties: tb.penalties,
+              decision: tb.decision ?? null,
+            })),
+          });
+        }
+      }
+
+      // Si hay emparejamientos de ajedrez, reemplazarlos
+      if (input.chessPairings !== undefined) {
+        await tx.chessPairing.deleteMany({
+          where: { resultId: result.id },
+        });
+
+        if (input.chessPairings.length > 0) {
+          await tx.chessPairing.createMany({
+            data: input.chessPairings.map((cp) => ({
+              resultId: result.id,
+              eventParticipantId: cp.eventParticipantId,
+              color: cp.color,
+              points: cp.points,
+              buchholz: cp.buchholz ?? null,
+            })),
+          });
+        }
+      }
+
       const fullResult = await tx.result.findUnique({
         where: { id: result.id },
         include: {
           values: true,
           footballEvents: true,
+          periodScores: true,
+          taekwondoBouts: true,
+          chessPairings: true,
         },
       });
 
@@ -272,6 +342,9 @@ export class ResultsService {
           include: {
             values: true,
             footballEvents: true,
+            periodScores: true,
+            taekwondoBouts: true,
+            chessPairings: true,
           },
         },
       },
@@ -296,6 +369,9 @@ export class ResultsService {
         include: {
           values: true,
           footballEvents: true,
+          periodScores: true,
+          taekwondoBouts: true,
+          chessPairings: true,
         },
       });
 
@@ -340,6 +416,7 @@ export class ResultsService {
     const champ = await this.prisma.client.championship.findUnique({
       where: { id: championshipId },
       include: {
+        sport: true,
         ruleVersions: {
           orderBy: { version: 'desc' },
           take: 1,
@@ -351,11 +428,8 @@ export class ResultsService {
       throw new NotFoundException('Campeonato no encontrado');
     }
 
-    // Reglas de puntuación (con defaults estándar FIFA/Liga)
+    const sportCode = champ.sport.code;
     const activeRules = (champ.ruleVersions[0]?.rulesJson as Record<string, unknown> | null) ?? {};
-    const pointsWin = Number(activeRules['pointsWin'] ?? 3);
-    const pointsDraw = Number(activeRules['pointsDraw'] ?? 1);
-    const pointsLoss = Number(activeRules['pointsLoss'] ?? 0);
 
     // Obtener todas las inscripciones activas
     const registrations = await this.prisma.client.registration.findMany({
@@ -403,6 +477,7 @@ export class ResultsService {
         points: number;
         yellowCards: number;
         redCards: number;
+        buchholz?: number;
       }
     >();
 
@@ -433,6 +508,7 @@ export class ResultsService {
         points: 0,
         yellowCards: 0,
         redCards: 0,
+        buchholz: 0,
       });
     }
 
@@ -454,13 +530,56 @@ export class ResultsService {
           include: {
             values: true,
             footballEvents: true,
+            periodScores: true,
+            taekwondoBouts: true,
+            chessPairings: true,
           },
         },
       },
     });
 
+    // Puntuaciones según deporte
+    let pointsWin = 3;
+    let pointsDraw = 1;
+    let pointsLoss = 0;
+
+    if (sportCode === 'basquet') {
+      pointsWin = Number(activeRules['pointsWin'] ?? 2);
+      pointsLoss = Number(activeRules['pointsLoss'] ?? 1);
+      pointsDraw = 0; // En básquet no hay empates
+    } else if (sportCode === 'ajedrez') {
+      pointsWin = 1;
+      pointsDraw = 0.5;
+      pointsLoss = 0;
+    } else {
+      pointsWin = Number(activeRules['pointsWin'] ?? 3);
+      pointsDraw = Number(activeRules['pointsDraw'] ?? 1);
+      pointsLoss = Number(activeRules['pointsLoss'] ?? 0);
+    }
+
     for (const ev of events) {
       if (!ev.result) continue;
+
+      if (sportCode === 'ajedrez' && ev.result.chessPairings.length > 0) {
+        for (const cp of ev.result.chessPairings) {
+          const part = ev.participants.find((p) => p.id === cp.eventParticipantId);
+          if (part) {
+            const row = tableMap.get(part.registrationId);
+            if (row) {
+              row.played += 1;
+              const pVal = Number(cp.points);
+              row.points += pVal;
+              if (pVal === 1) row.won += 1;
+              else if (pVal === 0.5) row.drawn += 1;
+              else row.lost += 1;
+              if (cp.buchholz) {
+                row.buchholz = (row.buchholz ?? 0) + Number(cp.buchholz);
+              }
+            }
+          }
+        }
+        continue;
+      }
 
       const values = ev.result.values;
       if (values.length === 2 && values[0] && values[1]) {
@@ -502,7 +621,7 @@ export class ResultsService {
         }
       }
 
-      // Tarjetas para juego limpio
+      // Tarjetas para juego limpio en fútbol
       for (const fe of ev.result.footballEvents) {
         const p = ev.participants.find((part) => part.id === fe.eventParticipantId);
         if (p) {
@@ -510,6 +629,17 @@ export class ResultsService {
           if (row) {
             if (fe.eventType === 'tarjeta_amarilla') row.yellowCards += 1;
             if (fe.eventType === 'tarjeta_roja') row.redCards += 1;
+          }
+        }
+      }
+
+      // Faltas / Gam-jeom en taekwondo
+      for (const tb of ev.result.taekwondoBouts) {
+        const p = ev.participants.find((part) => part.id === tb.eventParticipantId);
+        if (p) {
+          const row = tableMap.get(p.registrationId);
+          if (row) {
+            row.redCards += tb.penalties; // acumulamos penalizaciones
           }
         }
       }
@@ -524,15 +654,18 @@ export class ResultsService {
     standings.sort((a, b) => {
       // 1. Puntos
       if (b.points !== a.points) return b.points - a.points;
-      // 2. Gol diferencia
+      // Ajedrez: Buchholz
+      if (sportCode === 'ajedrez' && (b.buchholz ?? 0) !== (a.buchholz ?? 0)) {
+        return (b.buchholz ?? 0) - (a.buchholz ?? 0);
+      }
+      // 2. Diferencia
       if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
-      // 3. Goles a favor
+      // 3. Puntos / Goles a favor
       if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
-      // 4. Juego limpio (menos tarjetas rojas)
+      // 4. Juego limpio
       if (a.redCards !== b.redCards) return a.redCards - b.redCards;
-      // 5. Juego limpio (menos tarjetas amarillas)
       if (a.yellowCards !== b.yellowCards) return a.yellowCards - b.yellowCards;
-      // 6. Nombre alfabético
+      // 5. Nombre alfabético
       return a.name.localeCompare(b.name);
     });
 
@@ -545,6 +678,7 @@ export class ResultsService {
       championship: {
         id: champ.id,
         name: champ.name,
+        sportCode,
       },
       rules: {
         pointsWin,
