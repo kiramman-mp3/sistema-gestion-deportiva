@@ -113,6 +113,99 @@ export function SelectField({
   );
 }
 
+interface TextAreaProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  error?: string;
+  required?: boolean;
+  maxLength?: number;
+  disabled?: boolean;
+  hint?: string;
+  rows?: number;
+}
+
+/** Área de texto accesible con etiqueta, ayuda y error asociados. */
+export function TextAreaField({
+  label,
+  value,
+  onChange,
+  error,
+  required,
+  maxLength,
+  disabled,
+  hint,
+  rows = 4,
+}: TextAreaProps) {
+  const id = useId();
+  const describedBy =
+    [error ? `${id}-e` : '', hint ? `${id}-h` : ''].filter(Boolean).join(' ') ||
+    undefined;
+  return (
+    <div className="field">
+      <label htmlFor={id}>
+        {label}
+        {required && <span aria-hidden="true"> *</span>}
+      </label>
+      <textarea
+        id={id}
+        rows={rows}
+        value={value}
+        maxLength={maxLength}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={describedBy}
+      />
+      {hint && (
+        <p className="hint" id={`${id}-h`}>
+          {hint}
+        </p>
+      )}
+      {error && (
+        <p className="field-error" id={`${id}-e`}>
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** Casilla de verificación con etiqueta y ayuda asociadas. */
+export function CheckboxField({
+  label,
+  checked,
+  onChange,
+  disabled,
+  hint,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  disabled?: boolean;
+  hint?: string;
+}) {
+  const id = useId();
+  return (
+    <div className="field check-field">
+      <input
+        id={id}
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.checked)}
+        aria-describedby={hint ? `${id}-h` : undefined}
+      />
+      <label htmlFor={id}>{label}</label>
+      {hint && (
+        <p className="hint" id={`${id}-h`}>
+          {hint}
+        </p>
+      )}
+    </div>
+  );
+}
+
 /** Estados de carga y error comunes a los listados. */
 export function LoadState({
   state,
