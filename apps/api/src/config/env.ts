@@ -42,6 +42,9 @@ const envSchema = z
     /** Duración máxima de una sesión, aunque haya actividad. */
     SESSION_ABSOLUTE_HOURS: positiveInt(1, 24 * 14, 12),
 
+    /** Vigencia de los enlaces de activación y restablecimiento de contraseña. */
+    CREDENTIAL_LINK_TTL_HOURS: positiveInt(1, 24 * 7, 24),
+
     /** Ventana de conteo de intentos fallidos de inicio de sesión. */
     LOGIN_WINDOW_MINUTES: positiveInt(1, 24 * 60, 15),
     LOGIN_MAX_FAILURES_PER_IP: positiveInt(1, 10_000, 30),

@@ -69,6 +69,7 @@ Ventana: `LOGIN_WINDOW_MINUTES` (15). Al superar un límite el login responde **
 | `TRUST_PROXY`                                                    | `0`                     | Saltos de proxy de confianza.                                                                                                                                                        |
 | `SESSION_IDLE_MINUTES`                                           | `60`                    | Inactividad máxima.                                                                                                                                                                  |
 | `SESSION_ABSOLUTE_HOURS`                                         | `12`                    | Duración máxima.                                                                                                                                                                     |
+| `CREDENTIAL_LINK_TTL_HOURS`                                      | `24`                    | Vigencia de los enlaces de activación y restablecimiento de contraseña (`administration.md`).                                                                                        |
 | `LOGIN_WINDOW_MINUTES`                                           | `15`                    | Ventana de conteo.                                                                                                                                                                   |
 | `LOGIN_MAX_FAILURES_PER_IP` / `_PER_ACCOUNT_IP` / `_PER_ACCOUNT` | `30` / `5` / `50`       | Límites.                                                                                                                                                                             |
 | `WEB_ORIGIN`                                                     | `http://localhost:5173` | Orígenes permitidos (CORS y validación de origen). En producción deben ser `https`.                                                                                                  |
@@ -107,7 +108,7 @@ Generar la clave: `node -e "console.log(require('crypto').randomBytes(32).toStri
 | `GET /api/roles`                       | `roles:read`       | Roles y sus permisos.                                                                                                        |
 | `GET /api/health`, `/api/health/ready` | pública            | Sin datos sensibles.                                                                                                         |
 
-Reglas de seguridad adicionales de la administración: nadie cambia su **propio** estado ni sus **propios** roles; solo se asigna o retira un rol cuyos permisos el actor posee todos (evita autoescalada y que un administrador parcial cree o elimine superadministradores); nunca puede quedar el sistema sin un superadministrador **activo** (los cambios se serializan con un bloqueo asesor de PostgreSQL).
+Reglas de seguridad adicionales de la administración: nadie cambia su **propio** estado ni sus **propios** roles; solo se asigna o retira un rol cuyos permisos el actor posee todos; **no se gestiona una cuenta con más privilegios que la propia**; nunca puede quedar el sistema sin un superadministrador **activo** (los cambios se serializan con un bloqueo asesor de PostgreSQL). Modelo completo en `administration.md`.
 
 Permisos del catálogo (`src/authz/permissions.ts`): `users:read|create|update`, `roles:read|manage`, `audit:read` y, por cada catálogo (`sports`, `categories`, `seasons`), `read`, `manage` y `delete` (ver `catalogs.md`). Los usados hoy por rutas son `users:update`, `roles:manage`, `roles:read` y los de catálogos; el resto está reservado para los módulos siguientes. Un usuario nuevo **no tiene ningún rol**.
 
@@ -151,7 +152,7 @@ Cobertura relevante (`apps/api/test/auth`): login correcto/incorrecto/inexistent
 
 ## Limitaciones conocidas y pendientes
 
-- **Sin segundo factor (MFA)** ni cambio/recuperación de contraseña: pendientes. Al implementarlos, el cambio de contraseña debe revocar las demás sesiones. Los hashes no se re‑calculan automáticamente si cambian los parámetros de Argon2id.
+- **Sin segundo factor (MFA)**: pendiente. El **cambio de contraseña propio** y el **restablecimiento asistido por un administrador** ya existen y revocan sesiones (ver `administration.md`); la **recuperación autoservicio** sigue bloqueada por no haber entrega segura (correo). Los hashes no se re‑calculan automáticamente si cambian los parámetros de Argon2id.
 - **Solo el login tiene limitación de intentos.** No hay límite general por endpoint; se recomienda complementarlo en el proxy inverso (p. ej. `limit_req`). Dentro de la API se evaluará un limitador global al exponer el portal público.
 - El límite **por cuenta** (50 fallos/15 min) puede, en un ataque distribuido, impedir temporalmente los accesos a esa cuenta; es un compromiso explícito frente a un bloqueo permanente.
 - El token CSRF se guarda en claro en `sessions.csrf_token`; solo sirve junto con la cookie de sesión (cuyo hash es lo único almacenado de ella).
@@ -159,5 +160,5 @@ Cobertura relevante (`apps/api/test/auth`): login correcto/incorrecto/inexistent
 - Clientes que no son navegadores y no envían `Origin`/`Referer` superan la comprobación de origen, pero siguen necesitando cookie y token CSRF válidos.
 - Si el cierre de sesión falla por red, la interfaz cierra la sesión local; la del servidor caduca por inactividad (o puede revocarse desde otra sesión).
 - La depuración horaria corre dentro de cada instancia de la API (es idempotente).
-- Aún no existen endpoints para crear usuarios, crear roles ni editar los permisos de un rol (módulo de usuarios y roles).
+- La administración de usuarios, roles y permisos está en `administration.md` (con el modelo de delegación contra escalada de privilegios).
 - Pendiente con la Liga: duraciones de sesión, política de contraseñas, si los administradores requieren MFA, y la matriz real de roles.
