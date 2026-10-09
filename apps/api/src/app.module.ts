@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AthletesModule } from './athletes/athletes.module.js';
 import { AuditModule } from './audit/audit.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { AuthzModule } from './authz/authz.module.js';
@@ -22,6 +23,7 @@ import { UsersModule } from './users/users.module.js';
     CatalogsModule,
     PeopleModule,
     ClubsModule,
+    AthletesModule,
     PublicModule,
   ],
   controllers: [HealthController],
