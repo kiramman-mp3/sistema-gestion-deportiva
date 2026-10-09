@@ -113,6 +113,15 @@ model User {
   official         Official?         @relation("OfficialAccount")
   eventAssignments EventAssignment[] @relation("AssignmentAuthor")
 
+  incidentsReported   EventIncident[]    @relation("IncidentReporter")
+  complaintsSubmitted Complaint[]        @relation("ComplaintAuthor")
+  casesReviewing      DisciplinaryCase[] @relation("CaseReviewer")
+  casesOpened         DisciplinaryCase[] @relation("CaseOpener")
+  casesResolved       DisciplinaryCase[] @relation("CaseResolver")
+  casesPublished      DisciplinaryCase[] @relation("CasePublisher")
+  caseEntries         CaseEntry[]        @relation("CaseEntryAuthor")
+  sanctionsCreated    Sanction[]         @relation("SanctionAuthor")
+
   @@map("users")
 }
 
@@ -407,6 +416,11 @@ model Club {
 
   officials Official[]
 
+  incidents  EventIncident[]
+  complaints Complaint[]
+  cases      DisciplinaryCase[]
+  sanctions  Sanction[]
+
   @@map("clubs")
 }
 
@@ -508,6 +522,9 @@ model Athlete {
   participant    IndividualParticipant?
   footballEvents FootballEvent[]
 
+  incidents EventIncident[]
+  sanctions Sanction[]
+
   @@index([clubId])
   @@map("athletes")
 }
@@ -564,6 +581,8 @@ model Team {
   sport       Sport            @relation(fields: [sportId], references: [id], onDelete: Restrict)
   seasons     TeamSeason[]
   participant TeamParticipant?
+
+  sanctions Sanction[]
 
   @@unique([clubId, sportId, nameKey])
   @@unique([id, sportId])
@@ -660,6 +679,8 @@ model StoredFile {
   athletePhoto    AthletePhoto?
   athleteDoc      AthleteDocument?
   institutionLogo InstitutionSettings? @relation("InstitutionLogo")
+
+  complaintFile ComplaintAttachment?
 
   @@index([createdById])
   @@map("stored_files")
@@ -840,6 +861,10 @@ model Championship {
   registrations Registration[]
   stages        Stage[]
 
+  complaints Complaint[]
+  cases      DisciplinaryCase[]
+  sanctions  Sanction[]
+
   @@unique([seasonId, sportId, categoryId, name])
   @@index([seasonId])
   @@index([sportId])
@@ -989,6 +1014,10 @@ model Event {
   result       Result?
 
   assignments EventAssignment[]
+
+  incidents  EventIncident[]
+  complaints Complaint[]
+  cases      DisciplinaryCase[]
 
   @@index([roundId])
   @@index([venueId, scheduledAt])
@@ -1354,4 +1383,244 @@ model EventAssignment {
   @@index([officialId])
   @@index([assignedById])
   @@map("event_assignments")
+}
+
+// ───────────────────── Disciplina: incidencias, reclamos, expedientes y sanciones ─────────────────────
+
+enum IncidentType {
+  agresion_fisica
+  agresion_verbal
+  conducta_antideportiva
+  invasion_campo
+  alineacion_indebida
+  no_presentacion
+  otro
+
+  @@map("incident_type")
+}
+
+enum ComplaintStatus {
+  recibido
+  en_revision
+  resuelto
+  desestimado
+
+  @@map("complaint_status")
+}
+
+enum CaseStatus {
+  abierto
+  en_revision
+  resuelto
+  archivado
+
+  @@map("case_status")
+}
+
+enum CaseEntryKind {
+  apertura
+  nota
+  asignacion
+  recurso
+  notificacion
+  decision
+  reapertura
+  publicacion
+  archivo
+
+  @@map("case_entry_kind")
+}
+
+enum SanctionType {
+  amonestacion
+  suspension_partidos
+  suspension_temporal
+  descuento_puntos
+  descalificacion
+  multa
+
+  @@map("sanction_type")
+}
+
+enum SanctionStatus {
+  vigente
+  cumplida
+  anulada
+
+  @@map("sanction_status")
+}
+
+/// Incidencia de un partido reportada por un oficial o por quien administra. No se edita ni se borra.
+model EventIncident {
+  id           String       @id @default(uuid(7)) @db.Uuid
+  eventId      String       @map("event_id") @db.Uuid
+  athleteId    String?      @map("athlete_id") @db.Uuid
+  clubId       String?      @map("club_id") @db.Uuid
+  type         IncidentType
+  description  String
+  reportedById String       @map("reported_by_id") @db.Uuid
+  caseId       String?      @map("case_id") @db.Uuid
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  event      Event             @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  athlete    Athlete?          @relation(fields: [athleteId], references: [id], onDelete: Restrict)
+  club       Club?             @relation(fields: [clubId], references: [id], onDelete: Restrict)
+  reportedBy User              @relation("IncidentReporter", fields: [reportedById], references: [id], onDelete: Restrict)
+  case       DisciplinaryCase? @relation(fields: [caseId], references: [id], onDelete: Restrict)
+
+  @@index([eventId])
+  @@index([athleteId])
+  @@index([clubId])
+  @@index([reportedById])
+  @@index([caseId])
+  @@map("event_incidents")
+}
+
+/// Reclamo presentado por un club ante la Liga.
+model Complaint {
+  id             String          @id @default(uuid(7)) @db.Uuid
+  championshipId String          @map("championship_id") @db.Uuid
+  eventId        String?         @map("event_id") @db.Uuid
+  clubId         String          @map("club_id") @db.Uuid
+  submittedById  String          @map("submitted_by_id") @db.Uuid
+  subject        String
+  description    String
+  status         ComplaintStatus @default(recibido)
+  submittedAt    DateTime        @default(now()) @map("submitted_at") @db.Timestamptz(3)
+  resolvedAt     DateTime?       @map("resolved_at") @db.Timestamptz(3)
+  /// Motivo cuando se desestima.
+  dismissReason  String?         @map("dismiss_reason")
+  caseId         String?         @map("case_id") @db.Uuid
+
+  championship Championship          @relation(fields: [championshipId], references: [id], onDelete: Restrict)
+  event        Event?                @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  club         Club                  @relation(fields: [clubId], references: [id], onDelete: Restrict)
+  submittedBy  User                  @relation("ComplaintAuthor", fields: [submittedById], references: [id], onDelete: Restrict)
+  case         DisciplinaryCase?     @relation(fields: [caseId], references: [id], onDelete: Restrict)
+  attachments  ComplaintAttachment[]
+
+  @@index([championshipId])
+  @@index([eventId])
+  @@index([clubId, status])
+  @@index([submittedById])
+  @@index([caseId])
+  @@map("complaints")
+}
+
+model ComplaintAttachment {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  complaintId String   @map("complaint_id") @db.Uuid
+  fileId      String   @unique @map("file_id") @db.Uuid
+  title       String
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  complaint Complaint  @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  file      StoredFile @relation(fields: [fileId], references: [id], onDelete: Restrict)
+
+  @@index([complaintId])
+  @@map("complaint_attachments")
+}
+
+/// Expediente disciplinario. La decisión la toma una autoridad; el sistema solo la documenta.
+model DisciplinaryCase {
+  id             String     @id @default(uuid(7)) @db.Uuid
+  /// Número correlativo para el código visible (EXP-000123).
+  caseNumber     Int        @unique @default(autoincrement()) @map("case_number")
+  subject        String
+  description    String
+  championshipId String?    @map("championship_id") @db.Uuid
+  eventId        String?    @map("event_id") @db.Uuid
+  clubId         String?    @map("club_id") @db.Uuid
+  status         CaseStatus @default(abierto)
+  reviewerId     String?    @map("reviewer_id") @db.Uuid
+  openedById     String     @map("opened_by_id") @db.Uuid
+  openedAt       DateTime   @default(now()) @map("opened_at") @db.Timestamptz(3)
+  resolution     String?
+  resolvedById   String?    @map("resolved_by_id") @db.Uuid
+  resolvedAt     DateTime?  @map("resolved_at") @db.Timestamptz(3)
+  /// Texto redactado para el portal (sin nombres de menores). Publicar es un acto expreso.
+  publicTitle    String?    @map("public_title")
+  publicSummary  String?    @map("public_summary")
+  publishedAt    DateTime?  @map("published_at") @db.Timestamptz(3)
+  publishedById  String?    @map("published_by_id") @db.Uuid
+  updatedAt      DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  championship Championship?   @relation(fields: [championshipId], references: [id], onDelete: Restrict)
+  event        Event?          @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  club         Club?           @relation(fields: [clubId], references: [id], onDelete: Restrict)
+  reviewer     User?           @relation("CaseReviewer", fields: [reviewerId], references: [id], onDelete: Restrict)
+  openedBy     User            @relation("CaseOpener", fields: [openedById], references: [id], onDelete: Restrict)
+  resolvedBy   User?           @relation("CaseResolver", fields: [resolvedById], references: [id], onDelete: Restrict)
+  publishedBy  User?           @relation("CasePublisher", fields: [publishedById], references: [id], onDelete: Restrict)
+  entries      CaseEntry[]
+  incidents    EventIncident[]
+  complaints   Complaint[]
+  sanctions    Sanction[]
+
+  @@index([status, openedAt])
+  @@index([reviewerId])
+  @@index([championshipId])
+  @@index([eventId])
+  @@index([clubId])
+  @@index([publishedAt])
+  @@index([openedById])
+  @@index([resolvedById])
+  @@index([publishedById])
+  @@map("disciplinary_cases")
+}
+
+/// Historial del expediente (notas, asignaciones, recursos, notificaciones y decisiones).
+/// Es de solo anexar: un trigger impide modificar o borrar entradas.
+model CaseEntry {
+  id        String        @id @default(uuid(7)) @db.Uuid
+  caseId    String        @map("case_id") @db.Uuid
+  kind      CaseEntryKind
+  body      String
+  authorId  String        @map("author_id") @db.Uuid
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  case   DisciplinaryCase @relation(fields: [caseId], references: [id], onDelete: Restrict)
+  author User             @relation("CaseEntryAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([caseId, createdAt])
+  @@index([authorId])
+  @@map("case_entries")
+}
+
+/// Sanción asociada a un expediente. Un deportista, un equipo o un club (al menos uno) y, opcionalmente,
+/// el campeonato al que aplica (sin campeonato rige en todas las competencias de la Liga).
+model Sanction {
+  id             String         @id @default(uuid(7)) @db.Uuid
+  caseId         String         @map("case_id") @db.Uuid
+  athleteId      String?        @map("athlete_id") @db.Uuid
+  teamId         String?        @map("team_id") @db.Uuid
+  clubId         String?        @map("club_id") @db.Uuid
+  championshipId String?        @map("championship_id") @db.Uuid
+  type           SanctionType
+  reason         String
+  startsAt       DateTime       @map("starts_at") @db.Date
+  endsAt         DateTime?      @map("ends_at") @db.Date
+  matchesCount   Int?           @map("matches_count")
+  /// Puntos que se descuentan en la tabla (solo `descuento_puntos`).
+  points         Int?
+  status         SanctionStatus @default(vigente)
+  statusReason   String?        @map("status_reason")
+  createdById    String         @map("created_by_id") @db.Uuid
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  case         DisciplinaryCase @relation(fields: [caseId], references: [id], onDelete: Restrict)
+  athlete      Athlete?         @relation(fields: [athleteId], references: [id], onDelete: Restrict)
+  team         Team?            @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  club         Club?            @relation(fields: [clubId], references: [id], onDelete: Restrict)
+  championship Championship?    @relation(fields: [championshipId], references: [id], onDelete: Restrict)
+  createdBy    User             @relation("SanctionAuthor", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([caseId])
+  @@index([athleteId, status])
+  @@index([teamId, status])
+  @@index([clubId, status])
+  @@index([championshipId])
+  @@index([createdById])
+  @@map("sanctions")
 }
