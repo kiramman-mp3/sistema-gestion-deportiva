@@ -20,7 +20,6 @@ import { seedProvisionalCatalogs } from './seed-provisional.js';
 export const DEMO_DOMAIN = 'demo.liga.invalid';
 const SEED = 20260101;
 
-type Tx = Prisma.TransactionClient;
 type Rng = () => number;
 
 function mulberry32(seed: number): Rng {
