@@ -15,6 +15,7 @@ import { OfficialsModule } from './officials/officials.module.js';
 import { ClubsModule } from './clubs/clubs.module.js';
 import { PeopleModule } from './people/people.module.js';
 import { PublicModule } from './public/public.module.js';
+import { ReportsModule } from './reports/reports.module.js';
 import { StorageModule } from './storage/storage.module.js';
 import { DocumentsModule } from './documents/documents.module.js';
 import { CompetitionsModule } from './competitions/competitions.module.js';
@@ -43,6 +44,7 @@ import { UsersModule } from './users/users.module.js';
     DisciplineModule,
     ContentModule,
     PublicModule,
+    ReportsModule,
   ],
   controllers: [HealthController],
 })

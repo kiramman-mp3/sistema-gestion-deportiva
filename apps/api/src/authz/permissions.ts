@@ -98,6 +98,11 @@ export const PERMISSIONS = {
     'Publicar, retirar y archivar noticias y comunicados en el portal',
   'announcements:delete':
     'Eliminar borradores de noticias que nunca se publicaron',
+  'reports:read':
+    'Generar listados, tablas, actas, nóminas e informes en PDF o CSV (dentro del alcance por club)',
+  'credentials:issue':
+    'Emitir y descargar carnés y certificados de deportistas (dentro del alcance por club)',
+  'credentials:revoke': 'Anular carnés y certificados emitidos',
   'notifications:manage':
     'Consultar la cola de correos, reintentar envíos y enviar recordatorios de documentación',
   'institution:read': 'Consultar la configuración institucional',
@@ -140,6 +145,8 @@ export const PERMISSION_MODULES = {
   cases: 'Expedientes disciplinarios',
   sanctions: 'Sanciones',
   announcements: 'Noticias y comunicados',
+  reports: 'Reportes y documentos',
+  credentials: 'Carnés y certificados',
 } as const satisfies Record<string, string>;
 
 /**
@@ -163,6 +170,8 @@ export const PERMISSION_ACTIONS = {
   report: 'Reportar',
   submit: 'Presentar',
   resolve: 'Resolver',
+  issue: 'Emitir',
+  revoke: 'Anular',
 } as const satisfies Record<string, string>;
 
 export interface PermissionInfo {
