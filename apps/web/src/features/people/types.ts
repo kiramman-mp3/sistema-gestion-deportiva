@@ -139,10 +139,7 @@ export interface CatalogItem {
 export const EDITABLE_SEASONS = ['borrador', 'activa'];
 
 export type DocumentType =
-  | 'identificacion'
-  | 'certificado_medico'
-  | 'formulario_inscripcion'
-  | 'otro';
+  'identificacion' | 'certificado_medico' | 'formulario_inscripcion' | 'otro';
 
 export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
   identificacion: 'Cédula / Identificación',
@@ -165,4 +162,3 @@ export interface AthleteDocument {
   verifiedBy: { id: string; displayName: string } | null;
   createdAt: string;
 }
-

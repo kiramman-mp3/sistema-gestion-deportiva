@@ -31,22 +31,29 @@ export function PublicPortalPage({
 
   const queryParams = new URLSearchParams();
   if (searchQuery.trim()) queryParams.set('q', searchQuery.trim());
-  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+  const queryString = queryParams.toString()
+    ? `?${queryParams.toString()}`
+    : '';
 
   const [championshipsState] = useFetch<PublicChampionshipsResponse>(
     `/public/championships${queryString}`,
   );
 
-  const [clubsState] = useFetch<{ items: PublicClub[] }>('/public/clubs?pageSize=50');
+  const [clubsState] = useFetch<{ items: PublicClub[] }>(
+    '/public/clubs?pageSize=50',
+  );
 
   // Filtrado en memoria por deporte
-  const allChampionships = championshipsState.kind === 'ready' ? championshipsState.data.items : [];
+  const allChampionships =
+    championshipsState.kind === 'ready' ? championshipsState.data.items : [];
   const filteredChampionships = allChampionships.filter((c) => {
     if (selectedSport === 'all') return true;
     return c.sport.code === selectedSport;
   });
 
-  const selectedChampionship = allChampionships.find((c) => c.id === selectedChampId);
+  const selectedChampionship = allChampionships.find(
+    (c) => c.id === selectedChampId,
+  );
 
   const handleOpenPrint = (kind: 'acta' | 'nomina', id: string) => {
     if (onOpenPrintDocument) {
@@ -64,8 +71,9 @@ export function PublicPortalPage({
           <div className="hero-badge">Portal Oficial de la Liga Cantonal</div>
           <h2>Liga Deportiva Cantonal de Quero</h2>
           <p className="hero-description">
-            Consulta los resultados oficiales, clasificaciones reglamentarias, calendarios de juego y
-            actas aprobadas de las competencias deportivas cantonales.
+            Consulta los resultados oficiales, clasificaciones reglamentarias,
+            calendarios de juego y actas aprobadas de las competencias
+            deportivas cantonales.
           </p>
           {onLoginClick && (
             <div className="hero-actions">
@@ -73,7 +81,11 @@ export function PublicPortalPage({
                 type="button"
                 onClick={onLoginClick}
                 className="secondary-button"
-                style={{ background: 'rgba(255, 255, 255, 0.15)', borderColor: 'transparent', color: 'inherit' }}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  borderColor: 'transparent',
+                  color: 'inherit',
+                }}
               >
                 🔐 Acceso para Dirigentes y Jueces
               </button>
@@ -92,7 +104,10 @@ export function PublicPortalPage({
       ) : (
         <>
           {/* Barra de Filtros por Deporte y Búsqueda */}
-          <section className="portal-controls" aria-label="Filtros de competencias">
+          <section
+            className="portal-controls"
+            aria-label="Filtros de competencias"
+          >
             <div className="sport-tabs">
               {SPORT_FILTERS.map((s) => (
                 <button
@@ -118,11 +133,17 @@ export function PublicPortalPage({
           </section>
 
           {/* Listado de Campeonatos */}
-          <section className="portal-section" aria-labelledby="campeonatos-heading">
+          <section
+            className="portal-section"
+            aria-labelledby="campeonatos-heading"
+          >
             <div className="section-header">
               <h3 id="campeonatos-heading">Campeonatos Oficiales</h3>
               <span className="count-badge">
-                {filteredChampionships.length} {filteredChampionships.length === 1 ? 'competencia' : 'competencias'}
+                {filteredChampionships.length}{' '}
+                {filteredChampionships.length === 1
+                  ? 'competencia'
+                  : 'competencias'}
               </span>
             </div>
 
@@ -132,15 +153,21 @@ export function PublicPortalPage({
 
             {championshipsState.kind === 'error' && (
               <div className="catalog-error">
-                <p>No se pudo cargar los campeonatos: {championshipsState.message}</p>
+                <p>
+                  No se pudo cargar los campeonatos:{' '}
+                  {championshipsState.message}
+                </p>
               </div>
             )}
 
-            {championshipsState.kind === 'ready' && filteredChampionships.length === 0 && (
-              <div className="empty-state">
-                <p>No se encontraron campeonatos para el filtro seleccionado.</p>
-              </div>
-            )}
+            {championshipsState.kind === 'ready' &&
+              filteredChampionships.length === 0 && (
+                <div className="empty-state">
+                  <p>
+                    No se encontraron campeonatos para el filtro seleccionado.
+                  </p>
+                </div>
+              )}
 
             <div className="championships-grid">
               {filteredChampionships.map((champ) => (
@@ -152,8 +179,10 @@ export function PublicPortalPage({
                     <span className={`status-badge status-${champ.status}`}>
                       {champ.status === 'en_curso' && 'En curso'}
                       {champ.status === 'finalizado' && 'Finalizado'}
-                      {champ.status === 'inscripciones_abiertas' && 'Inscripciones abiertas'}
-                      {champ.status === 'inscripciones_cerradas' && 'Inscripciones cerradas'}
+                      {champ.status === 'inscripciones_abiertas' &&
+                        'Inscripciones abiertas'}
+                      {champ.status === 'inscripciones_cerradas' &&
+                        'Inscripciones cerradas'}
                     </span>
                   </div>
 
@@ -165,11 +194,15 @@ export function PublicPortalPage({
                   <div className="champ-stats">
                     <div className="stat">
                       <span className="stat-label">Inscritos</span>
-                      <span className="stat-value">{champ._count.registrations}</span>
+                      <span className="stat-value">
+                        {champ._count.registrations}
+                      </span>
                     </div>
                     <div className="stat">
                       <span className="stat-label">Modalidad</span>
-                      <span className="stat-value format-val">{champ.format.replace(/_/g, ' ')}</span>
+                      <span className="stat-value format-val">
+                        {champ.format.replace(/_/g, ' ')}
+                      </span>
                     </div>
                   </div>
 
@@ -198,7 +231,11 @@ export function PublicPortalPage({
                     <div className="club-icon">🛡️</div>
                     <div className="club-info">
                       <strong>{club.name}</strong>
-                      <small>{club.sector ? `Sector ${club.sector}` : 'Quero, Tungurahua'}</small>
+                      <small>
+                        {club.sector
+                          ? `Sector ${club.sector}`
+                          : 'Quero, Tungurahua'}
+                      </small>
                     </div>
                   </div>
                 ))}
@@ -220,7 +257,9 @@ function ChampionshipDetailView({
   onBack: () => void;
   onOpenPrint: (kind: 'acta' | 'nomina', id: string) => void;
 }) {
-  const [activeTab, setActiveTab] = useState<'fixtures' | 'standings' | 'rules'>('fixtures');
+  const [activeTab, setActiveTab] = useState<
+    'fixtures' | 'standings' | 'rules'
+  >('fixtures');
 
   const [fixturesState, reloadFixtures] = useFetch<PublicStage[]>(
     `/public/championships/${championship.id}/fixtures`,
@@ -240,12 +279,17 @@ function ChampionshipDetailView({
 
       <header className="champ-detail-header">
         <span className="sport-tag">
-          {championship.sport.name} · {championship.category.name} · {championship.season.name}
+          {championship.sport.name} · {championship.category.name} ·{' '}
+          {championship.season.name}
         </span>
         <h2>{championship.name}</h2>
         <div className="champ-tags">
-          <span className="badge">Modalidad: {championship.format.replace(/_/g, ' ')}</span>
-          <span className="badge">Estado: {championship.status.replace(/_/g, ' ')}</span>
+          <span className="badge">
+            Modalidad: {championship.format.replace(/_/g, ' ')}
+          </span>
+          <span className="badge">
+            Estado: {championship.status.replace(/_/g, ' ')}
+          </span>
         </div>
       </header>
 
@@ -285,21 +329,28 @@ function ChampionshipDetailView({
         <section className="tab-panel" aria-label="Calendario y resultados">
           <div className="panel-actions">
             <h4>Encuentros y Jornadas Oficiales</h4>
-            <button type="button" onClick={reloadFixtures} className="link-button">
+            <button
+              type="button"
+              onClick={reloadFixtures}
+              className="link-button"
+            >
               Actualizar
             </button>
           </div>
 
-          {fixturesState.kind === 'loading' && <output>Cargando calendario oficial…</output>}
+          {fixturesState.kind === 'loading' && (
+            <output>Cargando calendario oficial…</output>
+          )}
           {fixturesState.kind === 'error' && (
             <div className="catalog-error">
               <p>Error: {fixturesState.message}</p>
             </div>
           )}
 
-          {fixturesState.kind === 'ready' && fixturesState.data.length === 0 && (
-            <p>No se han programado jornadas para este campeonato aún.</p>
-          )}
+          {fixturesState.kind === 'ready' &&
+            fixturesState.data.length === 0 && (
+              <p>No se han programado jornadas para este campeonato aún.</p>
+            )}
 
           {fixturesState.kind === 'ready' &&
             fixturesState.data.map((stage) => (
@@ -310,32 +361,48 @@ function ChampionshipDetailView({
                     <h5 className="round-name">{round.name}</h5>
                     <div className="events-list">
                       {round.events.map((event) => {
-                        const local = event.participants.find((p) => p.side === 'local') ?? event.participants[0];
-                        const away = event.participants.find((p) => p.side === 'visitante') ?? event.participants[1];
+                        const local =
+                          event.participants.find((p) => p.side === 'local') ??
+                          event.participants[0];
+                        const away =
+                          event.participants.find(
+                            (p) => p.side === 'visitante',
+                          ) ?? event.participants[1];
                         const isApproved = event.result !== null;
 
                         return (
                           <div key={event.id} className="match-card">
                             <div className="match-meta">
-                              <span className="match-venue">📍 {event.venue?.name ?? 'Por confirmar'}</span>
+                              <span className="match-venue">
+                                📍 {event.venue?.name ?? 'Por confirmar'}
+                              </span>
                               <span className="match-date">
                                 🕒{' '}
                                 {event.scheduledAt
-                                  ? new Date(event.scheduledAt).toLocaleString('es-EC', {
-                                      dateStyle: 'medium',
-                                      timeStyle: 'short',
-                                    })
+                                  ? new Date(event.scheduledAt).toLocaleString(
+                                      'es-EC',
+                                      {
+                                        dateStyle: 'medium',
+                                        timeStyle: 'short',
+                                      },
+                                    )
                                   : 'Fecha por definir'}
                               </span>
-                              <span className={`match-status-pill status-${event.status}`}>
+                              <span
+                                className={`match-status-pill status-${event.status}`}
+                              >
                                 {event.status}
                               </span>
                             </div>
 
                             <div className="match-teams-row">
                               <div className="match-team local">
-                                <span className="team-name">{local?.name ?? 'Por definir'}</span>
-                                <small className="team-club">{local?.clubName}</small>
+                                <span className="team-name">
+                                  {local?.name ?? 'Por definir'}
+                                </span>
+                                <small className="team-club">
+                                  {local?.clubName}
+                                </small>
                               </div>
 
                               <div className="match-score">
@@ -349,8 +416,12 @@ function ChampionshipDetailView({
                               </div>
 
                               <div className="match-team away">
-                                <span className="team-name">{away?.name ?? 'Por definir'}</span>
-                                <small className="team-club">{away?.clubName}</small>
+                                <span className="team-name">
+                                  {away?.name ?? 'Por definir'}
+                                </span>
+                                <small className="team-club">
+                                  {away?.clubName}
+                                </small>
                               </div>
                             </div>
 
@@ -379,12 +450,18 @@ function ChampionshipDetailView({
         <section className="tab-panel" aria-label="Tabla de posiciones">
           <div className="panel-actions">
             <h4>Tabla de Posiciones Oficial</h4>
-            <button type="button" onClick={reloadStandings} className="link-button">
+            <button
+              type="button"
+              onClick={reloadStandings}
+              className="link-button"
+            >
               Actualizar
             </button>
           </div>
 
-          {standingsState.kind === 'loading' && <output>Calculando tabla de posiciones…</output>}
+          {standingsState.kind === 'loading' && (
+            <output>Calculando tabla de posiciones…</output>
+          )}
           {standingsState.kind === 'error' && (
             <div className="catalog-error">
               <p>Error: {standingsState.message}</p>
@@ -412,7 +489,10 @@ function ChampionshipDetailView({
                 </thead>
                 <tbody>
                   {standingsState.data.standings.map((row) => (
-                    <tr key={row.registrationId} className={row.position <= 2 ? 'top-row' : ''}>
+                    <tr
+                      key={row.registrationId}
+                      className={row.position <= 2 ? 'top-row' : ''}
+                    >
                       <td className="center bold">{row.position}°</td>
                       <td className="bold">{row.name}</td>
                       <td>{row.clubName}</td>
@@ -422,12 +502,18 @@ function ChampionshipDetailView({
                       <td className="center">{row.lost}</td>
                       <td className="center">{row.goalsFor}</td>
                       <td className="center">{row.goalsAgainst}</td>
-                      <td className="center">{row.goalDifference > 0 ? `+${row.goalDifference}` : row.goalDifference}</td>
+                      <td className="center">
+                        {row.goalDifference > 0
+                          ? `+${row.goalDifference}`
+                          : row.goalDifference}
+                      </td>
                       <td className="center bold pts-cell">{row.points}</td>
                       <td className="center">
                         <button
                           type="button"
-                          onClick={() => onOpenPrint('nomina', row.registrationId)}
+                          onClick={() =>
+                            onOpenPrint('nomina', row.registrationId)
+                          }
                           className="action-link"
                         >
                           📄 Ver Nómina
@@ -448,17 +534,29 @@ function ChampionshipDetailView({
           <div className="rules-info-box">
             <h4>Bases y Reglamento del Campeonato</h4>
             <p>
-              Campeonato oficial regido por las directrices de la <strong>Liga Deportiva Cantonal de Quero</strong> y
-              las federaciones deportivas ecuatorianas correspondientes.
+              Campeonato oficial regido por las directrices de la{' '}
+              <strong>Liga Deportiva Cantonal de Quero</strong> y las
+              federaciones deportivas ecuatorianas correspondientes.
             </p>
             <ul>
-              <li><strong>Deporte:</strong> {championship.sport.name}</li>
-              <li><strong>Categoría:</strong> {championship.category.name}</li>
-              <li><strong>Modalidad de competencia:</strong> {championship.format.replace(/_/g, ' ')}</li>
-              <li><strong>Puntuación oficial:</strong> Reglamentada por acta aprobada</li>
               <li>
-                <strong>Criterios de Desempate:</strong> Diferencia de goles/puntos, mayor cantidad de
-                goles/puntos a favor, juego limpio (tarjetas amarillas y rojas) y confrontación directa.
+                <strong>Deporte:</strong> {championship.sport.name}
+              </li>
+              <li>
+                <strong>Categoría:</strong> {championship.category.name}
+              </li>
+              <li>
+                <strong>Modalidad de competencia:</strong>{' '}
+                {championship.format.replace(/_/g, ' ')}
+              </li>
+              <li>
+                <strong>Puntuación oficial:</strong> Reglamentada por acta
+                aprobada
+              </li>
+              <li>
+                <strong>Criterios de Desempate:</strong> Diferencia de
+                goles/puntos, mayor cantidad de goles/puntos a favor, juego
+                limpio (tarjetas amarillas y rojas) y confrontación directa.
               </li>
             </ul>
           </div>

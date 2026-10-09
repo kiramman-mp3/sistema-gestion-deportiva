@@ -75,7 +75,13 @@ export interface Championship {
   endDate?: string | null;
   season: { id: string; name: string; status: string };
   sport: { id: string; code: string; name: string };
-  category: { id: string; code: string; name: string; ageMin?: number | null; ageMax?: number | null };
+  category: {
+    id: string;
+    code: string;
+    name: string;
+    ageMin?: number | null;
+    ageMax?: number | null;
+  };
   ruleVersions?: RuleVersion[];
   _count?: {
     registrations: number;
@@ -106,7 +112,12 @@ export interface Registration {
     individual?: {
       athlete: {
         id: string;
-        person: { id: string; firstName: string; lastName: string; birthDate?: string | null };
+        person: {
+          id: string;
+          firstName: string;
+          lastName: string;
+          birthDate?: string | null;
+        };
         club: { id: string; name: string; shortName?: string | null };
       };
     } | null;
@@ -223,4 +234,3 @@ export interface StandingsResponse {
   };
   standings: StandingRow[];
 }
-

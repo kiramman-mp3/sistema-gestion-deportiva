@@ -164,7 +164,9 @@ describe('campeonatos, escenarios e inscripciones (ADR-001)', () => {
       expect(resCreate.body.ruleVersions[0].version).toBe(1);
 
       // Detalle
-      const resGet = await api().get(`/api/championships/${champId}`).expect(200);
+      const resGet = await api()
+        .get(`/api/championships/${champId}`)
+        .expect(200);
       expect(resGet.body.name).toBe('Campeonato Apertura Fútbol Juvenil');
       expect(resGet.body.ruleVersions[0].rulesJson).toMatchObject({
         pointsWin: 3,

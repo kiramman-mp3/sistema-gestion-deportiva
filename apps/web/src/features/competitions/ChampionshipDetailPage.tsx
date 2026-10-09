@@ -31,9 +31,13 @@ export function ChampionshipDetailPage({
   const canManage = permissions.includes('championships:manage');
   const canRegManage = permissions.includes('registrations:manage');
 
-  const [activeTab, setActiveTab] = useState<'registrations' | 'fixtures' | 'standings' | 'rules'>('registrations');
+  const [activeTab, setActiveTab] = useState<
+    'registrations' | 'fixtures' | 'standings' | 'rules'
+  >('registrations');
   const [notice, setNotice] = useState<NoticeState | null>(null);
-  const [transitioning, setTransitioning] = useState<ChampionshipStatus | null>(null);
+  const [transitioning, setTransitioning] = useState<ChampionshipStatus | null>(
+    null,
+  );
   const [addingRegistration, setAddingRegistration] = useState(false);
   const [reviewingReg, setReviewingReg] = useState<{
     id: string;
@@ -41,7 +45,9 @@ export function ChampionshipDetailPage({
     label: string;
   } | null>(null);
 
-  const [champState, reloadChamp] = useFetch<Championship>(`/championships/${championshipId}`);
+  const [champState, reloadChamp] = useFetch<Championship>(
+    `/championships/${championshipId}`,
+  );
   const [regsState, reloadRegs] = useFetch<Registration[]>(
     `/championships/${championshipId}/registrations`,
   );
@@ -62,8 +68,8 @@ export function ChampionshipDetailPage({
             <div>
               <h2 id="champ-detail-title">{champState.data.name}</h2>
               <p className="hint">
-                {champState.data.sport.name} · {champState.data.category.name} · Temporada{' '}
-                {champState.data.season.name}
+                {champState.data.sport.name} · {champState.data.category.name} ·
+                Temporada {champState.data.season.name}
               </p>
             </div>
             <span
@@ -254,7 +260,7 @@ export function ChampionshipDetailPage({
                     {regsState.data.map((r) => {
                       const isTeam = r.participant.kind === 'equipo';
                       const name = isTeam
-                        ? r.participant.team?.team.name ?? 'Equipo'
+                        ? (r.participant.team?.team.name ?? 'Equipo')
                         : `${r.participant.individual?.athlete.person.firstName ?? ''} ${r.participant.individual?.athlete.person.lastName ?? ''}`;
                       const clubName = isTeam
                         ? r.participant.team?.team.club.name
@@ -357,30 +363,36 @@ export function ChampionshipDetailPage({
             <div className="tab-panel">
               <h3>Reglamento de competencia</h3>
               <p className="hint">
-                Las reglas se encuentran versionadas y quedan asociadas al historial de partidos y tablas de posiciones.
+                Las reglas se encuentran versionadas y quedan asociadas al
+                historial de partidos y tablas de posiciones.
               </p>
 
-              {champState.data.ruleVersions && champState.data.ruleVersions.length > 0 && (
-                <div className="rules-display">
-                  {champState.data.ruleVersions.map((rv) => (
-                    <div key={rv.id} className="rule-card">
-                      <h4>
-                        Versión {rv.version}{' '}
-                        {rv.version === champState.data.ruleVersions?.[0]?.version && (
-                          <span className="badge badge-ok">Vigente</span>
-                        )}
-                      </h4>
-                      <p className="hint">
-                        Aprobado por: {rv.approvedBy?.displayName ?? 'Oficial'} el{' '}
-                        {rv.approvedAt ? new Date(rv.approvedAt).toLocaleDateString() : '—'}
-                      </p>
-                      <pre className="rules-json">
-                        {JSON.stringify(rv.rulesJson, null, 2)}
-                      </pre>
-                    </div>
-                  ))}
-                </div>
-              )}
+              {champState.data.ruleVersions &&
+                champState.data.ruleVersions.length > 0 && (
+                  <div className="rules-display">
+                    {champState.data.ruleVersions.map((rv) => (
+                      <div key={rv.id} className="rule-card">
+                        <h4>
+                          Versión {rv.version}{' '}
+                          {rv.version ===
+                            champState.data.ruleVersions?.[0]?.version && (
+                            <span className="badge badge-ok">Vigente</span>
+                          )}
+                        </h4>
+                        <p className="hint">
+                          Aprobado por:{' '}
+                          {rv.approvedBy?.displayName ?? 'Oficial'} el{' '}
+                          {rv.approvedAt
+                            ? new Date(rv.approvedAt).toLocaleDateString()
+                            : '—'}
+                        </p>
+                        <pre className="rules-json">
+                          {JSON.stringify(rv.rulesJson, null, 2)}
+                        </pre>
+                      </div>
+                    ))}
+                  </div>
+                )}
             </div>
           )}
 
@@ -395,10 +407,13 @@ export function ChampionshipDetailPage({
                 const targetStatus = transitioning;
                 setTransitioning(null);
                 try {
-                  await apiRequest(`/championships/${champState.data.id}/status`, {
-                    method: 'PATCH',
-                    body: { status: targetStatus, reason },
-                  });
+                  await apiRequest(
+                    `/championships/${champState.data.id}/status`,
+                    {
+                      method: 'PATCH',
+                      body: { status: targetStatus, reason },
+                    },
+                  );
                   setNotice({
                     type: 'success',
                     text: `Estado actualizado a «${CHAMPIONSHIP_STATUS_LABELS[targetStatus]}».`,
@@ -426,7 +441,10 @@ export function ChampionshipDetailPage({
                     `/championships/${champState.data.id}/registrations/${target.id}/status`,
                     {
                       method: 'PATCH',
-                      body: { status: target.status, reviewNotes: reason || undefined },
+                      body: {
+                        status: target.status,
+                        reviewNotes: reason || undefined,
+                      },
                     },
                   );
                   setNotice({
@@ -469,12 +487,16 @@ function RegisterParticipantForm({
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const [teams] = useFetch<Page<{ id: string; name: string; club: { name: string }; sportId: string }>>(
-    `/teams?sportId=${championship.sport.id}&pageSize=100`,
-  );
-  const [athletes] = useFetch<Page<{ id: string; person: { firstName: string; lastName: string }; club: { name: string } }>>(
-    '/athletes?pageSize=100',
-  );
+  const [teams] = useFetch<
+    Page<{ id: string; name: string; club: { name: string }; sportId: string }>
+  >(`/teams?sportId=${championship.sport.id}&pageSize=100`);
+  const [athletes] = useFetch<
+    Page<{
+      id: string;
+      person: { firstName: string; lastName: string };
+      club: { name: string };
+    }>
+  >('/athletes?pageSize=100');
 
   const teamOptions =
     teams.kind === 'ready'

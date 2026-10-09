@@ -36,7 +36,10 @@ export class RegistrationsController {
     @Param('championshipId') championshipId: string,
     @CurrentAuth() auth: AuthContext,
   ) {
-    return this.registrations.list(parseOrThrow(uuidSchema, championshipId), auth);
+    return this.registrations.list(
+      parseOrThrow(uuidSchema, championshipId),
+      auth,
+    );
   }
 
   @RequirePermissions('registrations:manage')

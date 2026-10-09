@@ -82,10 +82,7 @@ export class PublicController {
    * existe consentimiento vigente de publicación de fotografía.
    */
   @Get('athletes/:id/photo')
-  async athletePhoto(
-    @Param('id') id: string,
-    @Res() res: Response,
-  ) {
+  async athletePhoto(@Param('id') id: string, @Res() res: Response) {
     const athleteId = parseOrThrow(uuidSchema, id);
     const result = await this.documents.getPublicPhoto(athleteId);
     res.setHeader('Content-Type', result.mimeType);
@@ -105,7 +102,12 @@ export class PublicController {
     const parsed = parseOrThrow(publicChampionshipsQuerySchema, query);
     const allowedStatuses: ChampionshipStatus[] = parsed.status
       ? [parsed.status as ChampionshipStatus]
-      : ['en_curso', 'finalizado', 'inscripciones_cerradas', 'inscripciones_abiertas'];
+      : [
+          'en_curso',
+          'finalizado',
+          'inscripciones_cerradas',
+          'inscripciones_abiertas',
+        ];
 
     const where: Prisma.ChampionshipWhereInput = {
       status: { in: allowedStatuses },
@@ -553,7 +555,10 @@ export class PublicController {
             }
           : null,
       signatories: [
-        { label: 'Juez Central / Árbitro', name: '____________________________' },
+        {
+          label: 'Juez Central / Árbitro',
+          name: '____________________________',
+        },
         {
           label: 'Asistente 1 / Cronometrista',
           name: '____________________________',

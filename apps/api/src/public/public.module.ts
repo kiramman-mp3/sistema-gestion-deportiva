@@ -9,4 +9,3 @@ import { PublicController } from './public.controller.js';
   controllers: [PublicController],
 })
 export class PublicModule {}
-

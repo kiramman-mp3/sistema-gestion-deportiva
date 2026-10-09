@@ -80,7 +80,8 @@ export async function apiRequest<T>(
 ): Promise<T> {
   const method = options.method ?? 'GET';
   const headers: Record<string, string> = { Accept: 'application/json' };
-  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+  const isFormData =
+    typeof FormData !== 'undefined' && options.body instanceof FormData;
   if (options.body !== undefined && !isFormData) {
     headers['Content-Type'] = 'application/json';
   }
