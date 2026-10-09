@@ -10,7 +10,11 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { AuthContext, AuthedRequest } from '../../auth/auth.types.js';
-import { CurrentAuth, RequirePermissions } from '../../auth/decorators.js';
+import {
+  Authenticated,
+  CurrentAuth,
+  RequirePermissions,
+} from '../../auth/decorators.js';
 import { parseOrThrow, uuidSchema } from '../../auth/schemas.js';
 import {
   approveResultSchema,
@@ -34,14 +38,17 @@ export class ResultsController {
     return this.results.getResult(parseOrThrow(uuidSchema, eventId));
   }
 
-  @RequirePermissions('results:manage')
+  // Acceso: `results:manage`, o `results:manage_assigned` en los partidos designados
+  // (se comprueba en `assertCanWrite`; sin sesión o sin ninguno de los dos, 401/403).
+  @Authenticated()
   @Put('events/:eventId/result')
-  saveDraft(
+  async saveDraft(
     @Param('eventId') eventId: string,
     @CurrentAuth() auth: AuthContext,
     @Req() req: AuthedRequest,
     @Body() body: unknown,
   ) {
+    await this.results.assertCanWrite(auth, parseOrThrow(uuidSchema, eventId));
     return this.results.saveDraft(
       parseOrThrow(uuidSchema, eventId),
       parseOrThrow(saveResultDraftSchema, body),
@@ -50,13 +57,14 @@ export class ResultsController {
     );
   }
 
-  @RequirePermissions('results:manage')
+  @Authenticated()
   @Post('events/:eventId/result/submit')
-  submitForReview(
+  async submitForReview(
     @Param('eventId') eventId: string,
     @CurrentAuth() auth: AuthContext,
     @Req() req: AuthedRequest,
   ) {
+    await this.results.assertCanWrite(auth, parseOrThrow(uuidSchema, eventId));
     return this.results.submitForReview(
       parseOrThrow(uuidSchema, eventId),
       auth.user.id,
