@@ -136,7 +136,7 @@ describe('noticias, comunicados e imágenes del portal', () => {
     });
 
     it('valida los datos y rechaza campos desconocidos', async () => {
-      const send = (body: unknown) =>
+      const send = (body: object) =>
         api().post('/api/announcements').send(body);
       await send(draft({ title: 'abc' })).expect(400);
       await send(draft({ summary: 'muy corto' })).expect(400);

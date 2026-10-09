@@ -51,6 +51,11 @@ Cada comprobación también está disponible por separado: `format:check`, `lint
 - [`docs/clubs-people-teams.md`](docs/clubs-people-teams.md): clubes, deportistas (niveles de privacidad, consentimientos, perfil público), equipos, plantillas y transferencias.
 - [`docs/database.md`](docs/database.md): esquema, convenciones, migraciones y modelo de participantes.
 - [`docs/decisions.md`](docs/decisions.md): decisiones técnicas, discrepancias y preguntas pendientes para la Liga.
+- [`docs/institution.md`](docs/institution.md): datos de la Liga, logotipo, textos públicos y parámetros de publicación.
+- [`docs/notifications.md`](docs/notifications.md): avisos dentro del sistema, cola de correo y privacidad de los mensajes.
+- [`docs/officials.md`](docs/officials.md): árbitros y jueces, disponibilidad, designaciones con conflictos e historial.
+- [`docs/discipline.md`](docs/discipline.md): incidencias, reclamos, expedientes, sanciones y publicación de resoluciones.
+- [`docs/content-portal.md`](docs/content-portal.md): noticias, comunicados, imágenes y páginas del portal público.
 - [`docs/deployment.md`](docs/deployment.md): despliegue en producción (servidor, variables de entorno, servicio systemd, Nginx con SSL y verificación).
 - [`docs/backup-restore.md`](docs/backup-restore.md): copias de seguridad y restauración verificada (`db:backup` / `db:restore`).
 - [`docs/user-manual.md`](docs/user-manual.md): manual de usuario del sistema privado y del portal público.
