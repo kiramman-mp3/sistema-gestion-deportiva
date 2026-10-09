@@ -191,3 +191,34 @@ export interface CompetitionEvent {
   } | null;
 }
 
+export interface StandingRow {
+  position: number;
+  registrationId: string;
+  participantId: string;
+  name: string;
+  clubName: string;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  points: number;
+  yellowCards: number;
+  redCards: number;
+}
+
+export interface StandingsResponse {
+  championship: {
+    id: string;
+    name: string;
+  };
+  rules: {
+    pointsWin: number;
+    pointsDraw: number;
+    pointsLoss: number;
+  };
+  standings: StandingRow[];
+}
+

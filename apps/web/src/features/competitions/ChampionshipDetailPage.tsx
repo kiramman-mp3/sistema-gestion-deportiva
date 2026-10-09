@@ -19,6 +19,7 @@ import {
   type RegistrationStatus,
 } from './types.ts';
 import { FixturesTab } from './FixturesTab.tsx';
+import { StandingsTab } from './StandingsTab.tsx';
 
 export function ChampionshipDetailPage({
   championshipId,
@@ -30,7 +31,7 @@ export function ChampionshipDetailPage({
   const canManage = permissions.includes('championships:manage');
   const canRegManage = permissions.includes('registrations:manage');
 
-  const [activeTab, setActiveTab] = useState<'registrations' | 'fixtures' | 'rules'>('registrations');
+  const [activeTab, setActiveTab] = useState<'registrations' | 'fixtures' | 'standings' | 'rules'>('registrations');
   const [notice, setNotice] = useState<NoticeState | null>(null);
   const [transitioning, setTransitioning] = useState<ChampionshipStatus | null>(null);
   const [addingRegistration, setAddingRegistration] = useState(false);
@@ -179,6 +180,15 @@ export function ChampionshipDetailPage({
               onClick={() => setActiveTab('fixtures')}
             >
               Calendario y partidos
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'standings'}
+              className={activeTab === 'standings' ? 'tab-active' : ''}
+              onClick={() => setActiveTab('standings')}
+            >
+              Tabla de posiciones
             </button>
             <button
               type="button"
@@ -337,6 +347,10 @@ export function ChampionshipDetailPage({
               registrations={regsState.kind === 'ready' ? regsState.data : []}
               permissions={permissions}
             />
+          )}
+
+          {activeTab === 'standings' && (
+            <StandingsTab championship={champState.data} />
           )}
 
           {activeTab === 'rules' && (
