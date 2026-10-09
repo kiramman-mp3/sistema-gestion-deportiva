@@ -9,6 +9,7 @@ import type { AuthContext, AuthedRequest } from './auth.types.js';
 export const PUBLIC_KEY = 'auth:public';
 export const AUTHENTICATED_KEY = 'auth:authenticated';
 export const PERMISSIONS_KEY = 'auth:permissions';
+export const ALLOW_MULTIPART_KEY = 'auth:allow_multipart';
 
 /**
  * Política de acceso OBLIGATORIA en cada ruta (denegación por defecto): una
@@ -25,6 +26,9 @@ export const Authenticated = () => SetMetadata(AUTHENTICATED_KEY, true);
 export const RequirePermissions = (
   ...codes: [PermissionCode, ...PermissionCode[]]
 ) => SetMetadata(PERMISSIONS_KEY, codes);
+
+/** Permite solicitudes multipart/form-data (subida de archivos con token CSRF en cabecera). */
+export const AllowMultipart = () => SetMetadata(ALLOW_MULTIPART_KEY, true);
 
 /** Inyecta la identidad de la petición autenticada. */
 export const CurrentAuth = createParamDecorator(

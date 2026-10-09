@@ -14,6 +14,7 @@ import { Public } from '../auth/decorators.js';
 import { parseOrThrow, uuidSchema } from '../auth/schemas.js';
 import { listQuerySchema } from '../catalogs/common.js';
 import { PrismaService } from '../database/prisma.service.js';
+import { DocumentsService } from '../documents/documents.service.js';
 
 /**
  * Información PÚBLICA, sin sesión. Solo expone campos aprobados para publicación:
@@ -27,6 +28,7 @@ export class PublicController {
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(AthletesService) private readonly athletes: AthletesService,
+    @Inject(DocumentsService) private readonly documents: DocumentsService,
   ) {}
 
   /** Clubes activos: nombre, nombre corto, identificador y sector. */
@@ -70,4 +72,24 @@ export class PublicController {
     res.setHeader('Cache-Control', 'no-store');
     return this.athletes.publicProfile(parseOrThrow(uuidSchema, id));
   }
+
+  /**
+   * Fotografía pública de un deportista: solo si el perfil está publicado y
+   * existe consentimiento vigente de publicación de fotografía.
+   */
+  @Get('athletes/:id/photo')
+  async athletePhoto(
+    @Param('id') id: string,
+    @Res() res: Response,
+  ) {
+    const athleteId = parseOrThrow(uuidSchema, id);
+    const result = await this.documents.getPublicPhoto(athleteId);
+    res.setHeader('Content-Type', result.mimeType);
+    res.setHeader('Content-Disposition', 'inline');
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.send(result.buffer);
+  }
 }
+
