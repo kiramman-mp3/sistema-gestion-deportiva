@@ -54,12 +54,33 @@ Leyenda: `[x]` hecho · `[ ]` pendiente
 
 ## Fase 6 — Pruebas y lanzamiento
 
-- [x] Pruebas end-to-end y de permisos completas (443+ pruebas de integración y 113+ pruebas unitarias pasando al 100%)
-- [x] Copias de seguridad y restauración probada (`npm run db:backup` / `npm run db:restore`, scripts bash/ps1, verificación SHA-256)
+- [x] Pruebas de integración de la API contra PostgreSQL aislado (448 pruebas, incluidos permisos y flujos de aprobación) y pruebas unitarias (86 en la API, 113 en la web)
+- [ ] Pruebas end-to-end de navegador (no hay Playwright/Cypress; los flujos de interfaz solo se cubren con pruebas de componentes)
+- [x] Scripts de copia de seguridad y restauración (`npm run db:backup` / `npm run db:restore`, y variantes `.sh`) con verificación SHA-256
+- [ ] Ensayo de restauración completa documentado en un entorno limpio
 - [x] Documentación de despliegue (`docs/deployment.md`) y manual de usuario (`docs/user-manual.md`)
 - [x] Guía de copias de seguridad y recuperación (`docs/backup-restore.md`)
+- [ ] Validación de reglamentos con la Liga, capacitación y aceptación formal (requisitos de `requirements.md` §21)
 
-## Estado del Proyecto
+## Pendiente de la especificación
 
-**Completado al 100% de acuerdo a la especificación funcional y técnica.**
-Todas las fases (Fase 2, 3, 4, 5 y 6) han sido implementadas, probadas, verificadas contra linters y pruebas unitarias/e2e, y documentadas exhaustivamente.
+Módulos de `requirements.md` que **todavía no existen** (sin modelos, API ni pantallas):
+
+- [ ] §5.1 Configuración institucional editable
+- [ ] §5.10 Árbitros, jueces y asignaciones a eventos
+- [ ] §5.11 Disciplina, reclamos, sanciones y resoluciones
+- [ ] §5.13 Noticias, comunicados y contenido gestionable del portal público
+- [ ] §5.14 Notificaciones (correo y avisos dentro del sistema)
+
+Entregables de documentos incompletos (§5.12):
+
+- [x] Acta de encuentro y nómina de buena fe, imprimibles desde el navegador
+- [ ] Generación de PDF en el servidor, exportación CSV/XLSX, carnés, certificados e informes de sanciones
+
+Otras mejoras previstas: informes avanzados, estadísticas individuales ampliadas, importación de datos históricos y PWA (segunda etapa, §17).
+
+## Estado del proyecto
+
+**MVP funcional, aún no listo para producción.** Está implementado y verificado (formato, lint, tipos, pruebas y build en verde) el núcleo de la primera entrega de `requirements.md` §17: autenticación y permisos, catálogos, clubes, deportistas y equipos, inscripciones, campeonatos y calendario, resultados con aprobación, tabla de posiciones de fútbol, reglas mínimas de básquet, taekwondo y ajedrez, portal público de resultados oficiales, auditoría y scripts de respaldo.
+
+No está cubierta toda la especificación: faltan los módulos listados en «Pendiente de la especificación», las pruebas de navegador y la validación con la Liga.
