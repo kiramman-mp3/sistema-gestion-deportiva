@@ -14,6 +14,7 @@ import { ChampionshipDetailPage } from '../competitions/ChampionshipDetailPage.t
 import { ChampionshipsPage } from '../competitions/ChampionshipsPage.tsx';
 import { VenuesPage } from '../competitions/VenuesPage.tsx';
 import { ApiStatus } from '../health/ApiStatus.tsx';
+import { InstitutionPage } from '../institution/InstitutionPage.tsx';
 import { CatalogAdmin } from './CatalogAdmin.tsx';
 import { categoriesConfig, seasonsConfig, sportsConfig } from './configs.tsx';
 
@@ -55,6 +56,11 @@ const SECTIONS: Section[] = [
     hash: '#/escenarios',
     label: 'Escenarios',
     permission: 'venues:read',
+  },
+  {
+    hash: '#/institucion',
+    label: 'Institución',
+    permission: 'institution:read',
   },
   { hash: '#/auditoria', label: 'Auditoría', permission: 'audit:read' },
   { hash: '#/cuenta', label: 'Mi cuenta' },
@@ -187,6 +193,9 @@ export function CatalogsApp({
         ))}
       {active.hash === '#/escenarios' && (
         <VenuesPage permissions={permissions} />
+      )}
+      {active.hash === '#/institucion' && (
+        <InstitutionPage permissions={permissions} />
       )}
       {active.hash === '#/auditoria' && <AuditPage />}
       {active.hash === '#/cuenta' && <ChangePasswordForm />}
