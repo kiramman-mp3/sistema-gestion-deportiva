@@ -3,28 +3,25 @@ import { useFetch } from '../../hooks/useFetch.ts';
 import type {
   PublicChampionship,
   PublicChampionshipsResponse,
-  PublicClub,
   PublicStage,
   PublicStandingsResponse,
 } from './types.ts';
 
-interface PublicPortalPageProps {
-  onLoginClick?: () => void;
+interface CompetitionsViewProps {
   onOpenPrintDocument?: (kind: 'acta' | 'nomina', id: string) => void;
 }
 
-const SPORT_FILTERS = [
-  { code: 'all', label: 'Todos los deportes', icon: '🏆' },
-  { code: 'futbol', label: 'Fútbol', icon: '⚽' },
-  { code: 'basquet', label: 'Básquet', icon: '🏀' },
-  { code: 'taekwondo', label: 'Taekwondo', icon: '🥋' },
-  { code: 'ajedrez', label: 'Ajedrez', icon: '♟️' },
-];
+const SPORT_ICONS: Record<string, string> = {
+  futbol: '⚽',
+  basquet: '🏀',
+  taekwondo: '🥋',
+  ajedrez: '♟️',
+};
 
-export function PublicPortalPage({
-  onLoginClick,
+/** Campeonatos oficiales con su calendario, resultados y tabla de posiciones. */
+export function CompetitionsView({
   onOpenPrintDocument,
-}: PublicPortalPageProps) {
+}: CompetitionsViewProps) {
   const [selectedSport, setSelectedSport] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedChampId, setSelectedChampId] = useState<string | null>(null);
@@ -39,10 +36,6 @@ export function PublicPortalPage({
     `/public/championships${queryString}`,
   );
 
-  const [clubsState] = useFetch<{ items: PublicClub[] }>(
-    '/public/clubs?pageSize=50',
-  );
-
   // Filtrado en memoria por deporte
   const allChampionships =
     championshipsState.kind === 'ready' ? championshipsState.data.items : [];
@@ -50,6 +43,17 @@ export function PublicPortalPage({
     if (selectedSport === 'all') return true;
     return c.sport.code === selectedSport;
   });
+
+  const sportFilters = [
+    { code: 'all', label: 'Todos los deportes', icon: '🏆' },
+    ...[
+      ...new Map(allChampionships.map((c) => [c.sport.code, c.sport])).values(),
+    ].map((sport) => ({
+      code: sport.code,
+      label: sport.name,
+      icon: SPORT_ICONS[sport.code] ?? '🏅',
+    })),
+  ];
 
   const selectedChampionship = allChampionships.find(
     (c) => c.id === selectedChampId,
@@ -65,35 +69,6 @@ export function PublicPortalPage({
 
   return (
     <div className="public-portal">
-      {/* Banner de Bienvenida Institucional */}
-      <header className="portal-hero">
-        <div className="hero-content">
-          <div className="hero-badge">Portal Oficial de la Liga Cantonal</div>
-          <h2>Liga Deportiva Cantonal de Quero</h2>
-          <p className="hero-description">
-            Consulta los resultados oficiales, clasificaciones reglamentarias,
-            calendarios de juego y actas aprobadas de las competencias
-            deportivas cantonales.
-          </p>
-          {onLoginClick && (
-            <div className="hero-actions">
-              <button
-                type="button"
-                onClick={onLoginClick}
-                className="secondary-button"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.15)',
-                  borderColor: 'transparent',
-                  color: 'inherit',
-                }}
-              >
-                🔐 Acceso para Dirigentes y Jueces
-              </button>
-            </div>
-          )}
-        </div>
-      </header>
-
       {/* Si hay un campeonato seleccionado, muestra la vista detallada */}
       {selectedChampId && selectedChampionship ? (
         <ChampionshipDetailView
@@ -109,7 +84,7 @@ export function PublicPortalPage({
             aria-label="Filtros de competencias"
           >
             <div className="sport-tabs">
-              {SPORT_FILTERS.map((s) => (
+              {sportFilters.map((s) => (
                 <button
                   key={s.code}
                   type="button"
@@ -216,31 +191,6 @@ export function PublicPortalPage({
                 </article>
               ))}
             </div>
-          </section>
-
-          {/* Clubes Afiliados */}
-          <section className="portal-section" aria-labelledby="clubes-heading">
-            <div className="section-header">
-              <h3 id="clubes-heading">Organizaciones y Clubes Afiliados</h3>
-            </div>
-
-            {clubsState.kind === 'ready' && (
-              <div className="clubs-pills-grid">
-                {clubsState.data.items.map((club) => (
-                  <div key={club.slug} className="club-pill">
-                    <div className="club-icon">🛡️</div>
-                    <div className="club-info">
-                      <strong>{club.name}</strong>
-                      <small>
-                        {club.sector
-                          ? `Sector ${club.sector}`
-                          : 'Quero, Tungurahua'}
-                      </small>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </section>
         </>
       )}

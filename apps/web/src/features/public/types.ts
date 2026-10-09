@@ -216,3 +216,122 @@ export interface PublicClub {
   slug: string;
   sector: string | null;
 }
+
+// ───────────────────── Portal: inicio, calendario, noticias y resoluciones ─────────────────────
+
+export interface PublicInstitution {
+  name: string;
+  shortName: string | null;
+  affiliation: string | null;
+  canton: string | null;
+  address: string | null;
+  email: string | null;
+  phone: string | null;
+  website: string | null;
+  about: string | null;
+  contactInfo: string | null;
+  privacyPolicy: string | null;
+  presidentName: string | null;
+  secretaryName: string | null;
+  hasLogo: boolean;
+  publication: {
+    clubs: boolean;
+    athletes: boolean;
+    news: boolean;
+    resolutions: boolean;
+  };
+}
+
+export interface PublicAnnouncementSummary {
+  slug: string;
+  kind: 'noticia' | 'comunicado';
+  title: string;
+  summary: string;
+  publishedAt: string;
+  cover: { id: string; altText: string } | null;
+}
+
+export interface PublicAnnouncement extends PublicAnnouncementSummary {
+  content: string;
+}
+
+export interface PublicEventSummary {
+  id: string;
+  scheduledAt: string | null;
+  status: string;
+  postponementReason: string | null;
+  venue: { id: string; name: string } | null;
+  stage: string;
+  round: string;
+  championship: {
+    id: string;
+    name: string;
+    sport: { id: string; code: string; name: string };
+    category: { id: string; name: string };
+    season: { id: string; name: string };
+  };
+  participants: {
+    id: string;
+    side: 'local' | 'visitante' | 'individual';
+    name: string;
+    clubName: string;
+    score: number | null;
+    outcome: string | null;
+  }[];
+  hasResult: boolean;
+}
+
+export interface PublicEventDetail extends PublicEventSummary {
+  venue: { id: string; name: string; address: string | null } | null;
+  result: {
+    approvedAt: string | null;
+    periodScores: {
+      periodNumber: number;
+      score: number;
+      eventParticipantId?: string;
+    }[];
+    taekwondoBouts: PublicTaekwondoBout[];
+    chessPairings: PublicChessPairing[];
+    footballEvents: {
+      minute: number;
+      eventType: string;
+      athleteName: string | null;
+      team: string | null;
+    }[];
+  } | null;
+}
+
+export interface PublicHome {
+  institution: PublicInstitution;
+  news: PublicAnnouncementSummary[];
+  upcoming: PublicEventSummary[];
+  recent: PublicEventSummary[];
+}
+
+export interface PublicResolution {
+  id: string;
+  code: string;
+  title: string | null;
+  summary: string | null;
+  publishedAt: string;
+  championship: string | null;
+  sanctions: {
+    type: string;
+    typeLabel: string;
+    subject: 'deportista' | 'equipo' | 'club';
+    club: string | null;
+    team: string | null;
+    startsAt: string;
+    endsAt: string | null;
+    matchesCount: number | null;
+    points: number | null;
+    status: string;
+  }[];
+}
+
+export interface PublicPage<T> {
+  items: T[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
