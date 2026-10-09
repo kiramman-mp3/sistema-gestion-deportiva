@@ -12,6 +12,7 @@ import {
   type StageType,
   type Venue,
 } from './types.js';
+import { EventAssignmentsDialog } from '../officials/EventAssignmentsDialog.tsx';
 import { MatchScoresheetDialog } from './MatchScoresheetDialog.tsx';
 
 interface FixturesTabProps {
@@ -26,6 +27,8 @@ export function FixturesTab({
   permissions,
 }: FixturesTabProps) {
   const canManage = permissions.includes('fixtures:manage');
+  const canSeeAssignments = permissions.includes('assignments:read');
+  const canAssign = permissions.includes('assignments:manage');
 
   const [stagesState, reloadStages] = useFetch<Stage[]>(
     `/championships/${championship.id}/stages`,
@@ -82,6 +85,8 @@ export function FixturesTab({
   const [rescheduleReason, setRescheduleReason] = useState('');
 
   const [scoresheetEvent, setScoresheetEvent] =
+    useState<CompetitionEvent | null>(null);
+  const [assignmentsEvent, setAssignmentsEvent] =
     useState<CompetitionEvent | null>(null);
 
   const handleCreateStage = async (e: FormEvent) => {
@@ -582,42 +587,63 @@ export function FixturesTab({
                                       {EVENT_STATUS_LABELS[ev.status]}
                                     </span>
                                   </td>
-                                  {canManage && (
+                                  {(canManage || canSeeAssignments) && (
                                     <td data-label="Acciones">
-                                      <button
-                                        type="button"
-                                        style={{
-                                          fontSize: '0.75rem',
-                                          padding: '0.25rem 0.5rem',
-                                          marginRight: '0.5rem',
-                                        }}
-                                        onClick={() => setScoresheetEvent(ev)}
-                                      >
-                                        Acta / Resultado
-                                      </button>
-                                      <button
-                                        type="button"
-                                        style={{
-                                          fontSize: '0.75rem',
-                                          padding: '0.25rem 0.5rem',
-                                        }}
-                                        onClick={() => {
-                                          setReschedulingEvent(ev);
-                                          setRescheduleVenueId(
-                                            ev.venue?.id ?? '',
-                                          );
-                                          setRescheduleDate(
-                                            ev.scheduledAt
-                                              ? new Date(ev.scheduledAt)
-                                                  .toISOString()
-                                                  .slice(0, 16)
-                                              : '',
-                                          );
-                                          setRescheduleReason('');
-                                        }}
-                                      >
-                                        Reprogramar
-                                      </button>
+                                      {canSeeAssignments && (
+                                        <button
+                                          type="button"
+                                          style={{
+                                            fontSize: '0.75rem',
+                                            padding: '0.25rem 0.5rem',
+                                            marginRight: '0.5rem',
+                                          }}
+                                          onClick={() =>
+                                            setAssignmentsEvent(ev)
+                                          }
+                                        >
+                                          Designaciones
+                                        </button>
+                                      )}
+                                      {canManage && (
+                                        <>
+                                          <button
+                                            type="button"
+                                            style={{
+                                              fontSize: '0.75rem',
+                                              padding: '0.25rem 0.5rem',
+                                              marginRight: '0.5rem',
+                                            }}
+                                            onClick={() =>
+                                              setScoresheetEvent(ev)
+                                            }
+                                          >
+                                            Acta / Resultado
+                                          </button>
+                                          <button
+                                            type="button"
+                                            style={{
+                                              fontSize: '0.75rem',
+                                              padding: '0.25rem 0.5rem',
+                                            }}
+                                            onClick={() => {
+                                              setReschedulingEvent(ev);
+                                              setRescheduleVenueId(
+                                                ev.venue?.id ?? '',
+                                              );
+                                              setRescheduleDate(
+                                                ev.scheduledAt
+                                                  ? new Date(ev.scheduledAt)
+                                                      .toISOString()
+                                                      .slice(0, 16)
+                                                  : '',
+                                              );
+                                              setRescheduleReason('');
+                                            }}
+                                          >
+                                            Reprogramar
+                                          </button>
+                                        </>
+                                      )}
                                     </td>
                                   )}
                                 </tr>
@@ -697,6 +723,17 @@ export function FixturesTab({
             </form>
           </div>
         </dialog>
+      )}
+
+      {assignmentsEvent && (
+        <EventAssignmentsDialog
+          eventId={assignmentsEvent.id}
+          title={assignmentsEvent.participants
+            .map((p) => getParticipantName(p.registration))
+            .join(' vs ')}
+          canManage={canAssign}
+          onClose={() => setAssignmentsEvent(null)}
+        />
       )}
 
       {scoresheetEvent && (

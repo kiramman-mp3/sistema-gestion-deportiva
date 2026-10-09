@@ -16,6 +16,9 @@ import { VenuesPage } from '../competitions/VenuesPage.tsx';
 import { ApiStatus } from '../health/ApiStatus.tsx';
 import { InstitutionPage } from '../institution/InstitutionPage.tsx';
 import { NotificationsPage } from '../notifications/NotificationsPage.tsx';
+import { MyAssignmentsPage } from '../officials/MyAssignmentsPage.tsx';
+import { OfficialDetailPage } from '../officials/OfficialDetailPage.tsx';
+import { OfficialsPage } from '../officials/OfficialsPage.tsx';
 import { useUnreadCount } from '../notifications/useUnreadCount.ts';
 import { CatalogAdmin } from './CatalogAdmin.tsx';
 import { categoriesConfig, seasonsConfig, sportsConfig } from './configs.tsx';
@@ -53,6 +56,16 @@ const SECTIONS: Section[] = [
     hash: '#/campeonatos',
     label: 'Campeonatos',
     permission: 'championships:read',
+  },
+  {
+    hash: '#/arbitros',
+    label: 'Árbitros y jueces',
+    permission: 'officials:read',
+  },
+  {
+    hash: '#/mis-designaciones',
+    label: 'Mis designaciones',
+    permission: 'assignments:read_own',
   },
   {
     hash: '#/escenarios',
@@ -201,6 +214,19 @@ export function CatalogsApp({
         ) : (
           <ChampionshipsPage permissions={permissions} />
         ))}
+      {active.hash === '#/arbitros' &&
+        (detailId && UUID.test(detailId) ? (
+          <OfficialDetailPage
+            key={detailId}
+            officialId={detailId}
+            permissions={permissions}
+          />
+        ) : (
+          <OfficialsPage permissions={permissions} />
+        ))}
+      {active.hash === '#/mis-designaciones' && (
+        <MyAssignmentsPage permissions={permissions} />
+      )}
       {active.hash === '#/escenarios' && (
         <VenuesPage permissions={permissions} />
       )}
