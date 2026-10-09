@@ -126,3 +126,35 @@ export function authed(t: TestApp, session: LoggedIn) {
     delete: (url: string) => set(t.http().delete(url)),
   };
 }
+
+/**
+ * Crea una sesión directamente en la base de datos (sin pasar por el login).
+ * Útil cuando el login no puede funcionar, p. ej. con la auditoría simulada caída.
+ */
+export async function fabricateSession(
+  t: TestApp,
+  prisma: PrismaClient,
+  userId: string,
+): Promise<LoggedIn> {
+  const { SessionService } = await import('../../src/auth/session.service.js');
+  const created = await prisma.$transaction((tx) =>
+    t.app.get(SessionService).create(tx, { userId }),
+  );
+  return {
+    cookieName: 'liga_sid',
+    token: created.token,
+    cookie: `liga_sid=${created.token}`,
+    csrf: created.csrfToken,
+    body: {} as LoggedIn['body'],
+  };
+}
+
+/** Usuario con exactamente esos permisos y su sesión iniciada por el login real. */
+export async function adminWith(
+  t: TestApp,
+  prisma: PrismaClient,
+  permissions: string[],
+) {
+  const user = await createUser(prisma, { permissions });
+  return { user, session: await login(t, user.email) };
+}
