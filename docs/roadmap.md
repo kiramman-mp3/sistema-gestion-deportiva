@@ -22,7 +22,11 @@ Leyenda: `[x]` hecho · `[ ]` pendiente
 - [x] Auditoría de eventos de acceso, cuentas y roles (transaccional)
 - [ ] Auditoría de las operaciones sensibles de cada módulo nuevo (resultados, calendario, etc.)
 - [x] Primer superadministrador (CLI) y administración básica: estado de cuenta, revocación de sesiones, asignación de roles
-- [ ] Gestión de usuarios completa: alta de usuarios, roles y permisos editables, cambio y recuperación de contraseña, MFA para administradores
+- [x] Gestión de usuarios: alta pendiente con enlace de activación, edición, estado, sesiones, restablecimiento asistido, cambio de contraseña (`administration.md`)
+- [x] Roles y permisos editables desde la interfaz, con protección contra escalada de privilegios y roles de sistema inmutables
+- [x] Auditoría consultable (`audit:read`) con saneado de secretos
+- [ ] Recuperación de contraseña autoservicio (bloqueada: requiere proveedor de correo)
+- [ ] Segundo factor (MFA) para administradores
 - [x] Deportes, categorías y temporadas: API y pantallas de administración, con permisos y auditoría (`catalogs.md`)
 
 ## Fase 3 — Participantes y fútbol piloto
@@ -55,4 +59,4 @@ Leyenda: `[x]` hecho · `[ ]` pendiente
 
 ## Siguiente bloque recomendado
 
-`feature/users-admin`: alta de usuarios, creación de roles y edición de sus permisos (hoy solo existe `superadmin` y sus permisos no pueden delegarse desde la interfaz), cambio y recuperación de contraseña y auditoría consultable (`audit:read`). Es el paso previo para que la Liga delegue la administración de catálogos. En paralelo, obtener de la Liga las decisiones pendientes (categorías por deporte, edades, ciclo de temporadas) antes del módulo de clubes y campeonatos.
+`feature/clubs-people`: clubes, personas y deportistas (con protección reforzada de datos de menores) y equipos, siguiendo el ADR‑001 de participantes. Antes de empezar convienen las respuestas de la Liga sobre categorías por deporte, edades y la matriz real de roles (ya se pueden crear roles institucionales desde la interfaz). En paralelo, si la Liga contrata un proveedor de correo, habilitar la recuperación autoservicio y valorar MFA para administradores.
