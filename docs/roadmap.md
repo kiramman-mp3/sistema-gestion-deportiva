@@ -12,12 +12,15 @@ Leyenda: `[x]` hecho · `[ ]` pendiente
 - [x] Frontend React + Vite con estado real de la API
 - [x] PostgreSQL local (Docker Compose)
 - [x] CI (formato, lint, tipos, pruebas, build)
-- [ ] Prisma: conexión, esquema base y migraciones iniciales
+- [x] Prisma 7.10: conexión, esquema base (usuarios, roles, permisos, auditoría, deportes, categorías, temporadas) y migración inicial
+- [x] Pruebas de integración contra PostgreSQL aislado (local y CI)
+- [x] Decisión del modelo de participantes (ADR‑001; implementación diferida)
+- [x] Servicio de auditoría (`AuditService`) y seed de permisos/superadmin
 - [ ] Autenticación (sesiones seguras, hash de contraseñas, límite de intentos)
 - [ ] Autorización por permisos (roles, permisos, alcance por club)
-- [ ] Auditoría base (`audit_logs`)
+- [ ] Auditoría: registrar automáticamente las operaciones sensibles de cada módulo
 - [ ] Gestión de usuarios
-- [ ] Deportes, categorías y temporadas (catálogos configurables)
+- [ ] Deportes, categorías y temporadas: API y pantallas de administración (el esquema ya existe)
 
 ## Fase 3 — Participantes y fútbol piloto
 
@@ -49,4 +52,4 @@ Leyenda: `[x]` hecho · `[ ]` pendiente
 
 ## Siguiente bloque recomendado
 
-`feature/database-foundation`: Prisma 7.10 + esquema base (usuarios, roles, permisos, auditoría, deportes, categorías, temporadas), migración inicial y pruebas de integración contra PostgreSQL. Requiere Docker en ejecución.
+`feature/authentication`: login/logout con sesiones seguras (cookie `HttpOnly`/`Secure`/`SameSite`, CSRF), hash de contraseñas moderno, límite de intentos, guard de permisos en el backend y alta del primer superadministrador; con auditoría de inicios de sesión. Después, `feature/catalogs-admin` (API de deportes, categorías y temporadas con permisos y auditoría).
