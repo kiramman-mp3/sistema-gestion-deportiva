@@ -24,9 +24,14 @@
     "format:check": "prettier --check .",
     "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run test:integration && npm run build",
     "db:backup": "node scripts/backup.js",
-    "db:restore": "node scripts/restore.js"
+    "db:restore": "node scripts/restore.js",
+    "test:e2e": "npm run build -w @liga/api && node e2e/prepare.mjs && playwright test",
+    "test:e2e:run": "playwright test",
+    "typecheck:e2e": "tsc -p e2e/tsconfig.json"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.63.0",
     "prettier": "^3.4.2"
   },
   "overrides": {
