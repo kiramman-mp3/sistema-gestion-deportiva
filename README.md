@@ -6,7 +6,7 @@ Plataforma de gestión deportiva (sistema privado + portal público) para la Lig
 
 ```text
 apps/
-  api/   NestJS + TypeScript (API REST, OpenAPI en /api/docs)
+  api/   NestJS + TypeScript + Prisma/PostgreSQL (API REST, OpenAPI en /api/docs)
   web/   React + TypeScript + Vite
 docs/    Requisitos, decisiones técnicas y hoja de ruta
 ```
@@ -22,22 +22,27 @@ docs/    Requisitos, decisiones técnicas y hoja de ruta
 
 ```bash
 npm install
-cp .env.example .env        # y reemplazar las credenciales de ejemplo
-docker compose up -d db     # PostgreSQL en 127.0.0.1:5432
-npm run dev:api             # http://localhost:3000/api/health
-npm run dev:web             # http://localhost:5173
+cp .env.example .env              # y reemplazar las credenciales de ejemplo
+docker compose up -d db           # PostgreSQL en 127.0.0.1:5432 (ver POSTGRES_PORT)
+npm run db:deploy -w @liga/api    # migraciones
+npm run db:seed -w @liga/api      # permisos y rol superadmin
+npm run dev:api                   # http://localhost:3000/api/health/ready
+npm run dev:web                   # http://localhost:5173
 ```
+
+Detalles de la base de datos, variables de entorno y flujo de migraciones: [`docs/database.md`](docs/database.md).
 
 ## Verificación
 
 ```bash
-npm run verify   # formato, lint, tipos, pruebas unitarias y e2e, build
+npm run verify   # formato, lint, tipos, pruebas unitarias y de integración, build
 ```
 
-Cada comprobación también está disponible por separado: `format:check`, `lint`, `typecheck`, `test`, `test:e2e`, `build`.
+Cada comprobación también está disponible por separado: `format:check`, `lint`, `typecheck`, `test`, `test:integration`, `build`. Las pruebas de integración requieren PostgreSQL en marcha y `TEST_DATABASE_URL` (base `*_test`, aislada).
 
 ## Documentación
 
 - [`docs/requirements.md`](docs/requirements.md): especificación funcional y técnica.
+- [`docs/database.md`](docs/database.md): esquema, convenciones, migraciones y modelo de participantes.
 - [`docs/decisions.md`](docs/decisions.md): decisiones técnicas, discrepancias y preguntas pendientes para la Liga.
 - [`docs/roadmap.md`](docs/roadmap.md): estado de implementación por fase.
