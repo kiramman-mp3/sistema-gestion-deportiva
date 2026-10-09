@@ -9,6 +9,7 @@ import { PrismaModule } from './database/prisma.module.js';
 import { HealthController } from './health/health.controller.js';
 import { InstitutionModule } from './institution/institution.module.js';
 import { NotificationsModule } from './notifications/notifications.module.js';
+import { OfficialsModule } from './officials/officials.module.js';
 import { ClubsModule } from './clubs/clubs.module.js';
 import { PeopleModule } from './people/people.module.js';
 import { PublicModule } from './public/public.module.js';
@@ -36,6 +37,7 @@ import { UsersModule } from './users/users.module.js';
     CompetitionsModule,
     InstitutionModule,
     NotificationsModule,
+    OfficialsModule,
     PublicModule,
   ],
   controllers: [HealthController],

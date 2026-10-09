@@ -23,7 +23,9 @@ export function MatchScoresheetDialog({
   onClose,
   onSaved,
 }: MatchScoresheetDialogProps) {
-  const canManage = permissions.includes('results:manage');
+  const canManage =
+    permissions.includes('results:manage') ||
+    permissions.includes('results:manage_assigned');
   const canApprove = permissions.includes('results:approve');
 
   const homeParticipant =

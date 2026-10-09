@@ -24,6 +24,7 @@ export interface TemplateParams {
   };
   'assignment.created': { match: string; role: string; when: string | null };
   'assignment.removed': { match: string; role: string };
+  'assignment.rejected': { official: string; match: string; role: string };
   'result.pending_review': { championship: string; match: string };
   'case.assigned': { number: string; subject: string };
   'complaint.received': { club: string | null; subject: string };
@@ -87,6 +88,10 @@ const RENDERERS: { [K in TemplateKey]: (p: TemplateParams[K]) => Rendered } = {
   'assignment.removed': (p) => ({
     title: 'Se retiró una designación',
     body: `Ya no está designado/a como ${p.role} en ${p.match}.`,
+  }),
+  'assignment.rejected': (p) => ({
+    title: 'Un oficial rechazó una designación',
+    body: `${p.official} rechazó su designación como ${p.role} en ${p.match}. Hace falta un reemplazo.`,
   }),
   'result.pending_review': (p) => ({
     title: 'Hay un resultado pendiente de revisión',
