@@ -1249,7 +1249,13 @@ describe('navegación de administración', () => {
       within(nav)
         .getAllByRole('link')
         .map((l) => l.textContent),
-    ).toEqual(['Inicio', 'Usuarios', 'Auditoría', 'Mi cuenta']);
+    ).toEqual([
+      'Inicio',
+      'Usuarios',
+      'Auditoría',
+      'Notificaciones',
+      'Mi cuenta',
+    ]);
   });
 
   it('una dirección de auditoría sin permiso no la muestra ni consulta la API', async () => {
