@@ -23,7 +23,7 @@ Leyenda: `[x]` hecho · `[ ]` pendiente
 - [ ] Auditoría de las operaciones sensibles de cada módulo nuevo (resultados, calendario, etc.)
 - [x] Primer superadministrador (CLI) y administración básica: estado de cuenta, revocación de sesiones, asignación de roles
 - [ ] Gestión de usuarios completa: alta de usuarios, roles y permisos editables, cambio y recuperación de contraseña, MFA para administradores
-- [ ] Deportes, categorías y temporadas: API y pantallas de administración (el esquema ya existe)
+- [x] Deportes, categorías y temporadas: API y pantallas de administración, con permisos y auditoría (`catalogs.md`)
 
 ## Fase 3 — Participantes y fútbol piloto
 
@@ -55,4 +55,4 @@ Leyenda: `[x]` hecho · `[ ]` pendiente
 
 ## Siguiente bloque recomendado
 
-`feature/catalogs-admin`: API y pantallas de deportes, categorías y temporadas con permisos (`sports|categories|seasons:*`) y auditoría, usando los guards existentes. Después, `feature/users-admin` (alta de usuarios, roles y permisos editables, cambio/recuperación de contraseña) y el módulo de clubes y personas.
+`feature/users-admin`: alta de usuarios, creación de roles y edición de sus permisos (hoy solo existe `superadmin` y sus permisos no pueden delegarse desde la interfaz), cambio y recuperación de contraseña y auditoría consultable (`audit:read`). Es el paso previo para que la Liga delegue la administración de catálogos. En paralelo, obtener de la Liga las decisiones pendientes (categorías por deporte, edades, ciclo de temporadas) antes del módulo de clubes y campeonatos.
