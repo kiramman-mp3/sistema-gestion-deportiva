@@ -24,6 +24,7 @@ const INSTITUTION: Institution = {
   publicAthletes: true,
   publicNews: true,
   publicResolutions: false,
+  allowSelfApproval: false,
   hasLogo: false,
 };
 

@@ -34,7 +34,11 @@ type Draft = Record<
 
 type Flags = Pick<
   Institution,
-  'publicClubs' | 'publicAthletes' | 'publicNews' | 'publicResolutions'
+  | 'publicClubs'
+  | 'publicAthletes'
+  | 'publicNews'
+  | 'publicResolutions'
+  | 'allowSelfApproval'
 >;
 
 const toDraft = (i: Institution): Draft => ({
@@ -100,6 +104,7 @@ function InstitutionForm({
     publicAthletes: institution.publicAthletes,
     publicNews: institution.publicNews,
     publicResolutions: institution.publicResolutions,
+    allowSelfApproval: institution.allowSelfApproval,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -365,6 +370,17 @@ function InstitutionForm({
           checked={flags.publicResolutions}
           onChange={flag('publicResolutions')}
           hint="Apagado por defecto: solo se publican las resoluciones marcadas para publicación."
+          disabled={disabled}
+        />
+      </fieldset>
+
+      <fieldset>
+        <legend>Aprobación de resultados</legend>
+        <CheckboxField
+          label="Permitir que quien registró un acta también la apruebe"
+          checked={flags.allowSelfApproval}
+          onChange={flag('allowSelfApproval')}
+          hint="Desactivado por defecto: otra persona debe revisar el acta. Actívelo solo si la Liga cuenta con una única persona para ambas tareas."
           disabled={disabled}
         />
       </fieldset>
