@@ -20,6 +20,8 @@ datasource db {
 // ───────────────────────────── Estados ─────────────────────────────
 
 enum UserStatus {
+  /// Creada por un administrador; aún sin contraseña (espera su activación).
+  pendiente
   activo
   inactivo
   bloqueado
@@ -51,8 +53,18 @@ enum SessionRevocationReason {
   revocada_por_usuario
   revocada_por_administrador
   cuenta_desactivada
+  contrasena_cambiada
 
   @@map("session_revocation_reason")
+}
+
+enum CredentialTokenKind {
+  /// Primer establecimiento de contraseña de una cuenta pendiente.
+  activacion
+  /// Nueva contraseña para una cuenta activa (olvido, sospecha de compromiso).
+  restablecimiento
+
+  @@map("credential_token_kind")
 }
 
 /// Clave por la que se cuentan los intentos de acceso fallidos.
@@ -71,17 +83,19 @@ model User {
   /// Siempre en minúsculas (CHECK en la migración).
   email        String     @unique
   displayName  String     @map("display_name")
-  /// Hash de la contraseña (algoritmo moderno, definido en el módulo de autenticación).
-  passwordHash String     @map("password_hash")
+  /// Hash Argon2id. Nulo mientras la cuenta está pendiente de activación.
+  passwordHash String?    @map("password_hash")
   status       UserStatus @default(activo)
   lastLoginAt  DateTime?  @map("last_login_at") @db.Timestamptz(3)
   createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  roles        UserRole[] @relation("UserRoles")
-  grantedRoles UserRole[] @relation("UserRoleGrantedBy")
-  auditLogs    AuditLog[]
-  sessions     Session[]
+  roles                  UserRole[]        @relation("UserRoles")
+  grantedRoles           UserRole[]        @relation("UserRoleGrantedBy")
+  auditLogs              AuditLog[]
+  sessions               Session[]
+  credentialTokens       CredentialToken[] @relation("CredentialTokenOwner")
+  issuedCredentialTokens CredentialToken[] @relation("CredentialTokenIssuer")
 
   @@map("users")
 }
@@ -189,6 +203,31 @@ model LoginFailure {
   @@index([scope, keyHash, createdAt])
   @@index([createdAt])
   @@map("login_failures")
+}
+
+/// Enlace de un solo uso para establecer una contraseña. Solo se guarda el SHA-256
+/// del token (el valor en claro se entrega una vez al administrador que lo emite).
+model CredentialToken {
+  id          String              @id @default(uuid(7)) @db.Uuid
+  userId      String              @map("user_id") @db.Uuid
+  kind        CredentialTokenKind
+  tokenHash   String              @unique @map("token_hash")
+  /// Administrador que lo emitió.
+  createdById String?             @map("created_by_id") @db.Uuid
+  createdAt   DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  expiresAt   DateTime            @map("expires_at") @db.Timestamptz(3)
+  /// Momento en que se usó para establecer la contraseña.
+  usedAt      DateTime?           @map("used_at") @db.Timestamptz(3)
+  /// Anulado por una emisión posterior, un cambio de contraseña o una desactivación.
+  revokedAt   DateTime?           @map("revoked_at") @db.Timestamptz(3)
+
+  user      User  @relation("CredentialTokenOwner", fields: [userId], references: [id], onDelete: Cascade)
+  createdBy User? @relation("CredentialTokenIssuer", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([userId, usedAt, revokedAt])
+  @@index([expiresAt])
+  @@index([createdById])
+  @@map("credential_tokens")
 }
 
 // ───────────────────────────── Auditoría ─────────────────────────────
