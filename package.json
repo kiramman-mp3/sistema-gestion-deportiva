@@ -1,0 +1,29 @@
+{
+  "name": "liga-cantonal-quero",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sistema integral de gestión deportiva de la Liga Cantonal de Quero",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run start:dev -w @liga/api",
+    "dev:web": "npm run dev -w @liga/web",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:e2e": "npm run test:e2e --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run test:e2e && npm run build"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2"
+  }
+}
