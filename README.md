@@ -22,10 +22,11 @@ docs/    Requisitos, decisiones técnicas y hoja de ruta
 
 ```bash
 npm install
-cp .env.example .env              # y reemplazar las credenciales de ejemplo
+cp .env.example .env              # reemplazar cambiar-… (contraseña de PostgreSQL y SECURITY_HASH_KEY)
 docker compose up -d db           # PostgreSQL en 127.0.0.1:5432 (ver POSTGRES_PORT)
 npm run db:deploy -w @liga/api    # migraciones
 npm run db:seed -w @liga/api      # permisos y rol superadmin
+npm run admin:create-superadmin -w @liga/api   # primer superadministrador (interactivo)
 npm run dev:api                   # http://localhost:3000/api/health/ready
 npm run dev:web                   # http://localhost:5173
 ```
@@ -43,6 +44,7 @@ Cada comprobación también está disponible por separado: `format:check`, `lint
 ## Documentación
 
 - [`docs/requirements.md`](docs/requirements.md): especificación funcional y técnica.
+- [`docs/authentication.md`](docs/authentication.md): sesiones, cookies, CSRF, permisos, primer superadministrador y auditoría de seguridad.
 - [`docs/database.md`](docs/database.md): esquema, convenciones, migraciones y modelo de participantes.
 - [`docs/decisions.md`](docs/decisions.md): decisiones técnicas, discrepancias y preguntas pendientes para la Liga.
 - [`docs/roadmap.md`](docs/roadmap.md): estado de implementación por fase.
