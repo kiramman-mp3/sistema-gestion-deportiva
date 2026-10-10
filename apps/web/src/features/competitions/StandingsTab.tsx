@@ -321,12 +321,24 @@ export function StandingsTab({ championship }: StandingsTabProps) {
                               </strong>
                             </td>
                             <td data-label="Juego Limpio">
-                              <span style={{ color: '#d39e00' }}>
-                                🟨 {row.yellowCards}
+                              <span className="fair-play-item">
+                                <span
+                                  className="card-shape yellow-card-shape"
+                                  aria-hidden="true"
+                                />
+                                <span className="visually-hidden">
+                                  Amarillas:{' '}
+                                </span>
+                                {row.yellowCards}
                               </span>
                               {' · '}
-                              <span style={{ color: '#dc3545' }}>
-                                🟥 {row.redCards}
+                              <span className="fair-play-item">
+                                <span
+                                  className="card-shape red-card-shape"
+                                  aria-hidden="true"
+                                />
+                                <span className="visually-hidden">Rojas: </span>
+                                {row.redCards}
                               </span>
                             </td>
                           </>

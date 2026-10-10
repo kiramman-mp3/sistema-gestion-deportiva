@@ -1,4 +1,5 @@
-import { type FormEvent, useEffect, useId, useRef, useState } from 'react';
+import { type FormEvent, useId, useRef, useState } from 'react';
+import { Modal } from './Modal.tsx';
 
 interface ConfirmDialogProps {
   title: string;
@@ -12,12 +13,9 @@ interface ConfirmDialogProps {
   onCancel: () => void;
 }
 
-const FOCUSABLE =
-  'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [href], [tabindex]:not([tabindex="-1"])';
-
 /**
- * Diálogo modal de confirmación. Accesible: role="dialog", foco atrapado,
- * Escape para cancelar y devolución del foco al elemento que lo abrió.
+ * Diálogo modal de confirmación construido sobre `Modal` (spec §8).
+ * Conserva exactamente su API y accesibilidad.
  */
 export function ConfirmDialog({
   title,
@@ -31,48 +29,14 @@ export function ConfirmDialog({
   const titleId = useId();
   const descriptionId = useId();
   const reasonId = useId();
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
   const reasonRef = useRef<HTMLTextAreaElement>(null);
   const [reasonText, setReasonText] = useState('');
   const [reasonError, setReasonError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    const opener = document.activeElement as HTMLElement | null;
-    // Con motivo se enfoca el campo; en operaciones destructivas, «Cancelar».
-    (reason !== 'none' ? reasonRef.current : cancelRef.current)?.focus();
-    return () => opener?.focus?.();
-  }, [reason]);
-
-  // Escape cancela y Tab queda atrapado dentro del diálogo.
-  useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape' && !submitting) {
-        event.stopPropagation();
-        onCancel();
-        return;
-      }
-      if (event.key !== 'Tab') return;
-      const items = dialogRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE);
-      if (!items || items.length === 0) return;
-      const first = items[0]!;
-      const last = items[items.length - 1]!;
-      const active = document.activeElement;
-      if (!dialogRef.current?.contains(active)) {
-        event.preventDefault();
-        first.focus();
-      } else if (event.shiftKey && active === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && active === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    }
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [onCancel, submitting]);
+  // Con motivo se enfoca el campo; en operaciones destructivas, «Cancelar».
+  const initialFocusRef = reason !== 'none' ? reasonRef : cancelRef;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -100,62 +64,59 @@ export function ConfirmDialog({
   }
 
   return (
-    <div className="dialog-backdrop">
-      <dialog
-        ref={dialogRef}
-        className="dialog"
-        open
-        aria-modal="true"
-        aria-labelledby={titleId}
-        aria-describedby={descriptionId}
-      >
-        <form onSubmit={submit} noValidate>
-          <h2 id={titleId}>{title}</h2>
-          <p id={descriptionId}>{description}</p>
+    <Modal
+      titleId={titleId}
+      descriptionId={descriptionId}
+      onClose={onCancel}
+      initialFocusRef={initialFocusRef}
+      busy={submitting}
+    >
+      <form onSubmit={submit} noValidate>
+        <h2 id={titleId}>{title}</h2>
+        <p id={descriptionId}>{description}</p>
 
-          {reason !== 'none' && (
-            <div className="field">
-              <label htmlFor={reasonId}>
-                Motivo {reason === 'optional' ? '(opcional)' : ''}
-              </label>
-              <textarea
-                id={reasonId}
-                ref={reasonRef}
-                rows={3}
-                maxLength={500}
-                value={reasonText}
-                onChange={(e) => setReasonText(e.target.value)}
-                aria-invalid={reasonError ? true : undefined}
-                aria-describedby={reasonError ? `${reasonId}-error` : undefined}
-                disabled={submitting}
-              />
-              {reasonError && (
-                <p className="field-error" id={`${reasonId}-error`}>
-                  {reasonError}
-                </p>
-              )}
-            </div>
-          )}
-
-          <div className="dialog-actions">
-            <button
-              type="button"
-              ref={cancelRef}
-              onClick={onCancel}
+        {reason !== 'none' && (
+          <div className="field">
+            <label htmlFor={reasonId}>
+              Motivo {reason === 'optional' ? '(opcional)' : ''}
+            </label>
+            <textarea
+              id={reasonId}
+              ref={reasonRef}
+              rows={3}
+              maxLength={500}
+              value={reasonText}
+              onChange={(e) => setReasonText(e.target.value)}
+              aria-invalid={reasonError ? true : undefined}
+              aria-describedby={reasonError ? `${reasonId}-error` : undefined}
               disabled={submitting}
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className={danger ? 'danger' : 'primary'}
-              disabled={submitting}
-            >
-              {submitting ? 'Procesando…' : confirmLabel}
-            </button>
+            />
+            {reasonError && (
+              <p className="field-error" id={`${reasonId}-error`}>
+                {reasonError}
+              </p>
+            )}
           </div>
-        </form>
-      </dialog>
-    </div>
+        )}
+
+        <div className="dialog-actions">
+          <button
+            type="button"
+            ref={cancelRef}
+            onClick={onCancel}
+            disabled={submitting}
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            className={danger ? 'danger' : 'primary'}
+            disabled={submitting}
+          >
+            {submitting ? 'Procesando…' : confirmLabel}
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 }

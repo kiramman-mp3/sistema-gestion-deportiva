@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Icon } from '../../components/Icon.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import type {
   PublicChampionship,
@@ -248,7 +249,7 @@ function ChampionshipDetailView({
           className={`tab-btn ${activeTab === 'fixtures' ? 'active' : ''}`}
           onClick={() => setActiveTab('fixtures')}
         >
-          📅 Calendario y Resultados
+          <Icon name="calendar" /> Calendario y Resultados
         </button>
         <button
           type="button"
@@ -257,7 +258,7 @@ function ChampionshipDetailView({
           className={`tab-btn ${activeTab === 'standings' ? 'active' : ''}`}
           onClick={() => setActiveTab('standings')}
         >
-          📊 Tabla de Posiciones Oficial
+          <Icon name="table" /> Tabla de Posiciones Oficial
         </button>
         <button
           type="button"
@@ -266,7 +267,7 @@ function ChampionshipDetailView({
           className={`tab-btn ${activeTab === 'rules' ? 'active' : ''}`}
           onClick={() => setActiveTab('rules')}
         >
-          📜 Información y Reglamentos
+          <Icon name="file-text" /> Información y Reglamentos
         </button>
       </div>
 
@@ -332,10 +333,11 @@ function ChampionshipDetailView({
                           <div key={event.id} className="match-card">
                             <div className="match-meta">
                               <span className="match-venue">
-                                📍 {event.venue?.name ?? 'Por confirmar'}
+                                <Icon name="map-pin" />{' '}
+                                {event.venue?.name ?? 'Por confirmar'}
                               </span>
                               <span className="match-date">
-                                🕒{' '}
+                                <Icon name="clock" />{' '}
                                 {event.scheduledAt
                                   ? new Date(event.scheduledAt).toLocaleString(
                                       'es-EC',
@@ -389,7 +391,8 @@ function ChampionshipDetailView({
                                 onClick={() => onOpenPrint('acta', event.id)}
                                 className="print-link-button"
                               >
-                                🖨️ Ver / Imprimir Acta Oficial
+                                <Icon name="printer" /> Ver / Imprimir Acta
+                                Oficial
                               </button>
                             </div>
                           </div>
@@ -486,7 +489,7 @@ function ChampionshipDetailView({
                           }
                           className="action-link"
                         >
-                          📄 Ver Nómina
+                          <Icon name="file-text" /> Ver Nómina
                         </button>
                       </td>
                     </tr>
