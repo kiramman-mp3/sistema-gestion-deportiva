@@ -109,22 +109,6 @@
   --z-drawer: 40;
   --z-modal: 100;
   --z-toast: 200;
-
-  /* Alias de compatibilidad con los nombres anteriores (se retiran en la fase 5). */
-  --bg: var(--color-bg);
-  --surface: var(--color-surface);
-  --surface-sunken: var(--color-surface-sunken);
-  --text: var(--color-text);
-  --muted: var(--color-text-muted);
-  --text-muted: var(--color-text-muted);
-  --border: var(--color-border);
-  --primary: var(--color-primary);
-  --ok: var(--color-success);
-  --success-text: var(--color-success);
-  --error: var(--color-danger);
-  --danger-text: var(--color-danger);
-  --error-strong: var(--color-danger-strong);
-  --warning-text: var(--color-warning);
 }
 
 /* Modo oscuro: sigue la preferencia del sistema, como antes. Solo redefine colores. */
