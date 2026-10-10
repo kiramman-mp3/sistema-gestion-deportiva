@@ -6,6 +6,9 @@
 
 ## Cómo usarlo
 
+`npm run seed` (en la raíz) es un atajo de `npm run db:seed:demo -w @liga/api --` y acepta las mismas opciones
+(`npm run seed -- --confirm`). Son los mismos datos que carga `e2e/prepare.mjs` para las pruebas end-to-end.
+
 ```bash
 npm run db:backup                                           # respaldo previo (siempre)
 npm run db:seed:demo -w @liga/api                           # muestra la ayuda y no cambia nada
