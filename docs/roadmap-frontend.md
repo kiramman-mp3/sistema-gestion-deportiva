@@ -130,11 +130,11 @@ Archivos: los cinco diálogos (`FixturesTab`, `MatchScoresheetDialog`, `Incident
 
 Tareas:
 
-- [ ] Los cinco diálogos sobre `Modal` (Escape = su «Cancelar», foco atrapado, devolución del foco).
-- [ ] Campos de 44 px, error junto al campo, foco en el primer inválido al enviar.
-- [ ] Unificar pestañas en `Tabs` (`ChampionshipDetailPage`, `DisciplinePage`, `CompetitionsView`).
-- [ ] Tablas: cabecera y filas según spec §9; `data-label` en todas las celdas.
-- [ ] Vista previa de acta y nómina en pantallas estrechas: la hoja de ancho fijo se desplaza dentro de
+- [x] Los cinco diálogos sobre `Modal` (Escape = su «Cancelar», foco atrapado, devolución del foco).
+- [x] Campos de 44 px, error junto al campo, foco en el primer inválido al enviar.
+- [x] Unificar pestañas en `Tabs` (`ChampionshipDetailPage`, `DisciplinePage`, `CompetitionsView`).
+- [x] Tablas: cabecera y filas según spec §9; `data-label` en todas las celdas.
+- [x] Vista previa de acta y nómina en pantallas estrechas: la hoja de ancho fijo se desplaza dentro de
       un contenedor propio (o se escala) **solo en `@media screen`**; impresión idéntica. Quitar la
       exclusión correspondiente si se cubre en `desbordamiento.spec.ts`.
 
