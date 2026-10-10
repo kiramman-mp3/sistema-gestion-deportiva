@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { apiRequest } from '../../api/client.ts';
+import { Modal } from '../../components/Modal.tsx';
 import { describeError } from '../../components/Notice.tsx';
 import type { CompetitionEvent, Registration } from './types.js';
 
@@ -226,7 +227,7 @@ export function MatchScoresheetDialog({
   };
 
   return (
-    <dialog open className="dialog-backdrop" aria-modal="true">
+    <Modal onClose={onClose} className="dialog-complex">
       <div
         className="dialog-content"
         style={{ maxWidth: '750px', maxHeight: '90vh', overflowY: 'auto' }}
@@ -606,6 +607,6 @@ export function MatchScoresheetDialog({
           </button>
         </div>
       </div>
-    </dialog>
+    </Modal>
   );
 }

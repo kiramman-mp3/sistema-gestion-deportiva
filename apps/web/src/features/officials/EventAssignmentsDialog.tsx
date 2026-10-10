@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { apiRequest } from '../../api/client.ts';
 import { ConfirmDialog } from '../../components/ConfirmDialog.tsx';
+import { Modal } from '../../components/Modal.tsx';
 import {
   Notice,
   type NoticeState,
@@ -69,7 +70,7 @@ export function EventAssignmentsDialog({
   }
 
   return (
-    <dialog open className="dialog-backdrop" aria-modal="true">
+    <Modal onClose={onClose} className="dialog-complex" busy={busy}>
       <div className="dialog-content">
         <h4>Designaciones: {title}</h4>
         <Notice notice={notice} onClose={() => setNotice(null)} />
@@ -177,6 +178,6 @@ export function EventAssignmentsDialog({
           }}
         />
       )}
-    </dialog>
+    </Modal>
   );
 }
