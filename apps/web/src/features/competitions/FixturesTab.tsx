@@ -240,7 +240,7 @@ export function FixturesTab({
 
       <div className="catalog-header">
         <div>
-          <h3>Etapas y Calendario de Partidos</h3>
+          <h2>Etapas y Calendario de Partidos</h2>
           <p className="catalog-intro">
             Organice las fases del campeonato (grupos, playoffs), defina
             jornadas y programe partidos en escenarios oficiales.
@@ -263,7 +263,7 @@ export function FixturesTab({
           className="catalog-form"
           style={{ marginBottom: '1.5rem' }}
         >
-          <h4>Crear nueva etapa</h4>
+          <h3>Crear nueva etapa</h3>
           <div className="form-group">
             <label htmlFor="stage-name">Nombre de la etapa</label>
             <input
@@ -327,9 +327,9 @@ export function FixturesTab({
             >
               <div className="catalog-header" style={{ marginBottom: '1rem' }}>
                 <div>
-                  <h4>
+                  <h3>
                     Etapa {stage.sequence}: {stage.name}
-                  </h4>
+                  </h3>
                   <span className="badge badge-neutral">
                     {STAGE_TYPE_LABELS[stage.stageType]}
                   </span>
@@ -353,7 +353,7 @@ export function FixturesTab({
                   className="catalog-form"
                   style={{ marginBottom: '1rem' }}
                 >
-                  <h5>Nueva Jornada en {stage.name}</h5>
+                  <h4>Nueva Jornada en {stage.name}</h4>
                   <div className="form-group">
                     <label htmlFor="round-name">Nombre de la jornada</label>
                     <input
@@ -406,7 +406,7 @@ export function FixturesTab({
                           marginBottom: '0.75rem',
                         }}
                       >
-                        <h5 style={{ margin: 0 }}>{round.name}</h5>
+                        <h4 style={{ margin: 0 }}>{round.name}</h4>
                         {canManage && schedulingRoundId !== round.id && (
                           <button
                             type="button"
@@ -428,7 +428,7 @@ export function FixturesTab({
                             background: 'var(--surface)',
                           }}
                         >
-                          <h6>Programar partido en {round.name}</h6>
+                          <h5>Programar partido en {round.name}</h5>
                           <div className="form-grid">
                             <div className="form-group">
                               <label htmlFor="home-reg">Local</label>
@@ -711,7 +711,7 @@ export function FixturesTab({
       {reschedulingEvent && (
         <dialog open className="dialog-backdrop" aria-modal="true">
           <div className="dialog-content">
-            <h4>Reprogramar partido</h4>
+            <h3>Reprogramar partido</h3>
             <p style={{ fontSize: '0.875rem' }}>
               Modifique la fecha, hora o escenario del partido. Debe justificar
               el motivo para fines de auditoría.

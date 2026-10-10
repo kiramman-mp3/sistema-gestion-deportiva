@@ -60,7 +60,7 @@ export function OfficialsPage({
   return (
     <section aria-labelledby="officials-title" className="catalog">
       <div className="catalog-header">
-        <h2 id="officials-title">Árbitros y jueces</h2>
+        <h1 id="officials-title">Árbitros y jueces</h1>
         {canManage && !creating && !editing && (
           <button
             type="button"
@@ -304,7 +304,7 @@ function OfficialForm({
 
   return (
     <form className="catalog-form" onSubmit={submit} noValidate>
-      <h3>{official ? 'Editar oficial' : 'Nuevo oficial'}</h3>
+      <h2>{official ? 'Editar oficial' : 'Nuevo oficial'}</h2>
       <TextField
         label="Nombres"
         value={firstName}

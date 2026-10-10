@@ -174,9 +174,9 @@ function CaseBody({
   return (
     <>
       <div className="catalog-header">
-        <h2 id="case-title">
+        <h1 id="case-title">
           {detail.code}: {detail.subject}
-        </h2>
+        </h1>
         <span className={`badge ${resolved ? 'badge-ok' : ''}`}>
           {CASE_STATUS_LABELS[detail.status]}
         </span>
@@ -228,7 +228,7 @@ function CaseBody({
 
       {detail.incidents.length > 0 && (
         <>
-          <h3>Incidencias vinculadas</h3>
+          <h2>Incidencias vinculadas</h2>
           <ul className="plain-list">
             {detail.incidents.map((i) => (
               <li key={i.id}>
@@ -245,7 +245,7 @@ function CaseBody({
       )}
       {detail.complaints.length > 0 && (
         <>
-          <h3>Reclamos vinculados</h3>
+          <h2>Reclamos vinculados</h2>
           <ul className="plain-list">
             {detail.complaints.map((c) => (
               <li key={c.id}>
@@ -257,7 +257,7 @@ function CaseBody({
         </>
       )}
 
-      <h3>Sanciones</h3>
+      <h2>Sanciones</h2>
       {detail.sanctions.length === 0 ? (
         <p className="empty">Este expediente no tiene sanciones.</p>
       ) : (
@@ -338,7 +338,7 @@ function CaseBody({
         <SanctionForm caseId={detail.id} onSaved={reload} onNotice={onNotice} />
       )}
 
-      <h3>Historial</h3>
+      <h2>Historial</h2>
       <ol className="timeline">
         {detail.entries.map((e) => (
           <li key={e.id}>
@@ -394,7 +394,7 @@ function ReviewerForm({
   const [reviewerId, setReviewerId] = useState('');
   return (
     <div className="catalog-form">
-      <h4>Asignar revisor</h4>
+      <h3>Asignar revisor</h3>
       <SelectField
         label="Revisor"
         value={reviewerId}
@@ -449,7 +449,7 @@ function EntryForm({
         }
       }}
     >
-      <h4>Anexar al historial</h4>
+      <h3>Anexar al historial</h3>
       <SelectField
         label="Tipo"
         value={kind}
@@ -495,7 +495,7 @@ function ResolveForm({
         );
       }}
     >
-      <h4>Resolver expediente</h4>
+      <h3>Resolver expediente</h3>
       <p className="hint">
         Documente la decisión de la autoridad. El sistema no decide asuntos
         disciplinarios.
@@ -540,7 +540,7 @@ function PublishForm({
         );
       }}
     >
-      <h4>Publicar en el portal</h4>
+      <h3>Publicar en el portal</h3>
       <p className="hint">
         Redacte un texto para el público{' '}
         <strong>sin nombres de personas</strong> (menores incluidos). La
@@ -683,7 +683,7 @@ function SanctionForm({
 
   return (
     <form className="catalog-form" onSubmit={submit} noValidate>
-      <h4>Registrar sanción</h4>
+      <h3>Registrar sanción</h3>
       <SelectField
         label="Se sanciona a"
         value={subjectKind}

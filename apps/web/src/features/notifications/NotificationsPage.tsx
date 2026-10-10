@@ -68,7 +68,7 @@ export function NotificationsPage({
   return (
     <section aria-labelledby="notifications-title" className="catalog">
       <div className="catalog-header">
-        <h2 id="notifications-title">Notificaciones</h2>
+        <h1 id="notifications-title">Notificaciones</h1>
         <button type="button" onClick={() => void markAll()}>
           Marcar todas como leídas
         </button>
@@ -187,9 +187,9 @@ function MailAdmin({ onNotice }: { onNotice: (n: NoticeState) => void }) {
 
   return (
     <section aria-labelledby="mail-admin-title" className="catalog-form">
-      <h3 id="mail-admin-title">Administración de avisos</h3>
+      <h2 id="mail-admin-title">Administración de avisos</h2>
 
-      <h4>Recordatorio de documentación</h4>
+      <h3>Recordatorio de documentación</h3>
       <p className="hint">
         Avisa a los usuarios de un club cuántos deportistas no tienen ningún
         documento de inscripción (solo la cantidad, sin nombres).
@@ -213,7 +213,7 @@ function MailAdmin({ onNotice }: { onNotice: (n: NoticeState) => void }) {
         Enviar recordatorio
       </button>
 
-      <h4>Cola de correo</h4>
+      <h3>Cola de correo</h3>
       <LoadState state={outbox} onRetry={reloadOutbox} />
       {outbox.kind === 'ready' && (
         <>

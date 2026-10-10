@@ -22,7 +22,7 @@ export function TeamsPage({ permissions }: { permissions: readonly string[] }) {
   return (
     <section aria-labelledby="teams-title" className="catalog">
       <div className="catalog-header">
-        <h2 id="teams-title">Equipos</h2>
+        <h1 id="teams-title">Equipos</h1>
         {canCreate && !creating && (
           <button
             type="button"

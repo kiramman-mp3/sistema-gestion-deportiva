@@ -121,14 +121,14 @@ export function ChangePasswordForm() {
 
   return (
     <section aria-labelledby="account-title" className="catalog">
-      <h2 id="account-title">Mi cuenta</h2>
+      <h1 id="account-title">Mi cuenta</h1>
       <form
         className="catalog-form"
         onSubmit={submit}
         noValidate
         aria-labelledby={`${id}-t`}
       >
-        <h3 id={`${id}-t`}>Cambiar contraseña</h3>
+        <h2 id={`${id}-t`}>Cambiar contraseña</h2>
         <PasswordField
           id={`${id}-c`}
           label="Contraseña actual"
@@ -238,9 +238,9 @@ export function CompleteCredentialForm({
   if (finished) {
     return (
       <section aria-labelledby={`${id}-done`} className="login-form">
-        <h2 id={`${id}-done`}>
+        <h1 id={`${id}-done`}>
           {activation ? 'Cuenta activada' : 'Contraseña restablecida'}
-        </h2>
+        </h1>
         <p>
           {activation
             ? 'Su contraseña quedó establecida. Ya puede iniciar sesión.'
@@ -260,9 +260,9 @@ export function CompleteCredentialForm({
       noValidate
       aria-labelledby={`${id}-t`}
     >
-      <h2 id={`${id}-t`}>
+      <h1 id={`${id}-t`}>
         {activation ? 'Activar su cuenta' : 'Restablecer su contraseña'}
-      </h2>
+      </h1>
       <p className="hint">
         {activation
           ? 'Elija la contraseña con la que ingresará al sistema.'
