@@ -1436,31 +1436,34 @@ pre.json {
 }
 
 /* Portal público: navegación, noticias y pie */
-.portal-nav ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  margin: 1rem 0;
-  padding: 0;
-  list-style: none;
-  border-bottom: 1px solid var(--color-border);
-}
+/* Menú horizontal solo en escritorio: por debajo, el menú va en el panel lateral. */
+@media (min-width: 64rem) {
+  .portal-nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin: 1rem 0;
+    padding: 0;
+    list-style: none;
+    border-bottom: 1px solid var(--color-border);
+  }
 
-.portal-nav a {
-  display: block;
-  padding: 0.5rem 1rem;
-  color: var(--color-text);
-  text-decoration: none;
-  border-bottom: 3px solid transparent;
-}
+  .portal-nav a {
+    display: block;
+    padding: 0.5rem 1rem;
+    color: var(--color-text);
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+  }
 
-.portal-nav a[aria-current='page'] {
-  font-weight: 700;
-  border-bottom-color: var(--color-primary);
-}
+  .portal-nav a[aria-current='page'] {
+    font-weight: 700;
+    border-bottom-color: var(--color-primary);
+  }
 
-.portal-nav a:hover {
-  text-decoration: underline;
+  .portal-nav a:hover {
+    text-decoration: underline;
+  }
 }
 
 .hero-logo {
@@ -2893,6 +2896,8 @@ pre.json {
 .portal-topbar-brand {
   display: flex;
   align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
 }
 .portal-mobile-menu-btn {
   display: flex;
@@ -2953,8 +2958,19 @@ pre.json {
   color: var(--color-on-primary);
 }
 @media (max-width: 48rem) {
+  .portal-login-button {
+    justify-content: center;
+    min-width: var(--target-min);
+    min-height: var(--target-min);
+  }
+  /* El texto se oculta a la vista pero sigue siendo el nombre accesible del botón. */
   .portal-login-button span {
-    display: none;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 }
 .portal-drawer-nav {
