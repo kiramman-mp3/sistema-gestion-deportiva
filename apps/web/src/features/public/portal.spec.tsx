@@ -389,25 +389,19 @@ describe('portal público', () => {
     withRoute('#/portal/competencias/c1');
     mockApi({
       'GET /public/institution': () => json(INSTITUTION),
-      'GET /public/championships': () =>
+      // El detalle se pide por su id; el listado no debe pedirse (mockApi falla si ocurre).
+      'GET /public/championships/c1': () =>
         json({
-          items: [
-            {
-              id: 'c1',
-              name: 'Torneo Oficial 2026',
-              format: 'todos_contra_todos',
-              status: 'en_curso',
-              startDate: null,
-              endDate: null,
-              season: { id: 'se1', name: '2026' },
-              sport: { id: 's1', code: 'futbol', name: 'Fútbol' },
-              category: { id: 'k1', code: 'libre', name: 'Libre' },
-              _count: { registrations: 8 },
-            },
-          ],
-          page: 1,
-          pageSize: 100,
-          total: 1,
+          id: 'c1',
+          name: 'Torneo Oficial 2026',
+          format: 'todos_contra_todos',
+          status: 'en_curso',
+          startDate: null,
+          endDate: null,
+          season: { id: 'se1', name: '2026' },
+          sport: { id: 's1', code: 'futbol', name: 'Fútbol' },
+          category: { id: 'k1', code: 'libre', name: 'Libre' },
+          _count: { registrations: 8 },
         }),
       'GET /public/championships/c1/fixtures': () => json([]),
       'GET /public/championships/c1/standings': () =>
@@ -460,6 +454,27 @@ describe('portal público', () => {
 
     const backBtn = screen.getByRole('button', { name: '← Volver al listado' });
     await userEvent.click(backBtn);
+    expect(window.location.hash).toBe('#/portal/competencias');
+  });
+
+  it('un enlace a un campeonato que no existe o no es público lo explica y permite volver', async () => {
+    withRoute('#/portal/competencias/zz');
+    mockApi({
+      'GET /public/institution': () => json(INSTITUTION),
+      'GET /public/championships/zz': () =>
+        error(404, 'Campeonato no encontrado'),
+    });
+    render(<PublicPortalPage />);
+    expect(
+      await screen.findByRole('heading', {
+        level: 1,
+        name: 'Campeonato no disponible',
+      }),
+    ).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Reintentar' })).toBeNull();
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Volver al listado' }),
+    );
     expect(window.location.hash).toBe('#/portal/competencias');
   });
 });
