@@ -108,6 +108,18 @@ $env:E2E_BROWSER="chrome"; npx playwright test e2e/portal.spec.ts
 - **Error «Executable doesn't exist»**: Indique el Chrome del sistema con `E2E_BROWSER=chrome` o instale Chromium con `npx playwright install chromium`.
 - **Conflicto de puertos**: Si los puertos 3100 o 5183 están ocupados, verifique que no hayan quedado servidores huérfanos antes de iniciar.
 
+## Interfaz de usuario y diseño accesible
+
+La interfaz web (`apps/web`) cuenta con un sistema de diseño propio y accesible basado en tokens CSS nativos:
+
+- **Identidad visual**: Paleta institucional basada en páramo (`--color-brand`), acento dorado (`--color-accent`), superficies adaptativas y tipografías locales WOFF2 (_Barlow Condensed_ para marcadores/títulos y _Atkinson Hyperlegible Next_ para lectura).
+- **Modo oscuro automático**: Sigue la preferencia del sistema (`prefers-color-scheme: dark`) con contraste verificado AA (≥ 4.5:1) en todas las pantallas.
+- **Navegación responsiva**: Panel lateral modal (`NavDrawer`) con trampa de foco y atajo `Escape` para dispositivos móviles (≤ 768 px). Sin desbordamiento horizontal en 320, 375, 768, 1024 y 1280 px.
+- **Tablero de inicio administrativo**: Inicio por bloques funcionales condicionados por permisos reales (`AdminHome`), evitando llamadas no autorizadas y optimizando las tareas frecuentes según rol.
+- **Portal público**: Multipágina con rutas directas (`#/portal/competencias/<id>`, `#/portal/noticias/<slug>`, etc.), tablas de posiciones con formas accesibles para tarjetas y estricta jerarquía de encabezados (`h1` a `h4`).
+- **Documentos oficiales idénticos**: Impresión de actas y nóminas en hoja A4 (`apps/web/src/styles/print.css`), aislada de los estilos de pantalla y protegida contra regresiones (D-53).
+- **Auditoría continua**: Validada con `@axe-core/playwright` (0 violaciones en modo claro y oscuro) y prueba estática de clases CSS (`styles.spec.ts`).
+
 ## Documentación
 
 - [`docs/requirements.md`](docs/requirements.md): especificación funcional y técnica.
@@ -128,3 +140,4 @@ $env:E2E_BROWSER="chrome"; npx playwright test e2e/portal.spec.ts
 - [`docs/backup-restore.md`](docs/backup-restore.md): copias de seguridad y restauración verificada (`db:backup` / `db:restore`).
 - [`docs/user-manual.md`](docs/user-manual.md): manual de usuario del sistema privado y del portal público.
 - [`docs/roadmap.md`](docs/roadmap.md): estado de implementación por fase y alcance pendiente.
+- [`docs/roadmap-frontend.md`](docs/roadmap-frontend.md): hoja de ruta del rediseño de interfaz, fases y pruebas de accesibilidad.

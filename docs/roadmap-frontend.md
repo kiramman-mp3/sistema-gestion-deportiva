@@ -185,10 +185,10 @@ Aceptación: D-85 (menores) y D-80 (resoluciones) siguen en verde en `portal.spe
 
 ## Fase 8 — Regresión y revisión final
 
-- [ ] Suite completa en verde; recorrido visual completo (todas las rutas × 5 anchos × 2 temas).
-- [ ] Documentar decisiones nuevas en `docs/decisions.md` (siguiente número libre: **D-96**).
-- [ ] Actualizar `README.md` (sección de interfaz) y marcar esta hoja de ruta y `roadmap.md`.
-- [ ] Informe final con el formato de `CLAUDE.md`.
+- [x] Suite completa en verde; recorrido visual completo (todas las rutas × 5 anchos × 2 temas).
+- [x] Documentar decisiones nuevas en `docs/decisions.md` (siguiente número libre: **D-96**; registradas D-96 a D-100).
+- [x] Actualizar `README.md` (sección de interfaz) y marcar esta hoja de ruta y `roadmap.md`.
+- [x] Informe final con el formato de `CLAUDE.md`.
 
 ## Preguntas abiertas (no bloquean; registrar y seguir)
 
