@@ -487,7 +487,7 @@ export function MatchPage({
               className="link-button"
               onClick={() => onOpenPrint('acta', event.data.id)}
             >
-              🖨️ Ver / imprimir acta oficial
+              <Icon name="printer" /> Ver / imprimir acta oficial
             </button>
             <CopyLink hash={`#/portal/partido/${event.data.id}`} />
           </p>
@@ -607,7 +607,9 @@ export function ClubsPage() {
         <div className="clubs-pills-grid">
           {clubs.data.items.map((club) => (
             <div key={club.slug} className="club-pill">
-              <div className="club-icon">🛡️</div>
+              <div className="club-icon" aria-hidden="true">
+                <Icon name="shield" />
+              </div>
               <div className="club-info">
                 <strong>{club.name}</strong>
                 <small>
@@ -805,9 +807,17 @@ export function VerifyPage({ code }: { code?: string }) {
           className={`championship-card ${result.data.valid ? '' : 'invalid-doc'}`}
         >
           <h2>
-            {result.data.valid
-              ? '✔ Documento auténtico y vigente'
-              : '✖ Documento anulado o reemplazado'}
+            {result.data.valid ? (
+              <>
+                <Icon name="check" aria-hidden="true" /> Documento auténtico y
+                vigente
+              </>
+            ) : (
+              <>
+                <Icon name="x" aria-hidden="true" /> Documento anulado o
+                reemplazado
+              </>
+            )}
           </h2>
           <dl className="detail-list">
             <dt>Documento</dt>

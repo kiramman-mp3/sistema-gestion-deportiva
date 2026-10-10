@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useId, useState } from 'react';
 import { ApiError, apiRequest } from '../../api/client.ts';
 import { ConfirmDialog } from '../../components/ConfirmDialog.tsx';
+import { Notice, type NoticeState } from '../../components/Notice.tsx';
 import { CatalogForm } from './CatalogForm.tsx';
 import type {
   CatalogConfig,
@@ -21,11 +22,6 @@ type Editor<T> = { mode: 'create' } | { mode: 'edit'; item: T };
 type Pending<T> =
   | { kind: 'status'; item: T; action: StatusAction }
   | { kind: 'delete'; item: T };
-
-interface Notice {
-  type: 'success' | 'error';
-  text: string;
-}
 
 /**
  * Administración genérica de un catálogo: listado con búsqueda, filtro y paginación,
@@ -51,7 +47,7 @@ export function CatalogAdmin<T extends CatalogItem>({
   const [reloadKey, setReloadKey] = useState(0);
   const [editor, setEditor] = useState<Editor<T> | null>(null);
   const [pending, setPending] = useState<Pending<T> | null>(null);
-  const [notice, setNotice] = useState<Notice | null>(null);
+  const [notice, setNotice] = useState<NoticeState | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -162,34 +158,7 @@ export function CatalogAdmin<T extends CatalogItem>({
         )}
       </div>
 
-      <div aria-live="polite">
-        {notice && notice.type === 'success' && (
-          <p className="notice success">
-            <span aria-hidden="true">✔ </span>
-            {notice.text}{' '}
-            <button
-              type="button"
-              className="link"
-              onClick={() => setNotice(null)}
-            >
-              Cerrar aviso
-            </button>
-          </p>
-        )}
-      </div>
-      {notice && notice.type === 'error' && (
-        <p className="notice error" role="alert">
-          <span aria-hidden="true">✖ </span>
-          {notice.text}{' '}
-          <button
-            type="button"
-            className="link"
-            onClick={() => setNotice(null)}
-          >
-            Cerrar aviso
-          </button>
-        </p>
-      )}
+      <Notice notice={notice} onClose={() => setNotice(null)} />
 
       {editor && (
         <CatalogForm
