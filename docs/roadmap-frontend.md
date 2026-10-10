@@ -184,8 +184,8 @@ Aceptación: D-85 (menores) y D-80 (resoluciones) siguen en verde en `portal.spe
 - [x] `accesibilidad.spec.ts`: repetir las páginas principales con `colorScheme: 'dark'`; 0 violaciones.
 - [x] Mensajes de carga/vacío/error unificados con acción de recuperación.
 - [ ] Revisión de objetivos táctiles (≥ 44 px) y foco en todas las pantallas. Pendiente tras la
-      revisión D-101: enlaces dentro de celdas de tabla (24 px, cumplen el mínimo AA de 24 px pero no
-      los 44 px del spec) y casillas de la ficha de rol; el foco visible sí está en todos los controles.
+      revisión D-101: enlaces de texto en celdas de tabla y en el pie del portal (21–24 px), «Ver
+      detalle del partido» (33 px) y casillas de la ficha de rol; el foco visible sí está en todos los controles.
 
 ## Fase 8 — Regresión y revisión final
 
