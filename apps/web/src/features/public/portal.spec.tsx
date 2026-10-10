@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { error, json, mockApi, page } from '../../test/mockApi.ts';
 import { parsePortalRoute, PublicPortalPage } from './PublicPortalPage.tsx';
+import { ScoreboardBand } from './PortalPages.tsx';
 import type {
   PublicEventDetail,
   PublicEventSummary,
@@ -378,5 +379,61 @@ describe('portal público', () => {
     expect(
       screen.getByText('La política de privacidad todavía no fue publicada.'),
     ).toBeVisible();
+  });
+});
+
+describe('ScoreboardBand', () => {
+  it('muestra marcadores oficiales recientes y partidos próximos con enlace al calendario', () => {
+    const recentMatch = {
+      ...EVENT,
+      id: 'recent-1',
+      hasResult: true,
+      participants: EVENT.participants.map((p, i) => ({
+        ...p,
+        score: i === 0 ? 2 : 0,
+        outcome: i === 0 ? ('victoria' as const) : ('derrota' as const),
+      })),
+    };
+    render(<ScoreboardBand recent={[recentMatch]} upcoming={[EVENT]} />);
+    expect(screen.getByRole('heading', { name: 'Esta semana' })).toBeVisible();
+    expect(
+      screen.getByRole('link', { name: 'Calendario completo' }),
+    ).toHaveAttribute('href', '#/portal/calendario');
+    expect(screen.getByText('2 — 0')).toBeVisible();
+    expect(screen.getByText('VS')).toBeVisible();
+    expect(screen.getAllByText('Real Quero').length).toBeGreaterThan(0);
+  });
+
+  it('muestra el estado vacío diseñado cuando no hay partidos ni resultados', () => {
+    render(<ScoreboardBand recent={[]} upcoming={[]} />);
+    expect(screen.getByRole('heading', { name: 'Esta semana' })).toBeVisible();
+    expect(
+      screen.getByText('No hay partidos programados por ahora.'),
+    ).toBeVisible();
+    expect(screen.getByText('Aún no hay resultados aprobados.')).toBeVisible();
+  });
+
+  it('muestra el estado de error diseñado y permite reintentar', async () => {
+    const onRetry = vi.fn();
+    render(
+      <ScoreboardBand
+        error="No se pudo cargar la información de la jornada"
+        onRetry={onRetry}
+      />,
+    );
+    expect(
+      screen.getByText('No se pudo cargar la información de la jornada'),
+    ).toBeVisible();
+    const retryBtn = screen.getByRole('button', { name: 'Reintentar' });
+    expect(retryBtn).toBeVisible();
+    await userEvent.click(retryBtn);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it('muestra el estado de carga diseñado', () => {
+    render(<ScoreboardBand loading />);
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Cargando marcadores…',
+    );
   });
 });
