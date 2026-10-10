@@ -1,27 +1,7 @@
-:root {
-  color-scheme: light dark;
-  --bg: #f6f7f9;
-  --surface: #ffffff;
-  --text: #1b1f24;
-  --muted: #4a5560;
-  --primary: #0b5cad;
-  --ok: #0f6b32;
-  --error: #a4161a;
-  --border: #d3d9df;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #12161b;
-    --surface: #1b2128;
-    --text: #e8ecf0;
-    --muted: #aab4be;
-    --primary: #6cb2f5;
-    --ok: #5fd08a;
-    --error: #ff8a8d;
-    --border: #36404a;
-  }
-}
+/*
+ * Estilos de la aplicación. Los colores, fuentes y escalas vienen de
+ * styles/tokens.css; la impresión de documentos oficiales, de styles/print.css.
+ */
 
 * {
   box-sizing: border-box;
@@ -29,15 +9,45 @@
 
 body {
   margin: 0;
-  font-family:
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    sans-serif;
+  font-family: var(--font-body);
+  font-size: 1rem;
   background: var(--bg);
   color: var(--text);
   line-height: 1.5;
+}
+
+/* La fuente de marcador solo en títulos grandes; a tamaño pequeño se lee peor. */
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+h4,
+h5,
+h6 {
+  font-weight: 700;
+  text-wrap: balance;
+}
+
+a {
+  color: var(--color-primary);
+  text-underline-offset: 0.15em;
+}
+
+/* Quien pide menos movimiento no ve transiciones ni animaciones. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 .skip-link {
@@ -45,8 +55,8 @@ body {
   left: 1rem;
   top: -4rem;
   padding: 0.5rem 1rem;
-  background: var(--primary);
-  color: var(--bg);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
   border-radius: 0.25rem;
 }
 
@@ -107,7 +117,7 @@ button {
 }
 
 :focus-visible {
-  outline: 3px solid var(--primary);
+  outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
 
@@ -239,14 +249,14 @@ button[disabled] {
 }
 
 button.primary {
-  color: var(--bg);
+  color: var(--color-on-primary);
   background: var(--primary);
 }
 
 button.danger {
-  color: #fff;
-  background: var(--error-strong, #a4161a);
-  border-color: var(--error-strong, #a4161a);
+  color: var(--color-on-danger-strong);
+  background: var(--color-danger-strong);
+  border-color: var(--color-danger-strong);
 }
 
 button.danger-outline {
@@ -381,7 +391,7 @@ button.link {
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  background: rgb(0 0 0 / 55%);
+  background: var(--color-backdrop);
 }
 
 .dialog {
@@ -575,11 +585,13 @@ pre.json {
 }
 
 .portal-hero {
-  background: linear-gradient(135deg, #0b5cad 0%, #083c70 100%);
-  color: #ffffff;
+  /* Sobre el color de marca el foco se marca con el acento, que sí contrasta. */
+  --color-focus: var(--color-accent);
+  background: var(--color-brand);
+  color: var(--color-on-brand);
   padding: 2.5rem 2rem;
   border-radius: 0.75rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-sm);
 }
 
 .hero-badge {
@@ -612,6 +624,12 @@ pre.json {
   margin-top: 1.5rem;
 }
 
+/* El botón de acceso va sobre el color de marca: hereda su texto, no el primario. */
+.portal-hero button {
+  color: var(--color-on-brand);
+  border-color: currentColor;
+}
+
 .portal-controls {
   display: flex;
   flex-wrap: wrap;
@@ -638,7 +656,9 @@ pre.json {
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
 }
 
 .sport-tab-button:hover {
@@ -647,7 +667,7 @@ pre.json {
 
 .sport-tab-button.active {
   background: var(--primary);
-  color: #ffffff;
+  color: var(--color-on-primary);
   border-color: var(--primary);
 }
 
@@ -700,15 +720,12 @@ pre.json {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--duration-fast) var(--ease-out);
 }
 
 .championship-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-md);
 }
 
 .card-top {
@@ -734,18 +751,18 @@ pre.json {
 }
 
 .status-en_curso {
-  background: rgba(15, 107, 50, 0.15);
+  background: var(--color-success-bg);
   color: var(--ok);
 }
 
 .status-finalizado {
-  background: rgba(100, 110, 120, 0.15);
+  background: var(--color-surface-sunken);
   color: var(--muted);
 }
 
 .status-inscripciones_abiertas {
-  background: rgba(11, 92, 173, 0.15);
-  color: var(--primary);
+  background: var(--color-info-bg);
+  color: var(--color-info);
 }
 
 .champ-title {
@@ -998,12 +1015,12 @@ pre.json {
 }
 
 .pts-cell {
-  background: rgba(11, 92, 173, 0.08);
+  background: var(--color-surface-sunken);
   font-weight: 800;
 }
 
 .top-row {
-  background: rgba(15, 107, 50, 0.04);
+  background: var(--color-success-bg);
 }
 
 .action-link {
@@ -1059,6 +1076,7 @@ pre.json {
   margin: 0.5rem 0;
   object-fit: contain;
   border: 1px solid var(--border);
+  /* Fondo blanco a propósito: así se ve el logotipo como en los documentos. */
   background: #fff;
 }
 

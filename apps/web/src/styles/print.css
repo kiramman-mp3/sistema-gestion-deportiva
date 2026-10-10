@@ -287,3 +287,11 @@
     size: A4 portrait;
   }
 }
+
+/* Añadido en la fase 1 del rediseño: los títulos de la aplicación usan la fuente
+   de marcador, pero los del documento oficial conservan la tipografía serif de la hoja. */
+.institutional-sheet :where(h1, h2, h3, h4, h5, h6) {
+  font-family: inherit;
+  line-height: inherit;
+  text-wrap: wrap;
+}
