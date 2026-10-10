@@ -142,7 +142,7 @@ export function AthleteDetailPage({
           </div>
         )}
         <div>
-          <h4>Fotografía del deportista</h4>
+          <h2>Fotografía del deportista</h2>
           <p className="hint">
             Formatos admitidos: JPEG, PNG o WebP (máx. 5 MB).
           </p>
@@ -188,7 +188,7 @@ export function AthleteDetailPage({
 
       {a.full ? (
         <>
-          <h3>Datos personales</h3>
+          <h2>Datos personales</h2>
           <p className="hint">
             Información reservada: solo la ven quienes tienen permiso de datos
             personales completos.
@@ -301,7 +301,7 @@ export function AthleteDetailPage({
         />
       )}
 
-      <h3>Consentimientos</h3>
+      <h2>Consentimientos</h2>
       {consents.kind === 'ready' && consents.data.length === 0 && (
         <p className="empty">No hay consentimientos registrados.</p>
       )}
@@ -729,7 +729,7 @@ function ConsentForm({
       noValidate
       aria-label="Nuevo consentimiento"
     >
-      <h4>Registrar consentimiento</h4>
+      <h3>Registrar consentimiento</h3>
       <p className="hint">
         Si la persona es menor de edad lo otorga su tutor (indique el
         parentesco); si es mayor, ella misma (escriba «propio»).
@@ -977,7 +977,7 @@ function DocumentUploadForm({
 
   return (
     <form onSubmit={handleSubmit} className="record-form">
-      <h4>Subir documento de respaldo</h4>
+      <h3>Subir documento de respaldo</h3>
       <TextField
         label="Título del documento"
         value={title}
