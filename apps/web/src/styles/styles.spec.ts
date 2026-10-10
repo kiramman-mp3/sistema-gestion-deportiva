@@ -5,9 +5,10 @@
  * - los pares de texto y fondo cumplen el contraste AA en ambos modos;
  * - no hay `transition: all`.
  */
-/// <reference types="node" />
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import ts from 'typescript';
+import { STATUS_TONE_MAP, type BadgeTone } from '../components/StatusBadge.tsx';
 
 // Se leen del disco: en Vitest, importar CSS (incluso con `?raw`) devuelve una cadena vacía.
 // Vitest se ejecuta con apps/web como directorio de trabajo (npm run test -w @liga/web).
@@ -152,5 +153,106 @@ describe('estilos: tokens de diseño', () => {
 
   it('no hay transiciones de todas las propiedades', () => {
     expect(css).not.toMatch(/transition\s*:\s*all\b/);
+  });
+
+  it('toda clase usada en TSX existe en el CSS', () => {
+    const defined = new Set(
+      [...css.matchAll(/\.([a-zA-Z0-9_-]+)/g)].map((m) => m[1]!),
+    );
+    const used = new Set<string>();
+
+    const addClass = (cls: string) => {
+      const clean = cls.trim();
+      if (!clean || clean.endsWith('-') || /[^a-zA-Z0-9_-]/.test(clean)) return;
+      used.add(clean);
+    };
+
+    const extractFromNode = (node: ts.Node) => {
+      if (
+        ts.isStringLiteral(node) ||
+        ts.isNoSubstitutionTemplateLiteral(node)
+      ) {
+        node.text.split(/\s+/).forEach(addClass);
+      } else if (ts.isTemplateExpression(node)) {
+        node.head.text.split(/\s+/).forEach(addClass);
+        for (const span of node.templateSpans) {
+          span.literal.text.split(/\s+/).forEach(addClass);
+          extractFromNode(span.expression);
+        }
+      } else if (ts.isConditionalExpression(node)) {
+        extractFromNode(node.whenTrue);
+        extractFromNode(node.whenFalse);
+      } else if (ts.isBinaryExpression(node)) {
+        extractFromNode(node.left);
+        extractFromNode(node.right);
+      } else if (ts.isCallExpression(node)) {
+        if (ts.isPropertyAccessExpression(node.expression)) {
+          extractFromNode(node.expression.expression);
+        }
+        for (const arg of node.arguments) {
+          extractFromNode(arg);
+        }
+      } else if (ts.isParenthesizedExpression(node)) {
+        extractFromNode(node.expression);
+      }
+    };
+
+    const tsxSources = Object.entries(sources).filter(
+      ([path]) => path.endsWith('.tsx') && !path.endsWith('.spec.tsx'),
+    );
+
+    for (const [path, content] of tsxSources) {
+      const sf = ts.createSourceFile(
+        path,
+        content,
+        ts.ScriptTarget.Latest,
+        true,
+      );
+      const visit = (n: ts.Node) => {
+        if (
+          ts.isJsxAttribute(n) &&
+          ts.isIdentifier(n.name) &&
+          n.name.text === 'className' &&
+          n.initializer
+        ) {
+          if (ts.isStringLiteral(n.initializer)) {
+            extractFromNode(n.initializer);
+          } else if (
+            ts.isJsxExpression(n.initializer) &&
+            n.initializer.expression
+          ) {
+            extractFromNode(n.initializer.expression);
+          }
+        }
+        ts.forEachChild(n, visit);
+      };
+      visit(sf);
+    }
+
+    // Enumerar valores de plantillas badge-${tone} y status-${status} (spec §8 y §10)
+    const TONES: BadgeTone[] = [
+      'neutral',
+      'warning',
+      'success',
+      'danger',
+      'info',
+      'live',
+    ];
+    for (const tone of TONES) {
+      addClass(`badge-${tone}`);
+      addClass(`status-${tone}`);
+    }
+    for (const status of Object.keys(STATUS_TONE_MAP)) {
+      addClass(`status-${status}`);
+    }
+    for (const variant of ['primary', 'secondary', 'danger', 'ghost']) {
+      addClass(`btn-${variant}`);
+    }
+    for (const size of ['sm', 'md', 'lg']) {
+      addClass(`btn-${size}`);
+    }
+
+    const missing = [...used].filter((name) => !defined.has(name));
+    expect(missing).toEqual([]);
   });
 });

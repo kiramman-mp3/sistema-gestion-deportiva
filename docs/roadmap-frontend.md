@@ -150,12 +150,12 @@ Archivos: nuevo `features/home/AdminHome.tsx` (o similar), `CatalogsApp.tsx`, `f
 
 Tareas:
 
-- [ ] Inicio del panel según spec §11 (solo endpoints verificados; bloques por permiso).
-- [ ] Eliminar los 63 `style={{…}}` (salvo valores calculados justificados y comentados) y los 3 hex.
-- [ ] Definir o sustituir las 45 clases sin estilo; añadir prueba «toda clase usada existe en el CSS»
+- [x] Inicio del panel según spec §11 (solo endpoints verificados; bloques por permiso).
+- [x] Eliminar los 63 `style={{…}}` (salvo valores calculados justificados y comentados) y los 3 hex.
+- [x] Definir o sustituir las 45 clases sin estilo; añadir prueba «toda clase usada existe en el CSS»
       (incluye clases de plantillas `badge-${tone}` y `status-${status}` enumerando sus valores).
-- [ ] Retirar los alias de compatibilidad de `tokens.css` usando `--color-*` en todo el CSS.
-- [ ] Separación de funciones en actas (D-72) intacta.
+- [x] Retirar los alias de compatibilidad de `tokens.css` usando `--color-*` en todo el CSS.
+- [x] Separación de funciones en actas (D-72) intacta.
 
 Pruebas nuevas: `AdminHome` con permisos simulados (sin permiso no hay petición a esa ruta; un 500
 en un bloque no afecta a los demás; «de sus clubes» sin `clubs:access_all`; `linked: false`).
