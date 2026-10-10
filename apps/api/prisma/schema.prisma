@@ -686,10 +686,11 @@ model StoredFile {
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   createdById    String   @map("created_by_id") @db.Uuid
 
-  createdBy       User                 @relation("StoredFileCreator", fields: [createdById], references: [id], onDelete: Restrict)
-  athletePhoto    AthletePhoto?
-  athleteDoc      AthleteDocument?
-  institutionLogo InstitutionSettings? @relation("InstitutionLogo")
+  createdBy        User                 @relation("StoredFileCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  athletePhoto     AthletePhoto?
+  athleteDoc       AthleteDocument?
+  institutionLogo  InstitutionSettings? @relation("InstitutionLogo")
+  institutionCover InstitutionSettings? @relation("InstitutionCover")
 
   complaintFile ComplaintAttachment?
 
@@ -1223,10 +1224,13 @@ model InstitutionSettings {
   /// Permite que quien registró el acta también la apruebe (§4.5: «salvo que la política institucional lo permita»).
   allowSelfApproval Boolean  @default(false) @map("allow_self_approval")
   logoFileId        String?  @unique @map("logo_file_id") @db.Uuid
+  /// Foto de portada del portal público (opcional; la sube la Liga desde el panel).
+  coverFileId       String?  @unique @map("cover_file_id") @db.Uuid
   updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
   updatedById       String?  @map("updated_by_id") @db.Uuid
 
   logoFile  StoredFile? @relation("InstitutionLogo", fields: [logoFileId], references: [id], onDelete: Restrict)
+  coverFile StoredFile? @relation("InstitutionCover", fields: [coverFileId], references: [id], onDelete: Restrict)
   updatedBy User?       @relation("InstitutionUpdater", fields: [updatedById], references: [id], onDelete: Restrict)
 
   @@index([updatedById])
