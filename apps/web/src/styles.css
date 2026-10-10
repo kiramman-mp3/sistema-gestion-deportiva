@@ -3271,3 +3271,143 @@ pre.json {
   color: var(--color-text-muted);
   border: 1px solid var(--color-border);
 }
+
+/* Deportes: color e ilustración de cada deporte. */
+.sport-art {
+  flex: none;
+  /* Contorno de pegatina: la ilustración se lee sobre cualquier fondo, claro u oscuro. */
+  filter: drop-shadow(2px 0 0 var(--color-art-paper))
+    drop-shadow(-2px 0 0 var(--color-art-paper))
+    drop-shadow(0 2px 0 var(--color-art-paper))
+    drop-shadow(0 -2px 0 var(--color-art-paper));
+}
+
+.confetti {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.confetti-piece {
+  position: absolute;
+  display: block;
+  background: var(--sport);
+}
+
+.confetti-accent {
+  --sport: var(--color-accent);
+}
+
+.confetti-dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+}
+
+.confetti-bar {
+  width: 1.5rem;
+  height: 0.4375rem;
+  border-radius: 0.25rem;
+}
+
+.confetti-tri {
+  width: 0.875rem;
+  height: 0.875rem;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.confetti-piece-1 {
+  left: 6%;
+  top: 18%;
+  transform: rotate(0deg);
+}
+
+.confetti-piece-2 {
+  left: 16%;
+  top: 72%;
+  transform: rotate(30deg);
+}
+
+.confetti-piece-3 {
+  left: 28%;
+  top: 10%;
+  transform: rotate(-20deg);
+}
+
+.confetti-piece-4 {
+  left: 44%;
+  top: 86%;
+  transform: rotate(15deg);
+}
+
+.confetti-piece-5 {
+  left: 58%;
+  top: 14%;
+  transform: rotate(60deg);
+}
+
+.confetti-piece-6 {
+  left: 72%;
+  top: 78%;
+  transform: rotate(-35deg);
+}
+
+.confetti-piece-7 {
+  left: 86%;
+  top: 24%;
+  transform: rotate(10deg);
+}
+
+.confetti-piece-8 {
+  left: 94%;
+  top: 62%;
+  transform: rotate(45deg);
+}
+
+.confetti-piece-9 {
+  left: 36%;
+  top: 44%;
+  transform: rotate(-50deg);
+}
+
+.confetti-piece-10 {
+  left: 80%;
+  top: 46%;
+  transform: rotate(20deg);
+}
+
+.sport-futbol {
+  --sport: var(--color-sport-futbol);
+  --sport-soft: var(--color-sport-futbol-soft);
+}
+
+.sport-basquet {
+  --sport: var(--color-sport-basquet);
+  --sport-soft: var(--color-sport-basquet-soft);
+}
+
+.sport-taekwondo {
+  --sport: var(--color-sport-taekwondo);
+  --sport-soft: var(--color-sport-taekwondo-soft);
+}
+
+.sport-ajedrez {
+  --sport: var(--color-sport-ajedrez);
+  --sport-soft: var(--color-sport-ajedrez-soft);
+}
+
+.sport-voley {
+  --sport: var(--color-sport-voley);
+  --sport-soft: var(--color-sport-voley-soft);
+}
+
+.sport-atletismo {
+  --sport: var(--color-sport-atletismo);
+  --sport-soft: var(--color-sport-atletismo-soft);
+}
+
+.sport-otro {
+  --sport: var(--color-sport-otro);
+  --sport-soft: var(--color-sport-otro-soft);
+}
