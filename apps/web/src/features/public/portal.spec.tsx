@@ -80,6 +80,10 @@ describe('rutas del portal', () => {
     expect(parsePortalRoute('#/portal/competencias')).toEqual({
       page: 'competencias',
     });
+    expect(parsePortalRoute('#/portal/competencias?deporte=futbol')).toEqual({
+      page: 'competencias',
+      sport: 'futbol',
+    });
     expect(parsePortalRoute('#/portal/competencias/champ-123')).toEqual({
       page: 'competencias',
       championshipId: 'champ-123',
@@ -456,6 +460,41 @@ describe('portal público', () => {
     const backBtn = screen.getByRole('button', { name: '← Volver al listado' });
     await userEvent.click(backBtn);
     expect(window.location.hash).toBe('#/portal/competencias');
+  });
+
+  it('la dirección ?deporte= abre las competencias filtradas por ese deporte', async () => {
+    withRoute('#/portal/competencias?deporte=ajedrez');
+    const champ = (id: string, name: string, code: string, sport: string) => ({
+      id,
+      name,
+      format: 'todos_contra_todos',
+      status: 'en_curso',
+      startDate: null,
+      endDate: null,
+      season: { id: 'se1', name: '2026' },
+      sport: { id: code, code, name: sport },
+      category: { id: 'k1', code: 'libre', name: 'Libre' },
+      _count: { registrations: 4 },
+    });
+    mockApi({
+      'GET /public/institution': () => json(INSTITUTION),
+      'GET /public/championships': () =>
+        page([
+          champ('c1', 'Copa de Fútbol', 'futbol', 'Fútbol'),
+          champ('c2', 'Abierto de Ajedrez', 'ajedrez', 'Ajedrez'),
+        ]),
+    });
+    render(<PublicPortalPage />);
+    expect(await screen.findByText('Abierto de Ajedrez')).toBeVisible();
+    expect(screen.queryByText('Copa de Fútbol')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Ajedrez' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Todos los deportes' }),
+    );
+    expect(screen.getByText('Copa de Fútbol')).toBeVisible();
   });
 
   it('un enlace a un campeonato que no existe o no es público lo explica y permite volver', async () => {

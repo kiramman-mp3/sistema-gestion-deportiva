@@ -24,7 +24,7 @@ interface PublicPortalPageProps {
 
 export type PortalRoute =
   | { page: 'inicio' }
-  | { page: 'competencias'; championshipId?: string }
+  | { page: 'competencias'; championshipId?: string; sport?: string }
   | { page: 'calendario' }
   | { page: 'partido'; id: string }
   | { page: 'noticias' }
@@ -34,14 +34,19 @@ export type PortalRoute =
   | { page: 'liga' }
   | { page: 'verificar'; code?: string };
 
-/** `#/portal`, `#/portal/competencias/<id>`, `#/portal/noticias/<slug>`, `#/portal/partido/<id>`… */
+/**
+ * `#/portal`, `#/portal/competencias/<id>`, `#/portal/competencias?deporte=<código>`,
+ * `#/portal/noticias/<slug>`, `#/portal/partido/<id>`…
+ */
 export function parsePortalRoute(hash: string): PortalRoute {
-  const [, , section, param] = hash.split('/');
+  const [path = '', query = ''] = hash.split('?');
+  const [, , section, param] = path.split('/');
   switch (section) {
-    case 'competencias':
-      return param
-        ? { page: 'competencias', championshipId: param }
-        : { page: 'competencias' };
+    case 'competencias': {
+      if (param) return { page: 'competencias', championshipId: param };
+      const sport = new URLSearchParams(query).get('deporte');
+      return sport ? { page: 'competencias', sport } : { page: 'competencias' };
+    }
     case 'calendario':
       return { page: 'calendario' };
     case 'partido':
@@ -221,7 +226,9 @@ export function PublicPortalPage({
         )}
         {route.page === 'competencias' && (
           <CompetitionsView
+            key={route.sport ?? 'todos'}
             championshipId={route.championshipId}
+            sport={route.sport}
             onOpenPrintDocument={onOpenPrintDocument}
           />
         )}
