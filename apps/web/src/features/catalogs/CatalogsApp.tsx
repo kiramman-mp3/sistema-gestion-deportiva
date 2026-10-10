@@ -5,7 +5,6 @@ import {
   isSectionActive,
   PANEL_NAV_GROUPS,
 } from '../../components/AppShell.tsx';
-import { useOptionalAuth } from '../auth/AuthContext.tsx';
 import { AuditPage } from '../admin/AuditPage.tsx';
 import { ChangePasswordForm } from '../admin/PasswordForms.tsx';
 import { RoleDetailPage } from '../admin/RoleDetailPage.tsx';
@@ -44,9 +43,13 @@ function currentHash(): string {
 export function CatalogsApp({
   permissions,
   selfId,
+  userName,
+  onLogout,
 }: {
   permissions: readonly string[];
   selfId: string;
+  userName: string;
+  onLogout: () => void | Promise<void>;
 }) {
   const [hash, setHash] = useState(currentHash);
   const unread = useUnreadCount();
@@ -65,19 +68,13 @@ export function CatalogsApp({
   const active =
     visible.find((s) => isSectionActive(s.hash, hash)) ?? visible[0]!;
   const detailId = hash.split('/')[2];
-  const auth = useOptionalAuth();
-  const user =
-    auth && auth.state.status === 'authenticated'
-      ? auth.state.user
-      : { displayName: 'Usuario de la Liga' };
-  const logout = auth ? auth.logout : () => Promise.resolve();
 
   return (
     <AppShell
-      user={user}
+      user={{ displayName: userName }}
       permissions={permissions}
       unreadCount={unread}
-      logout={logout}
+      logout={onLogout}
       activeHash={hash}
     >
       {active.hash === '#/' && (

@@ -38,7 +38,7 @@ interface AuthContextValue {
   logout: () => Promise<void>;
 }
 
-export const AuthContext = createContext<AuthContextValue | null>(null);
+const AuthContext = createContext<AuthContextValue | null>(null);
 
 function applySession(session: SessionResponse): AuthState {
   setCsrfToken(session.csrfToken);
@@ -112,8 +112,4 @@ export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext);
   if (!context) throw new Error('useAuth debe usarse dentro de AuthProvider');
   return context;
-}
-
-export function useOptionalAuth(): AuthContextValue | null {
-  return useContext(AuthContext);
 }
