@@ -394,7 +394,7 @@ function ReviewerForm({
   const [reviewerId, setReviewerId] = useState('');
   return (
     <div className="catalog-form">
-      <h3>Asignar revisor</h3>
+      <h2>Asignar revisor</h2>
       <SelectField
         label="Revisor"
         value={reviewerId}

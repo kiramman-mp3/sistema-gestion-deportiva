@@ -29,10 +29,15 @@ export function CompetitionsView({
     ? `?${queryParams.toString()}`
     : '';
 
+  // El listado solo se pide sin campeonato seleccionado; el detalle se pide por su id,
+  // así un enlace compartido funciona aunque el campeonato no esté en la primera página.
   const [championshipsState, reloadChampionships] =
     useFetch<PublicChampionshipsResponse>(
-      `/public/championships${queryString}`,
+      championshipId ? null : `/public/championships${queryString}`,
     );
+  const [detailState, reloadDetail] = useFetch<PublicChampionship>(
+    championshipId ? `/public/championships/${championshipId}` : null,
+  );
 
   // Filtrado en memoria por deporte
   const allChampionships =
@@ -51,10 +56,6 @@ export function CompetitionsView({
       label: sport.name,
     })),
   ];
-
-  const selectedChampionship = championshipId
-    ? allChampionships.find((c) => c.id === championshipId)
-    : null;
 
   const handleSelectChamp = (id: string) => {
     window.location.hash = `#/portal/competencias/${id}`;
@@ -76,25 +77,9 @@ export function CompetitionsView({
     <div className="public-portal">
       {/* Si hay un campeonato seleccionado, muestra la vista detallada */}
       {championshipId ? (
-        championshipsState.kind === 'loading' ? (
-          <div className="section-header">
-            <p>
-              <button
-                type="button"
-                onClick={handleBack}
-                className="secondary-button"
-              >
-                ← Volver al listado
-              </button>
-            </p>
-            <LoadState
-              state={championshipsState}
-              onRetry={reloadChampionships}
-            />
-          </div>
-        ) : selectedChampionship ? (
+        detailState.kind === 'ready' ? (
           <ChampionshipDetailView
-            championship={selectedChampionship}
+            championship={detailState.data}
             onBack={handleBack}
             onOpenPrint={handleOpenPrint}
           />
@@ -106,19 +91,22 @@ export function CompetitionsView({
                 onClick={handleBack}
                 className="secondary-button"
               >
-                ← Volver al listado
+                Volver al listado
               </button>
             </p>
-            <div className="catalog-error" role="alert">
-              <p>Campeonato no encontrado o no disponible públicamente.</p>
-              <button
-                type="button"
-                onClick={handleBack}
-                className="btn btn-secondary"
-              >
-                Volver a competencias
-              </button>
-            </div>
+            <h1 className="portal-page-title">
+              {detailState.kind === 'error' && detailState.status === 404
+                ? 'Campeonato no disponible'
+                : 'Campeonato'}
+            </h1>
+            {detailState.kind === 'error' && detailState.status === 404 ? (
+              <p>
+                Este campeonato no existe o no está publicado en el portal.
+                Revise el enlace o vuelva al listado de competencias.
+              </p>
+            ) : (
+              <LoadState state={detailState} onRetry={reloadDetail} />
+            )}
           </div>
         )
       ) : (

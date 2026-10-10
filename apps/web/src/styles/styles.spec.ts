@@ -28,6 +28,22 @@ const css = Object.entries(sources)
   .join('\n');
 const tokens = sources['/src/styles/tokens.css']!;
 
+/**
+ * Clases del documento oficial impreso que no llevan estilo de pantalla a propósito:
+ * darles uno cambiaría el acta o la nómina (D-53). Solo `print.css` puede tocar la hoja.
+ */
+const OFFICIAL_SHEET_UNSTYLED = new Set([
+  'header-seal',
+  'seal-emblem',
+  'header-text',
+  'meta-item',
+  'status-tag',
+  'subscores-section',
+  'lineups-section',
+  'empty-cell',
+  'roster-table-section',
+]);
+
 /** Declaraciones `--nombre: valor` de un fragmento de CSS. */
 function declarations(text: string): Map<string, string> {
   const map = new Map<string, string>();
@@ -252,7 +268,20 @@ describe('estilos: tokens de diseño', () => {
       addClass(`btn-${size}`);
     }
 
-    const missing = [...used].filter((name) => !defined.has(name));
+    const missing = [...used].filter(
+      (name) => !defined.has(name) && !OFFICIAL_SHEET_UNSTYLED.has(name),
+    );
     expect(missing).toEqual([]);
+  });
+
+  it('las hojas de pantalla no dan estilo a las clases del documento oficial', () => {
+    const screenCss = Object.entries(sources)
+      .filter(([path]) => path.endsWith('.css') && !path.endsWith('/print.css'))
+      .map(([, text]) => text)
+      .join('\n');
+    const styled = [...OFFICIAL_SHEET_UNSTYLED].filter((name) =>
+      new RegExp(`\\.${name}(?![\\w-])`).test(screenCss),
+    );
+    expect(styled).toEqual([]);
   });
 });

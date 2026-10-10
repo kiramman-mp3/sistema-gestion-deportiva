@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { error, json, mockApi, page } from '../../test/mockApi.ts';
 import { AdminHome } from './AdminHome.tsx';
@@ -208,7 +209,7 @@ describe('AdminHome (spec §11)', () => {
     );
 
     // El bloque con error muestra su estado de error y botón de reintento
-    expect(await screen.findByText('Error')).toBeInTheDocument();
+    expect(await screen.findByText('No se pudo cargar.')).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Reintentar' }),
     ).toBeInTheDocument();
@@ -267,5 +268,62 @@ describe('AdminHome (spec §11)', () => {
         'Su cuenta no está vinculada a un árbitro u oficial de mesa.',
       ),
     ).toBeInTheDocument();
+  });
+  it('el reintento queda fuera del enlace de la tarjeta y vuelve a pedir el bloque', async () => {
+    let fail = true;
+    const api = mockApi({
+      ...defaultRoutes(),
+      'GET /athletes': () =>
+        fail
+          ? error(500, 'Error interno del servidor')
+          : page([], { total: 9 }),
+    });
+    render(<AdminHome permissions={['athletes:read']} />);
+
+    const retry = await screen.findByRole('button', { name: 'Reintentar' });
+    expect(retry.closest('a')).toBeNull();
+
+    fail = false;
+    await userEvent.click(retry);
+    const link = await screen.findByRole('link', {
+      name: /^Deportistas por habilitar de sus clubes\s*9$/,
+    });
+    expect(link).toHaveAttribute('href', '#/deportistas');
+    expect(api.of('GET', '/athletes')).toHaveLength(2);
+  });
+
+  it('la tarjeta de notificaciones se nombra por su texto visible', () => {
+    mockApi(defaultRoutes());
+    render(<AdminHome permissions={[]} unreadCount={5} />);
+    expect(
+      screen.getByRole('link', { name: /^Notificaciones sin leer\s*5$/ }),
+    ).toHaveAttribute('href', '#/notificaciones');
+  });
+
+  it('muestra solo los accesos directos que el usuario puede usar', async () => {
+    mockApi(defaultRoutes());
+    render(
+      <AdminHome permissions={['announcements:manage', 'reports:read']} />,
+    );
+    const shortcuts = screen.getByRole('region', { name: 'Accesos directos' });
+    const names = within(shortcuts)
+      .getAllByRole('link')
+      .map((a) => a.textContent);
+    expect(names).toEqual(['Publicar noticias', 'Generar reportes']);
+    expect(
+      await screen.findByText('Partidos y resultados'),
+    ).toBeInTheDocument();
+  });
+
+  it('cancela las peticiones pendientes al salir del inicio', () => {
+    mockApi(defaultRoutes());
+    const abort = vi.spyOn(AbortController.prototype, 'abort');
+    const { unmount } = render(
+      <AdminHome permissions={['athletes:read', 'cases:read']} />,
+    );
+    unmount();
+    // Bloque de deportistas, de expedientes y el público.
+    expect(abort.mock.calls.length).toBeGreaterThanOrEqual(3);
+    abort.mockRestore();
   });
 });

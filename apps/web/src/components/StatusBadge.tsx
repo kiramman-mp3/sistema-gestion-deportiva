@@ -74,7 +74,7 @@ export function StatusBadge({
 
   return (
     <span
-      className={`badge badge-${resolvedTone} status-${status ?? resolvedTone} ${className}`.trim()}
+      className={`badge status-pill badge-${resolvedTone} status-${status ?? resolvedTone} ${className}`.trim()}
     >
       {resolvedIcon && <Icon name={resolvedIcon} size={14} />}
       <span>{children}</span>

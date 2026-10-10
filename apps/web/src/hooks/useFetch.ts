@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { apiGet } from '../api/client.ts';
+import { ApiError, apiGet } from '../api/client.ts';
 
 export type FetchState<T> =
   | { kind: 'loading' }
   | { kind: 'ready'; data: T }
-  | { kind: 'error'; message: string };
+  | { kind: 'error'; message: string; status?: number };
 
 /**
  * Carga un recurso de la API. Pasar `null` desactiva la carga. Devuelve el estado y
@@ -33,6 +33,7 @@ export function useFetch<T>(path: string | null): [FetchState<T>, () => void] {
               error instanceof Error
                 ? error.message
                 : 'No se pudo cargar la información.',
+            status: error instanceof ApiError ? error.status : undefined,
           },
         });
       });

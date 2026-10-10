@@ -268,10 +268,6 @@ export function AppShell({
 
   return (
     <div className="panel-shell">
-      <a className="skip-link" href="#contenido">
-        Saltar al contenido
-      </a>
-
       {/* Barra lateral fija en pantallas ≥ 64rem */}
       <aside className="panel-sidebar">
         <div className="sidebar-brand-container">

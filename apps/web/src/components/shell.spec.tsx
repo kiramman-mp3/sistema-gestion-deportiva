@@ -7,7 +7,7 @@ import {
   resetInstitutionCacheForTesting,
 } from './InstitutionBrand.tsx';
 import { LoginForm } from '../features/auth/LoginForm.tsx';
-import { AuthContext } from '../features/auth/AuthContext.tsx';
+import { AuthProvider } from '../features/auth/AuthContext.tsx';
 import { error, json, mockApi } from '../test/mockApi.ts';
 import type {
   PublicHome,
@@ -172,12 +172,6 @@ describe('InstitutionBrand', () => {
 });
 
 describe('LoginForm', () => {
-  const dummyAuth = {
-    state: { status: 'anonymous' as const, expired: false },
-    login: vi.fn(),
-    logout: vi.fn(),
-  };
-
   const dummyInstitution: PublicInstitution = {
     name: 'Liga Cantonal de Quero',
     shortName: 'Liga de Quero',
@@ -241,14 +235,15 @@ describe('LoginForm', () => {
     };
 
     mockApi({
+      'GET /auth/session': () => error(401, 'No autenticado'),
       'GET /public/institution': () => json(dummyInstitution),
       'GET /public/home': () => json(homeWithRecent),
     });
 
     render(
-      <AuthContext.Provider value={dummyAuth}>
+      <AuthProvider>
         <LoginForm sessionExpired={false} />
-      </AuthContext.Provider>,
+      </AuthProvider>,
     );
 
     const scoreboard = await screen.findByLabelText('Último resultado oficial');
@@ -262,14 +257,15 @@ describe('LoginForm', () => {
 
   it('muestra solo el lema de identidad cuando la API falla o recent está vacío', async () => {
     mockApi({
+      'GET /auth/session': () => error(401, 'No autenticado'),
       'GET /public/institution': () => json(dummyInstitution),
       'GET /public/home': () => error(500, 'Error interno del servidor'),
     });
 
     render(
-      <AuthContext.Provider value={dummyAuth}>
+      <AuthProvider>
         <LoginForm sessionExpired={false} />
-      </AuthContext.Provider>,
+      </AuthProvider>,
     );
 
     expect(
