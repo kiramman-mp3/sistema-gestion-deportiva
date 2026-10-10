@@ -230,8 +230,7 @@ export function FixturesTab({
           {notice.text}
           <button
             type="button"
-            className="link-button"
-            style={{ marginLeft: '1rem' }}
+            className="link-button ms-4"
             onClick={() => setNotice(null)}
           >
             Cerrar
@@ -259,11 +258,7 @@ export function FixturesTab({
       </div>
 
       {addingStage && (
-        <form
-          onSubmit={handleCreateStage}
-          className="catalog-form"
-          style={{ marginBottom: '1.5rem' }}
-        >
+        <form onSubmit={handleCreateStage} className="catalog-form mb-6">
           <h3>Crear nueva etapa</h3>
           <div className="form-group">
             <label htmlFor="stage-name">Nombre de la etapa</label>
@@ -321,12 +316,8 @@ export function FixturesTab({
       ) : (
         <div className="stages-container">
           {stages.map((stage) => (
-            <div
-              key={stage.id}
-              className="catalog-card"
-              style={{ marginBottom: '2rem' }}
-            >
-              <div className="catalog-header" style={{ marginBottom: '1rem' }}>
+            <div key={stage.id} className="catalog-card mb-8">
+              <div className="catalog-header mb-4">
                 <div>
                   <h3>
                     Etapa {stage.sequence}: {stage.name}
@@ -351,8 +342,7 @@ export function FixturesTab({
               {addingRoundStageId === stage.id && (
                 <form
                   onSubmit={(e) => handleCreateRound(stage.id, e)}
-                  className="catalog-form"
-                  style={{ marginBottom: '1rem' }}
+                  className="catalog-form mb-4"
                 >
                   <h4>Nueva Jornada en {stage.name}</h4>
                   <div className="form-group">
@@ -380,7 +370,7 @@ export function FixturesTab({
               )}
 
               {stage.rounds.length === 0 ? (
-                <p style={{ color: 'var(--text-muted)' }}>
+                <p className="text-muted">
                   No hay jornadas registradas en esta etapa.
                 </p>
               ) : (
@@ -390,29 +380,13 @@ export function FixturesTab({
                   );
 
                   return (
-                    <div
-                      key={round.id}
-                      style={{
-                        background: 'var(--surface-sunken)',
-                        padding: '1rem',
-                        borderRadius: '6px',
-                        marginBottom: '1rem',
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          marginBottom: '0.75rem',
-                        }}
-                      >
-                        <h4 style={{ margin: 0 }}>{round.name}</h4>
+                    <div key={round.id} className="round-card">
+                      <div className="round-header">
+                        <h4 className="m-0">{round.name}</h4>
                         {canManage && schedulingRoundId !== round.id && (
                           <button
                             type="button"
-                            className="primary"
-                            style={{ fontSize: '0.875rem' }}
+                            className="primary text-sm"
                             onClick={() => setSchedulingRoundId(round.id)}
                           >
                             Programar partido
@@ -423,11 +397,7 @@ export function FixturesTab({
                       {schedulingRoundId === round.id && (
                         <form
                           onSubmit={(e) => handleScheduleEvent(round.id, e)}
-                          className="catalog-form"
-                          style={{
-                            marginBottom: '1rem',
-                            background: 'var(--surface)',
-                          }}
+                          className="catalog-form mb-4 event-schedule-form"
                         >
                           <h5>Programar partido en {round.name}</h5>
                           <div className="form-grid">
@@ -519,13 +489,7 @@ export function FixturesTab({
                       )}
 
                       {roundEvents.length === 0 ? (
-                        <p
-                          style={{
-                            margin: 0,
-                            fontSize: '0.875rem',
-                            color: 'var(--text-muted)',
-                          }}
-                        >
+                        <p className="m-0 text-sm text-muted">
                           No hay partidos programados en esta jornada.
                         </p>
                       ) : (
@@ -576,12 +540,7 @@ export function FixturesTab({
                                         )
                                       : 'Por programar'}
                                     {ev.postponementReason && (
-                                      <div
-                                        style={{
-                                          fontSize: '0.75rem',
-                                          color: 'var(--warning-text)',
-                                        }}
-                                      >
+                                      <div className="text-xs text-warning">
                                         Motivo: {ev.postponementReason}
                                       </div>
                                     )}
@@ -612,11 +571,7 @@ export function FixturesTab({
                                       {canSeeAssignments && (
                                         <button
                                           type="button"
-                                          style={{
-                                            fontSize: '0.75rem',
-                                            padding: '0.25rem 0.5rem',
-                                            marginRight: '0.5rem',
-                                          }}
+                                          className="btn-action-sm"
                                           onClick={() =>
                                             setAssignmentsEvent(ev)
                                           }
@@ -630,10 +585,7 @@ export function FixturesTab({
                                         ) && (
                                           <a
                                             href={`/api/reports/events/${ev.id}/scoresheet`}
-                                            style={{
-                                              fontSize: '0.75rem',
-                                              marginRight: '0.5rem',
-                                            }}
+                                            className="btn-action-sm"
                                           >
                                             Acta PDF
                                           </a>
@@ -641,11 +593,7 @@ export function FixturesTab({
                                       {canReport && (
                                         <button
                                           type="button"
-                                          style={{
-                                            fontSize: '0.75rem',
-                                            padding: '0.25rem 0.5rem',
-                                            marginRight: '0.5rem',
-                                          }}
+                                          className="btn-action-sm"
                                           onClick={() => setIncidentEvent(ev)}
                                         >
                                           Reportar incidencia
@@ -655,11 +603,7 @@ export function FixturesTab({
                                         <>
                                           <button
                                             type="button"
-                                            style={{
-                                              fontSize: '0.75rem',
-                                              padding: '0.25rem 0.5rem',
-                                              marginRight: '0.5rem',
-                                            }}
+                                            className="btn-action-sm"
                                             onClick={() =>
                                               setScoresheetEvent(ev)
                                             }
@@ -668,10 +612,7 @@ export function FixturesTab({
                                           </button>
                                           <button
                                             type="button"
-                                            style={{
-                                              fontSize: '0.75rem',
-                                              padding: '0.25rem 0.5rem',
-                                            }}
+                                            className="btn-action-sm"
                                             onClick={() => {
                                               setReschedulingEvent(ev);
                                               setRescheduleVenueId(
@@ -713,7 +654,7 @@ export function FixturesTab({
         <Modal onClose={() => setReschedulingEvent(null)}>
           <div className="dialog-content">
             <h3>Reprogramar partido</h3>
-            <p style={{ fontSize: '0.875rem' }}>
+            <p className="text-sm">
               Modifique la fecha, hora o escenario del partido. Debe justificar
               el motivo para fines de auditoría.
             </p>

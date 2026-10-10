@@ -67,7 +67,9 @@ export function RoleDetailPage({ roleId, permissions }: Props) {
       </p>
       <div className="catalog-header">
         <h1 id="role-title">{r.name}</h1>
-        <span className={`badge badge-${r.isSystem ? 'neutral' : 'ok'}`}>
+        <span
+          className={`badge ${r.isSystem ? 'badge-neutral' : 'badge-success'}`}
+        >
           <Icon name={r.isSystem ? 'lock' : 'pencil'} size={14} />{' '}
           {r.isSystem ? 'Rol de sistema' : 'Rol configurable'}
         </span>

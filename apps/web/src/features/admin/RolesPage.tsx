@@ -89,7 +89,7 @@ export function RolesPage({ permissions }: { permissions: readonly string[] }) {
                 </td>
                 <td data-label="Tipo">
                   <span
-                    className={`badge badge-${r.isSystem ? 'neutral' : 'ok'}`}
+                    className={`badge ${r.isSystem ? 'badge-neutral' : 'badge-success'}`}
                   >
                     <Icon name={r.isSystem ? 'lock' : 'pencil'} size={14} />{' '}
                     {r.isSystem ? 'De sistema' : 'Configurable'}

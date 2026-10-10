@@ -49,18 +49,7 @@ export function StandingsTab({ championship }: StandingsTabProps) {
 
           return (
             <>
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '1.5rem',
-                  background: 'var(--surface-sunken)',
-                  padding: '0.75rem 1rem',
-                  borderRadius: '6px',
-                  fontSize: '0.875rem',
-                  marginBottom: '1.5rem',
-                  flexWrap: 'wrap',
-                }}
-              >
+              <div className="standings-legend">
                 {isBasketball && (
                   <>
                     <div>
@@ -69,9 +58,7 @@ export function StandingsTab({ championship }: StandingsTabProps) {
                     <div>
                       <strong>Derrota jugada:</strong> 1 pt
                     </div>
-                    <div
-                      style={{ marginLeft: 'auto', color: 'var(--text-muted)' }}
-                    >
+                    <div className="standings-tiebreaker">
                       Desempate: PTS &gt; DP (Diferencia de puntos) &gt; PF
                       (Puntos a favor)
                     </div>
@@ -88,9 +75,7 @@ export function StandingsTab({ championship }: StandingsTabProps) {
                     <div>
                       <strong>Derrota:</strong> 0.0 pt
                     </div>
-                    <div
-                      style={{ marginLeft: 'auto', color: 'var(--text-muted)' }}
-                    >
+                    <div className="standings-tiebreaker">
                       Desempate: PTS &gt; Buchholz
                     </div>
                   </>
@@ -101,9 +86,7 @@ export function StandingsTab({ championship }: StandingsTabProps) {
                       <strong>Reglamento:</strong> WT / Eliminatoria y asaltos
                       por puntos
                     </div>
-                    <div
-                      style={{ marginLeft: 'auto', color: 'var(--text-muted)' }}
-                    >
+                    <div className="standings-tiebreaker">
                       Criterio: Victorias &gt; Puntos totales &gt; Menos
                       penalizaciones (Gam-jeom)
                     </div>
@@ -123,9 +106,7 @@ export function StandingsTab({ championship }: StandingsTabProps) {
                       <strong>Derrota:</strong>{' '}
                       {standingsState.data.rules.pointsLoss} pts
                     </div>
-                    <div
-                      style={{ marginLeft: 'auto', color: 'var(--text-muted)' }}
-                    >
+                    <div className="standings-tiebreaker">
                       Criterios de desempate: PTS &gt; DG &gt; GF &gt; Tarjetas
                     </div>
                   </>
@@ -143,10 +124,7 @@ export function StandingsTab({ championship }: StandingsTabProps) {
                 <table className="catalog-table">
                   <thead>
                     <tr>
-                      <th
-                        scope="col"
-                        style={{ width: '3rem', textAlign: 'center' }}
-                      >
+                      <th scope="col" className="standings-pos-col">
                         Pos
                       </th>
                       <th scope="col">Participante</th>
@@ -223,16 +201,15 @@ export function StandingsTab({ championship }: StandingsTabProps) {
                     {standingsState.data.standings.map((row) => (
                       <tr
                         key={row.registrationId}
-                        style={{
-                          background:
-                            row.position === 1
-                              ? 'rgba(40, 167, 69, 0.08)'
-                              : row.position <= 4
-                                ? 'rgba(0, 123, 255, 0.04)'
-                                : undefined,
-                        }}
+                        className={
+                          row.position === 1
+                            ? 'standings-row-leader'
+                            : row.position <= 4
+                              ? 'standings-row-top'
+                              : undefined
+                        }
                       >
-                        <td data-label="Pos" style={{ textAlign: 'center' }}>
+                        <td data-label="Pos" className="standings-pos-cell">
                           <strong>{row.position}</strong>
                         </td>
                         <td data-label="Participante">
@@ -249,7 +226,7 @@ export function StandingsTab({ championship }: StandingsTabProps) {
                         {isChess ? (
                           <>
                             <td data-label="PTS">
-                              <strong style={{ fontSize: '1.1rem' }}>
+                              <strong className="standings-pts">
                                 {row.points}
                               </strong>
                             </td>
@@ -261,15 +238,13 @@ export function StandingsTab({ championship }: StandingsTabProps) {
                             <td data-label="PC">{row.goalsAgainst}</td>
                             <td data-label="DP">
                               <span
-                                style={{
-                                  color:
-                                    row.goalDifference > 0
-                                      ? 'var(--success-text)'
-                                      : row.goalDifference < 0
-                                        ? 'var(--danger-text)'
-                                        : undefined,
-                                  fontWeight: 'bold',
-                                }}
+                                className={`standings-diff ${
+                                  row.goalDifference > 0
+                                    ? 'diff-positive'
+                                    : row.goalDifference < 0
+                                      ? 'diff-negative'
+                                      : ''
+                                }`.trim()}
                               >
                                 {row.goalDifference > 0
                                   ? `+${row.goalDifference}`
@@ -277,7 +252,7 @@ export function StandingsTab({ championship }: StandingsTabProps) {
                               </span>
                             </td>
                             <td data-label="PTS">
-                              <strong style={{ fontSize: '1.1rem' }}>
+                              <strong className="standings-pts">
                                 {row.points}
                               </strong>
                             </td>
@@ -287,10 +262,7 @@ export function StandingsTab({ championship }: StandingsTabProps) {
                             <td data-label="Puntos">
                               <strong>{row.goalsFor}</strong>
                             </td>
-                            <td
-                              data-label="Gam-jeom"
-                              style={{ color: '#dc3545' }}
-                            >
+                            <td data-label="Gam-jeom" className="text-danger">
                               {row.redCards}
                             </td>
                           </>
@@ -300,15 +272,13 @@ export function StandingsTab({ championship }: StandingsTabProps) {
                             <td data-label="GC">{row.goalsAgainst}</td>
                             <td data-label="DG">
                               <span
-                                style={{
-                                  color:
-                                    row.goalDifference > 0
-                                      ? 'var(--success-text)'
-                                      : row.goalDifference < 0
-                                        ? 'var(--danger-text)'
-                                        : undefined,
-                                  fontWeight: 'bold',
-                                }}
+                                className={`standings-diff ${
+                                  row.goalDifference > 0
+                                    ? 'diff-positive'
+                                    : row.goalDifference < 0
+                                      ? 'diff-negative'
+                                      : ''
+                                }`.trim()}
                               >
                                 {row.goalDifference > 0
                                   ? `+${row.goalDifference}`
@@ -316,7 +286,7 @@ export function StandingsTab({ championship }: StandingsTabProps) {
                               </span>
                             </td>
                             <td data-label="PTS">
-                              <strong style={{ fontSize: '1.1rem' }}>
+                              <strong className="standings-pts">
                                 {row.points}
                               </strong>
                             </td>

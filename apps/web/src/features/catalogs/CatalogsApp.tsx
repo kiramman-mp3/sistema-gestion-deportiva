@@ -19,8 +19,8 @@ import { AnnouncementsPage } from '../content/AnnouncementsPage.tsx';
 import { CaseDetailPage } from '../discipline/CaseDetailPage.tsx';
 import { DocumentsPage } from '../documents/DocumentsPage.tsx';
 import { DisciplinePage } from '../discipline/DisciplinePage.tsx';
-import { ApiStatus } from '../health/ApiStatus.tsx';
 import { InstitutionPage } from '../institution/InstitutionPage.tsx';
+import { AdminHome } from '../home/AdminHome.tsx';
 import { NotificationsPage } from '../notifications/NotificationsPage.tsx';
 import { MyAssignmentsPage } from '../officials/MyAssignmentsPage.tsx';
 import { OfficialDetailPage } from '../officials/OfficialDetailPage.tsx';
@@ -146,7 +146,6 @@ export function CatalogsApp({
   // Una dirección sin permiso (o desconocida) vuelve a Inicio.
   const active = visible.find((s) => matches(s, hash)) ?? visible[0]!;
   const detailId = hash.split('/')[2];
-  const hasAdminAccess = visible.some((s) => s.permission);
   const auth = useOptionalAuth();
   const user =
     auth && auth.state.status === 'authenticated'
@@ -163,19 +162,7 @@ export function CatalogsApp({
       activeHash={hash}
     >
       {active.hash === '#/' && (
-        <section aria-labelledby="home-title">
-          <h1 id="home-title">Inicio</h1>
-          {hasAdminAccess ? (
-            <p>Seleccione una sección para administrar la Liga.</p>
-          ) : (
-            <p>
-              Su cuenta no tiene permisos de administración. Solicite acceso a
-              un administrador de la Liga. Mientras tanto puede cambiar su
-              contraseña en «Mi cuenta».
-            </p>
-          )}
-          <ApiStatus />
-        </section>
+        <AdminHome permissions={permissions} unreadCount={unread} />
       )}
       {active.hash === '#/usuarios' &&
         (detailId && UUID.test(detailId) ? (
