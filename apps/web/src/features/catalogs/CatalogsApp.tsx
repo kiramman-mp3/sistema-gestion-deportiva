@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
-import { AppShell } from '../../components/AppShell.tsx';
-import { useOptionalAuth } from '../auth/AuthContext.tsx';
+import {
+  AppShell,
+  filterNavGroups,
+  isSectionActive,
+  PANEL_NAV_GROUPS,
+} from '../../components/AppShell.tsx';
 import { AuditPage } from '../admin/AuditPage.tsx';
 import { ChangePasswordForm } from '../admin/PasswordForms.tsx';
 import { RoleDetailPage } from '../admin/RoleDetailPage.tsx';
@@ -29,103 +33,23 @@ import { useUnreadCount } from '../notifications/useUnreadCount.ts';
 import { CatalogAdmin } from './CatalogAdmin.tsx';
 import { categoriesConfig, seasonsConfig, sportsConfig } from './configs.tsx';
 
-interface Section {
-  hash: string;
-  label: string;
-  /** Permiso de lectura que habilita la sección (la API lo vuelve a comprobar). */
-  permission?: string;
-}
-
-const SECTIONS: Section[] = [
-  { hash: '#/', label: 'Inicio' },
-  { hash: '#/usuarios', label: 'Usuarios', permission: 'users:read' },
-  { hash: '#/roles', label: 'Roles y permisos', permission: 'roles:read' },
-  {
-    hash: '#/deportes',
-    label: 'Deportes',
-    permission: sportsConfig.permissions.read,
-  },
-  {
-    hash: '#/categorias',
-    label: 'Categorías',
-    permission: categoriesConfig.permissions.read,
-  },
-  {
-    hash: '#/temporadas',
-    label: 'Temporadas',
-    permission: seasonsConfig.permissions.read,
-  },
-  { hash: '#/clubes', label: 'Clubes', permission: 'clubs:read' },
-  { hash: '#/deportistas', label: 'Deportistas', permission: 'athletes:read' },
-  { hash: '#/equipos', label: 'Equipos', permission: 'teams:read' },
-  {
-    hash: '#/campeonatos',
-    label: 'Campeonatos',
-    permission: 'championships:read',
-  },
-  {
-    hash: '#/arbitros',
-    label: 'Árbitros y jueces',
-    permission: 'officials:read',
-  },
-  {
-    hash: '#/mis-designaciones',
-    label: 'Mis designaciones',
-    permission: 'assignments:read_own',
-  },
-  {
-    hash: '#/disciplina',
-    label: 'Disciplina',
-    // Cualquiera de estos permisos habilita la sección (cada pestaña vuelve a comprobar el suyo).
-    permission: 'discipline',
-  },
-  { hash: '#/documentos', label: 'Documentos', permission: 'reports:read' },
-  {
-    hash: '#/noticias',
-    label: 'Noticias',
-    permission: 'announcements:read',
-  },
-  {
-    hash: '#/escenarios',
-    label: 'Escenarios',
-    permission: 'venues:read',
-  },
-  {
-    hash: '#/institucion',
-    label: 'Institución',
-    permission: 'institution:read',
-  },
-  { hash: '#/auditoria', label: 'Auditoría', permission: 'audit:read' },
-  { hash: '#/notificaciones', label: 'Notificaciones' },
-  { hash: '#/cuenta', label: 'Mi cuenta' },
-];
-
-/** Permisos que dan acceso a alguna pestaña de disciplina. */
-const DISCIPLINE_PERMISSIONS = [
-  'incidents:read',
-  'complaints:read',
-  'cases:read',
-  'sanctions:read',
-];
-
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function currentHash(): string {
   return window.location.hash || '#/';
 }
 
-const matches = (section: Section, hash: string) =>
-  section.hash === '#/'
-    ? hash === '#/'
-    : hash === section.hash || hash.startsWith(`${section.hash}/`);
-
 /** Navegación y secciones de administración, visibles según los permisos del usuario. */
 export function CatalogsApp({
   permissions,
   selfId,
+  userName,
+  onLogout,
 }: {
   permissions: readonly string[];
   selfId: string;
+  userName: string;
+  onLogout: () => void | Promise<void>;
 }) {
   const [hash, setHash] = useState(currentHash);
   const unread = useUnreadCount();
@@ -136,29 +60,21 @@ export function CatalogsApp({
     return () => window.removeEventListener('hashchange', onChange);
   }, []);
 
-  const visible = SECTIONS.filter(
-    (s) =>
-      !s.permission ||
-      (s.permission === 'discipline'
-        ? DISCIPLINE_PERMISSIONS.some((p) => permissions.includes(p))
-        : permissions.includes(s.permission)),
+  // Las secciones salen del mismo menú que se muestra (una sola definición).
+  const visible = filterNavGroups(PANEL_NAV_GROUPS, permissions).flatMap(
+    (group) => group.items,
   );
   // Una dirección sin permiso (o desconocida) vuelve a Inicio.
-  const active = visible.find((s) => matches(s, hash)) ?? visible[0]!;
+  const active =
+    visible.find((s) => isSectionActive(s.hash, hash)) ?? visible[0]!;
   const detailId = hash.split('/')[2];
-  const auth = useOptionalAuth();
-  const user =
-    auth && auth.state.status === 'authenticated'
-      ? auth.state.user
-      : { displayName: 'Usuario de la Liga' };
-  const logout = auth ? auth.logout : () => Promise.resolve();
 
   return (
     <AppShell
-      user={user}
+      user={{ displayName: userName }}
       permissions={permissions}
       unreadCount={unread}
-      logout={logout}
+      logout={onLogout}
       activeHash={hash}
     >
       {active.hash === '#/' && (

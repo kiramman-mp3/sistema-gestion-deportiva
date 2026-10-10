@@ -190,8 +190,19 @@ describe('contador de avisos en el menú', () => {
       'GET /notifications/unread-count': () => json({ unread: 3 }),
       'GET /health': () => json({ status: 'ok' }),
     });
-    render(<CatalogsApp permissions={[]} selfId="u1" />);
-    const link = await screen.findByRole('link', { name: /Notificaciones/ });
+    render(
+      <CatalogsApp
+        permissions={[]}
+        selfId="u1"
+        userName="Usuaria de prueba"
+        onLogout={() => undefined}
+      />,
+    );
+    // El inicio también enlaza a Notificaciones: se busca en el menú de secciones.
+    const menu = screen.getByRole('navigation', { name: 'Secciones' });
+    const link = await within(menu).findByRole('link', {
+      name: /Notificaciones/,
+    });
     await vi.waitFor(() => expect(link).toHaveTextContent('(3)'));
     expect(link).toHaveTextContent('3 sin leer');
   });

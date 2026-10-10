@@ -64,12 +64,6 @@ a {
   top: 1rem;
 }
 
-.site-header {
-  padding: 1.5rem 1rem;
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
-}
-
 .site-header h1 {
   margin: 0;
   font-size: 1.5rem;
@@ -124,6 +118,9 @@ button {
 }
 
 .site-header {
+  padding: 1.5rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
@@ -278,14 +275,6 @@ button.link {
   min-height: auto;
 }
 
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: flex-end;
-  margin: 1rem 0;
-}
-
 .filters .field {
   margin-bottom: 0;
 }
@@ -348,10 +337,6 @@ textarea {
   gap: 0.5rem;
 }
 
-.dialog-actions {
-  justify-content: flex-end;
-}
-
 .notice.success {
   border-left-color: var(--color-success);
 }
@@ -385,18 +370,6 @@ textarea {
   vertical-align: middle;
 }
 
-.badge {
-  white-space: nowrap;
-}
-
-.badge-ok {
-  color: var(--color-success);
-}
-
-.badge-off {
-  color: var(--color-text-muted);
-}
-
 .pagination {
   display: flex;
   flex-wrap: wrap;
@@ -404,26 +377,6 @@ textarea {
   align-items: center;
   justify-content: space-between;
   margin-top: 1rem;
-}
-
-.dialog-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  background: var(--color-backdrop);
-}
-
-.dialog {
-  width: 100%;
-  max-width: 28rem;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
 }
 
 .dialog h2 {
@@ -507,14 +460,6 @@ textarea {
 
 .definition-list dd {
   margin: 0;
-}
-
-.plain-list {
-  padding-left: 1.25rem;
-}
-
-.plain-list li {
-  margin-bottom: 0.5rem;
 }
 
 .plain-list li button {
@@ -616,15 +561,6 @@ pre.json {
   min-width: 0;
 }
 
-.portal-container {
-  max-width: 72rem;
-  width: 100%;
-  margin: 0 auto;
-  padding: 0 1rem;
-  box-sizing: border-box;
-  min-width: 0;
-}
-
 .portal-home-header {
   display: flex;
   flex-direction: column;
@@ -670,7 +606,8 @@ pre.json {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--color-on-brand) 15%, transparent);
   padding-bottom: 0.75rem;
 }
 
@@ -1026,10 +963,12 @@ pre.json {
 
 .champ-tags {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
 }
 
 .badge {
+  white-space: nowrap;
   padding: 0.25rem 0.5rem;
   background: var(--color-bg);
   border: 1px solid var(--color-border);
@@ -1038,22 +977,18 @@ pre.json {
   text-transform: capitalize;
 }
 
+/* StatusBadge: icono y texto separados y en caja de oración (spec §3 y §8). */
+.badge.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  text-transform: none;
+}
+
 .detail-tabs {
   display: flex;
   gap: 0.5rem;
   border-bottom: 2px solid var(--color-border);
-}
-
-.tab-btn {
-  padding: 0.75rem 1.25rem;
-  background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
-  color: var(--color-text-muted);
-  font-weight: 600;
-  font-size: 0.9375rem;
-  cursor: pointer;
-  margin-bottom: -2px;
 }
 
 .tab-btn.active {
@@ -1197,6 +1132,8 @@ pre.json {
 }
 
 .filters {
+  flex-wrap: wrap;
+  margin: 1rem 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
   gap: 0.75rem;
@@ -1436,31 +1373,34 @@ pre.json {
 }
 
 /* Portal público: navegación, noticias y pie */
-.portal-nav ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  margin: 1rem 0;
-  padding: 0;
-  list-style: none;
-  border-bottom: 1px solid var(--color-border);
-}
+/* Menú horizontal solo en escritorio: por debajo, el menú va en el panel lateral. */
+@media (min-width: 64rem) {
+  .portal-nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin: 1rem 0;
+    padding: 0;
+    list-style: none;
+    border-bottom: 1px solid var(--color-border);
+  }
 
-.portal-nav a {
-  display: block;
-  padding: 0.5rem 1rem;
-  color: var(--color-text);
-  text-decoration: none;
-  border-bottom: 3px solid transparent;
-}
+  .portal-nav a {
+    display: block;
+    padding: 0.5rem 1rem;
+    color: var(--color-text);
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+  }
 
-.portal-nav a[aria-current='page'] {
-  font-weight: 700;
-  border-bottom-color: var(--color-primary);
-}
+  .portal-nav a[aria-current='page'] {
+    font-weight: 700;
+    border-bottom-color: var(--color-primary);
+  }
 
-.portal-nav a:hover {
-  text-decoration: underline;
+  .portal-nav a:hover {
+    text-decoration: underline;
+  }
 }
 
 .hero-logo {
@@ -1665,10 +1605,8 @@ pre.json {
   overflow-y: auto;
 }
 .nav-group-title {
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   color: var(--color-text-muted);
   padding: 0 1rem 0.375rem 1rem;
   margin: 0;
@@ -1715,7 +1653,7 @@ pre.json {
 .nav-drawer-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: var(--color-backdrop);
   z-index: 998;
 }
 .nav-drawer {
@@ -1726,7 +1664,7 @@ pre.json {
   width: 18rem;
   max-width: 85vw;
   background: var(--color-surface);
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-md);
   z-index: 999;
   display: flex;
   flex-direction: column;
@@ -1751,6 +1689,8 @@ pre.json {
   gap: 1rem;
 }
 .portal-container {
+  box-sizing: border-box;
+  min-width: 0;
   max-width: 72rem;
   margin: 0 auto;
   padding: 1.5rem 1rem;
@@ -1777,7 +1717,7 @@ pre.json {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 0.75rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
 @media (min-width: 64rem) {
@@ -1807,8 +1747,7 @@ pre.json {
   border-radius: 0.5rem;
 }
 .scoreboard-snippet-title {
-  font-size: 0.75rem;
-  text-transform: uppercase;
+  font-size: 0.8125rem;
   color: var(--color-text-muted);
   font-weight: 700;
   margin-bottom: 0.5rem;
@@ -1823,9 +1762,10 @@ pre.json {
    ───────────────────────────────────────────────────────────── */
 
 .dialog-backdrop {
+  background: var(--color-backdrop);
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--color-backdrop);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1839,9 +1779,7 @@ pre.json {
   color: var(--color-text);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg, 0.75rem);
-  box-shadow:
-    0 10px 25px -5px rgba(0, 0, 0, 0.1),
-    0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
   max-width: 32rem;
   max-height: 90vh;
   overflow-y: auto;
@@ -1870,17 +1808,17 @@ pre.json {
   border-radius: 1.5px;
   vertical-align: middle;
   margin-right: 0.25rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-sm);
 }
 
 .yellow-card-shape {
-  background-color: #ffd600;
-  border: 1px solid #c7a500;
+  background-color: var(--color-accent);
+  border: 1px solid var(--color-warning);
 }
 
 .red-card-shape {
-  background-color: #d32f2f;
-  border: 1px solid #9a0007;
+  background-color: var(--color-danger-strong);
+  border: 1px solid var(--color-danger-strong);
 }
 
 .fair-play-item {
@@ -1932,12 +1870,12 @@ pre.json {
 }
 
 .btn-danger {
-  background-color: var(--color-danger, #dc3545);
-  color: #ffffff;
+  background-color: var(--color-danger-strong);
+  color: var(--color-on-danger-strong);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background-color: #bd2130;
+  filter: brightness(0.9);
 }
 
 .btn-ghost {
@@ -2116,15 +2054,54 @@ pre.json {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md, 8px);
-  text-decoration: none;
   color: var(--color-text);
   min-height: 90px;
+  gap: var(--space-3, 0.75rem);
 }
 
-.admin-metric-card:hover,
-.admin-metric-card:focus-visible {
+.admin-metric-card:has(.admin-metric-link:hover) {
   border-color: var(--color-primary);
-  outline: 2px solid var(--color-focus);
+}
+
+.admin-metric-link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 0.75rem);
+  flex: 1;
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+.admin-metric-link:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 4px;
+}
+
+.admin-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 0.5rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-shortcut {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+  padding: 0 var(--space-4, 1rem);
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.admin-shortcut:hover {
+  background: var(--color-surface-sunken);
 }
 
 .admin-metric-header {
@@ -2139,10 +2116,6 @@ pre.json {
   font-size: 0.875rem;
   font-weight: 600;
   line-height: 1.3;
-}
-
-.admin-metric-body {
-  margin-top: var(--space-3, 0.75rem);
 }
 
 .admin-metric-value {
@@ -2286,9 +2259,8 @@ pre.json {
 }
 
 .admin-match-vs {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--color-text-muted);
-  text-transform: uppercase;
   font-weight: 700;
 }
 
@@ -2354,12 +2326,12 @@ pre.json {
 }
 
 .standings-row-leader {
-  background: rgba(24, 121, 78, 0.08);
+  background: var(--color-surface-sunken);
   border-left: 4px solid var(--color-accent);
 }
 
 .standings-row-top {
-  background: rgba(31, 95, 166, 0.04);
+  background: var(--color-surface-sunken);
 }
 
 .standings-pts {
@@ -2606,16 +2578,7 @@ pre.json {
 .drawer-navigation {
   display: block;
 }
-.topbar-left {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
+
 .topbar-menu-button {
   display: flex;
   align-items: center;
@@ -2696,6 +2659,42 @@ pre.json {
     display: none;
   }
 }
+/* En móvil la barra superior deja los iconos con su nombre accesible para que
+   «Cerrar sesión» siga a la vista; el nombre del usuario se omite. */
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+@media (max-width: 47.99rem) {
+  .topbar-right {
+    gap: 0.5rem;
+  }
+  .topbar-username {
+    display: none;
+  }
+  .topbar-link,
+  .topbar-logout-button {
+    justify-content: center;
+    min-width: var(--target-min);
+  }
+  .topbar-link-text,
+  .topbar-logout-button span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
 
 /* NavDrawer & InstitutionBrand */
 .nav-drawer-close {
@@ -2754,8 +2753,14 @@ pre.json {
     justify-content: space-between;
     width: 24rem;
     padding: 2.5rem;
-    background: var(--color-surface-sunken);
-    border-right: 1px solid var(--color-border);
+    background: var(--color-brand);
+    color: var(--color-on-brand);
+    border-radius: var(--radius-lg);
+  }
+  .login-brand-panel .institution-name,
+  .login-brand-panel .institution-subtitle,
+  .login-brand-panel .login-motto {
+    color: var(--color-on-brand);
   }
 }
 .login-brand-header {
@@ -2763,16 +2768,15 @@ pre.json {
 }
 .login-scoreboard {
   background: var(--color-surface);
+  color: var(--color-text);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 1.25rem;
 }
 .scoreboard-badge {
   display: inline-block;
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   color: var(--color-primary);
   margin-bottom: 0.5rem;
 }
@@ -2793,15 +2797,21 @@ pre.json {
   flex: 1;
 }
 .scoreboard-vs {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: var(--color-text-muted);
-  text-transform: uppercase;
 }
 .team-score {
-  font-size: 1.25rem;
+  align-self: flex-start;
+  margin-top: 0.25rem;
+  padding: 0 0.5rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
   font-weight: 700;
-  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
 }
 .login-identity-message {
   padding: 1rem 0;
@@ -2832,23 +2842,26 @@ pre.json {
   display: flex;
   align-items: center;
 }
+.password-input-container input {
+  flex: 1;
+  min-width: 0;
+  padding-right: calc(var(--target-min) + 0.25rem);
+}
 .password-toggle-button {
   position: absolute;
-  right: 0.5rem;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  min-width: var(--target-min);
+  min-height: var(--target-min);
   background: transparent;
   border: none;
   color: var(--color-text-muted);
   cursor: pointer;
-  padding: 0.25rem;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.field-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 0.25rem;
 }
 
 /* Portal público (cabecera y pie) */
@@ -2863,6 +2876,8 @@ pre.json {
 .portal-topbar-brand {
   display: flex;
   align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
 }
 .portal-mobile-menu-btn {
   display: flex;
@@ -2895,6 +2910,9 @@ pre.json {
   }
 }
 .portal-nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
   color: var(--color-text);
   text-decoration: none;
   font-weight: 500;
@@ -2923,8 +2941,19 @@ pre.json {
   color: var(--color-on-primary);
 }
 @media (max-width: 48rem) {
+  .portal-login-button {
+    justify-content: center;
+    min-width: var(--target-min);
+    min-height: var(--target-min);
+  }
+  /* El texto se oculta a la vista pero sigue siendo el nombre accesible del botón. */
   .portal-login-button span {
-    display: none;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 }
 .portal-drawer-nav {
@@ -2960,8 +2989,6 @@ pre.json {
 .footer-title {
   font-size: 0.875rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   margin-bottom: 0.75rem;
   color: var(--color-text);
 }
@@ -3215,42 +3242,6 @@ pre.json {
 .invalid-doc {
   color: var(--color-danger);
   font-weight: 600;
-}
-
-/* Documentos oficiales vista e impresión */
-.header-seal {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1rem;
-}
-.seal-emblem {
-  font-size: 2.5rem;
-}
-.header-text {
-  text-align: center;
-}
-.meta-item {
-  display: flex;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-}
-.status-tag {
-  display: inline-block;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-.subscores-section {
-  margin: 1rem 0;
-}
-.lineups-section {
-  margin: 1.5rem 0;
-}
-.empty-cell {
-  color: var(--color-text-muted);
-  text-align: center;
-}
-.roster-table-section {
-  margin: 1.5rem 0;
 }
 
 /* Badges de compatibilidad y estados */

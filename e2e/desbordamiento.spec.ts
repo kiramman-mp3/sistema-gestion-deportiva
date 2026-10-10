@@ -97,6 +97,18 @@ async function firstRegistrationId(page: Page): Promise<string> {
 test.describe('sin desplazamiento horizontal', () => {
   test('portal público', async ({ page }) => {
     const failures: string[] = [];
+    // Detalle de campeonato (dirección compartible).
+    const { items } = (await (
+      await page.request.get('/api/public/championships')
+    ).json()) as { items: { id: string }[] };
+    for (const { id } of items)
+      failures.push(
+        ...(await overflowingWidths(
+          page,
+          `#/portal/competencias/${id}`,
+          WIDTHS,
+        )),
+      );
     for (const [route, widths] of PORTAL_ROUTES)
       failures.push(...(await overflowingWidths(page, route, widths)));
     expect(failures).toEqual([]);

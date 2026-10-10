@@ -187,21 +187,7 @@ export function LoginForm({ sessionExpired }: { sessionExpired: boolean }) {
           </div>
 
           <div className="field">
-            <div className="field-header">
-              <label htmlFor={passwordId}>Contraseña</label>
-              <button
-                type="button"
-                className="password-toggle-button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                aria-pressed={showPassword}
-                aria-label="Mostrar contraseña"
-                title={
-                  showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
-                }
-              >
-                <Icon name={showPassword ? 'eye-off' : 'eye'} size={18} />
-              </button>
-            </div>
+            <label htmlFor={passwordId}>Contraseña</label>
             <div className="password-input-container">
               <input
                 id={passwordId}
@@ -216,6 +202,18 @@ export function LoginForm({ sessionExpired }: { sessionExpired: boolean }) {
                 }
                 disabled={submitting}
               />
+              <button
+                type="button"
+                className="password-toggle-button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-pressed={showPassword}
+                aria-label="Mostrar contraseña"
+                title={
+                  showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                }
+              >
+                <Icon name={showPassword ? 'eye-off' : 'eye'} size={18} />
+              </button>
             </div>
             {fieldErrors.password && (
               <p className="field-error" id={`${passwordId}-error`}>
@@ -233,7 +231,7 @@ export function LoginForm({ sessionExpired }: { sessionExpired: boolean }) {
           <button
             type="submit"
             disabled={submitting}
-            className="login-submit-button"
+            className="primary login-submit-button"
           >
             {submitting ? 'Ingresando…' : 'Ingresar'}
           </button>
