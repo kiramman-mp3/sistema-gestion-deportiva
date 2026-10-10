@@ -410,8 +410,9 @@ button.link {
   font-size: 1.125rem;
 }
 
-/* En pantallas pequeñas la tabla se apila: cada fila es una tarjeta */
-@media (max-width: 40rem) {
+/* Hasta 60rem la tabla se apila: cada fila es una tarjeta. Por debajo de ese ancho
+   las tablas más extensas del panel (Usuarios, Roles) no caben en columnas. */
+@media (max-width: 60rem) {
   .responsive-table,
   .responsive-table tbody,
   .responsive-table tr,
@@ -434,16 +435,22 @@ button.link {
     border-radius: 0.5rem;
   }
 
+  /* Los valores bajan de línea en lugar de comprimirse; solo un valor sin espacios
+     más largo que la tarjeta (un UUID, por ejemplo) se parte. */
   .responsive-table td {
     display: flex;
-    gap: 1rem;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
     justify-content: space-between;
     border-bottom: 1px solid var(--border);
+    overflow-wrap: anywhere;
   }
 
   .responsive-table td::before {
     content: attr(data-label);
+    margin-right: auto;
     font-weight: 600;
+    overflow-wrap: normal;
   }
 
   .responsive-table td.row-actions {
@@ -1156,6 +1163,20 @@ pre.json {
 
 .detail-list dd {
   margin: 0;
+}
+
+/* En móvil, etiqueta y valor de las listas de detalle se apilan. */
+@media (max-width: 40rem) {
+  .definition-list,
+  .detail-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .definition-list dd,
+  .detail-list dd {
+    margin-bottom: 0.5rem;
+    overflow-wrap: break-word;
+  }
 }
 
 .tabs {
