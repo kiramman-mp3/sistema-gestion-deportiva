@@ -11,13 +11,6 @@ interface CompetitionsViewProps {
   onOpenPrintDocument?: (kind: 'acta' | 'nomina', id: string) => void;
 }
 
-const SPORT_ICONS: Record<string, string> = {
-  futbol: '⚽',
-  basquet: '🏀',
-  taekwondo: '🥋',
-  ajedrez: '♟️',
-};
-
 /** Campeonatos oficiales con su calendario, resultados y tabla de posiciones. */
 export function CompetitionsView({
   onOpenPrintDocument,
@@ -45,13 +38,12 @@ export function CompetitionsView({
   });
 
   const sportFilters = [
-    { code: 'all', label: 'Todos los deportes', icon: '🏆' },
+    { code: 'all', label: 'Todos los deportes' },
     ...[
       ...new Map(allChampionships.map((c) => [c.sport.code, c.sport])).values(),
     ].map((sport) => ({
       code: sport.code,
       label: sport.name,
-      icon: SPORT_ICONS[sport.code] ?? '🏅',
     })),
   ];
 
@@ -93,8 +85,9 @@ export function CompetitionsView({
                   type="button"
                   className={`sport-tab-button ${selectedSport === s.code ? 'active' : ''}`}
                   onClick={() => setSelectedSport(s.code)}
+                  aria-pressed={selectedSport === s.code}
                 >
-                  <span className="tab-icon">{s.icon}</span> {s.label}
+                  {s.label}
                 </button>
               ))}
             </div>
