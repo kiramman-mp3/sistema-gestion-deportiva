@@ -66,7 +66,7 @@ export function DisciplinePage({
   return (
     <section aria-labelledby="discipline-title" className="catalog">
       <div className="catalog-header">
-        <h2 id="discipline-title">Disciplina</h2>
+        <h1 id="discipline-title">Disciplina</h1>
       </div>
       <Notice notice={notice} onClose={() => setNotice(null)} />
       {visible.length === 0 ? (
@@ -466,7 +466,7 @@ function ComplaintForm({
 
   return (
     <form className="catalog-form" onSubmit={submit} noValidate>
-      <h3>Nuevo reclamo</h3>
+      <h2>Nuevo reclamo</h2>
       <SelectField
         label="Club que reclama"
         value={clubId}
@@ -584,7 +584,7 @@ function ComplaintDialog({
         <LoadState state={detail} onRetry={reload} />
         {detail.kind === 'ready' && (
           <>
-            <h4>{detail.data.subject}</h4>
+            <h3>{detail.data.subject}</h3>
             <p className="hint">
               {detail.data.club.name} · {detail.data.championship.name} ·{' '}
               {COMPLAINT_STATUS_LABELS[detail.data.status]}
@@ -596,7 +596,7 @@ function ComplaintDialog({
                 {detail.data.dismissReason}
               </p>
             )}
-            <h5>Adjuntos</h5>
+            <h4>Adjuntos</h4>
             {detail.data.attachments.length === 0 ? (
               <p className="empty">Sin adjuntos.</p>
             ) : (
@@ -858,7 +858,7 @@ function CaseForm({
 
   return (
     <form className="catalog-form" onSubmit={submit} noValidate>
-      <h3>Nuevo expediente disciplinario</h3>
+      <h2>Nuevo expediente disciplinario</h2>
       {links.length > 0 && (
         <p className="hint">Se vincularán: {links.join(' y ')}.</p>
       )}

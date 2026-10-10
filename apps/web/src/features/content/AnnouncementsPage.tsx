@@ -77,7 +77,7 @@ export function AnnouncementsPage({
   return (
     <section aria-labelledby="content-title" className="catalog">
       <div className="catalog-header">
-        <h2 id="content-title">Noticias y comunicados</h2>
+        <h1 id="content-title">Noticias y comunicados</h1>
         <div className="row-actions">
           <button type="button" onClick={() => setShowMedia((v) => !v)}>
             {showMedia ? 'Ocultar imágenes' : 'Imágenes'}
@@ -478,7 +478,7 @@ function MediaLibrary({
 
   return (
     <section className="catalog-form" aria-label="Biblioteca de imágenes">
-      <h3>Imágenes</h3>
+      <h2>Imágenes</h2>
       {canManage && (
         <form onSubmit={upload} noValidate>
           <TextField

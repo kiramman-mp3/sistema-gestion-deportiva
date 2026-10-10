@@ -14,7 +14,7 @@ export function StandingsTab({ championship }: StandingsTabProps) {
     <div className="tab-panel">
       <div className="catalog-header">
         <div>
-          <h3>Tabla de Posiciones Oficial</h3>
+          <h2>Tabla de Posiciones Oficial</h2>
           <p className="catalog-intro">
             Calculada dinámicamente según el reglamento vigente (
             {championship.sport.name}) y actas oficiales aprobadas.

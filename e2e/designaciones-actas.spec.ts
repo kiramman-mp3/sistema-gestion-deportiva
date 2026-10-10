@@ -10,7 +10,7 @@ test.describe('flujo de designación de árbitros, registro de acta y aprobació
     await goToSection(page, 'Campeonatos');
 
     await page.getByRole('link', { name: 'Fútbol Liga A' }).click();
-    await expect(page.getByRole('heading', { level: 2 })).toContainText(
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(
       'Fútbol Liga A',
     );
 

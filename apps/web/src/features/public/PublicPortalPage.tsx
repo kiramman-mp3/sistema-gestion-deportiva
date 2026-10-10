@@ -1,4 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Icon } from '../../components/Icon.tsx';
+import { InstitutionBrand } from '../../components/InstitutionBrand.tsx';
+import { NavDrawer } from '../../components/NavDrawer.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import { CompetitionsView } from './CompetitionsView.tsx';
 import {
@@ -83,6 +86,8 @@ export function PublicPortalPage({
     parsePortalRoute(window.location.hash),
   );
   const [institution] = useFetch<PublicInstitution>('/public/institution');
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const onChange = () => {
@@ -115,83 +120,137 @@ export function PublicPortalPage({
 
   return (
     <div className="public-portal">
-      <header className="portal-hero">
-        <div className="hero-content">
-          {info?.hasLogo && (
-            <img
-              className="hero-logo"
-              src="/api/public/institution/logo"
-              alt={`Logotipo de ${info.name}`}
-            />
-          )}
-          <div className="hero-badge">Portal oficial</div>
-          <h2>{info?.name ?? 'Liga Deportiva Cantonal de Quero'}</h2>
-          <p className="hero-description">
-            {info?.affiliation ? `${info.affiliation}. ` : ''}
-            Resultados oficiales, clasificaciones, calendarios y noticias de las
-            competencias deportivas cantonales.
-          </p>
-          {onLoginClick && (
-            <div className="hero-actions">
+      {/* Barra superior del portal según spec §6 y §13 */}
+      <header className="portal-topbar">
+        <div className="portal-topbar-inner">
+          <div className="portal-topbar-brand">
+            <button
+              ref={menuButtonRef}
+              type="button"
+              className="portal-mobile-menu-btn"
+              onClick={() => setDrawerOpen(true)}
+              aria-label="Abrir menú"
+            >
+              <Icon name="menu" size={22} />
+            </button>
+            <InstitutionBrand href="#/portal" showSubtitle />
+          </div>
+
+          <nav className="portal-nav" aria-label="Secciones del portal">
+            <ul className="portal-nav-list">
+              {visible.map((n) => (
+                <li key={n.page}>
+                  <a
+                    href={n.hash}
+                    aria-current={n.page === current ? 'page' : undefined}
+                    className={`portal-nav-link ${
+                      n.page === current ? 'active' : ''
+                    }`.trim()}
+                  >
+                    {n.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <nav aria-label="Portal y acceso" className="portal-auth-nav">
+            {onLoginClick ? (
               <button
                 type="button"
+                className="portal-login-button"
                 onClick={onLoginClick}
-                className="secondary-button"
               >
-                🔐 Acceso para dirigentes y jueces
+                <Icon name="lock" size={16} />
+                <span>Acceso para dirigentes y árbitros</span>
               </button>
-            </div>
-          )}
+            ) : (
+              <a href="#/" className="portal-login-button">
+                <Icon name="lock" size={16} />
+                <span>Acceso para dirigentes y árbitros</span>
+              </a>
+            )}
+          </nav>
         </div>
       </header>
 
-      <nav className="portal-nav" aria-label="Secciones del portal">
-        <ul>
-          {visible.map((n) => (
-            <li key={n.page}>
-              <a
-                href={n.hash}
-                aria-current={n.page === current ? 'page' : undefined}
-              >
-                {n.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      {/* Menú móvil del portal */}
+      <NavDrawer
+        isOpen={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        triggerRef={menuButtonRef}
+        title="Secciones del portal"
+      >
+        <nav aria-label="Secciones del portal" className="portal-drawer-nav">
+          <ul className="portal-drawer-list">
+            {visible.map((n) => (
+              <li key={n.page}>
+                <a
+                  href={n.hash}
+                  aria-current={n.page === current ? 'page' : undefined}
+                  className={`portal-drawer-link ${
+                    n.page === current ? 'active' : ''
+                  }`.trim()}
+                  onClick={() => setDrawerOpen(false)}
+                >
+                  {n.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </NavDrawer>
 
-      {route.page === 'inicio' && <HomePage />}
-      {route.page === 'competencias' && (
-        <CompetitionsView onOpenPrintDocument={onOpenPrintDocument} />
-      )}
-      {route.page === 'calendario' && <CalendarPage />}
-      {route.page === 'partido' && (
-        <MatchPage eventId={route.id} onOpenPrint={openPrint} />
-      )}
-      {route.page === 'noticias' && <NewsListPage />}
-      {route.page === 'noticia' && <NewsArticlePage slug={route.slug} />}
-      {route.page === 'clubes' && <ClubsPage />}
-      {route.page === 'resoluciones' && <ResolutionsPage />}
-      {route.page === 'liga' && info && <AboutPage institution={info} />}
-      {route.page === 'verificar' && <VerifyPage code={route.code} />}
+      <main className="portal-container" id="contenido">
+        {route.page === 'inicio' && (
+          <>
+            <div className="portal-home-header">
+              <h1 className="portal-title">
+                {info?.name ?? 'Liga Deportiva Cantonal de Quero'}
+              </h1>
+              <p className="portal-description">
+                {info?.affiliation ? `${info.affiliation}. ` : ''}
+                Resultados oficiales, clasificaciones, calendarios y noticias de
+                las competencias deportivas cantonales.
+              </p>
+            </div>
+            <HomePage />
+          </>
+        )}
+        {route.page === 'competencias' && (
+          <CompetitionsView onOpenPrintDocument={onOpenPrintDocument} />
+        )}
+        {route.page === 'calendario' && <CalendarPage />}
+        {route.page === 'partido' && (
+          <MatchPage eventId={route.id} onOpenPrint={openPrint} />
+        )}
+        {route.page === 'noticias' && <NewsListPage />}
+        {route.page === 'noticia' && <NewsArticlePage slug={route.slug} />}
+        {route.page === 'clubes' && <ClubsPage />}
+        {route.page === 'resoluciones' && <ResolutionsPage />}
+        {route.page === 'liga' && info && <AboutPage institution={info} />}
+        {route.page === 'verificar' && <VerifyPage code={route.code} />}
+      </main>
 
       <footer className="portal-footer">
-        <p>
-          <strong>{info?.name ?? 'Liga Deportiva Cantonal de Quero'}</strong>
-          {info?.canton ? ` · ${info.canton}` : ''}
-        </p>
-        {(info?.email || info?.phone) && (
-          <p>
-            {info.phone}
-            {info.phone && info.email ? ' · ' : ''}
-            {info.email}
+        <div className="portal-footer-inner">
+          <p className="footer-title">
+            <strong>{info?.name ?? 'Liga Deportiva Cantonal de Quero'}</strong>
+            {info?.canton ? ` · ${info.canton}` : ''}
           </p>
-        )}
-        <p>
-          <a href="#/portal/liga">Contacto y política de privacidad</a>
-          {' · '}
-          <a href="#/portal/verificar">Verificar un documento</a>
-        </p>
+          {(info?.email || info?.phone) && (
+            <p className="footer-contact">
+              {info.phone}
+              {info.phone && info.email ? ' · ' : ''}
+              {info.email}
+            </p>
+          )}
+          <p className="footer-links">
+            <a href="#/portal/liga">Contacto y política de privacidad</a>
+            {' · '}
+            <a href="#/portal/verificar">Verificar un documento</a>
+          </p>
+        </div>
       </footer>
     </div>
   );

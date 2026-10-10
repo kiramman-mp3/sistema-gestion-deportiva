@@ -25,7 +25,7 @@ test.describe('flujo disciplinario: reclamos, expedientes, resolución y publica
     // Abre el formulario de nuevo reclamo
     await page.getByRole('button', { name: 'Nuevo reclamo' }).click();
     await expect(
-      page.getByRole('heading', { level: 3, name: 'Nuevo reclamo' }),
+      page.getByRole('heading', { level: 2, name: 'Nuevo reclamo' }),
     ).toBeVisible();
 
     // Selecciona club Deportivo Quero (al que pertenece dirigente1)
@@ -73,7 +73,7 @@ test.describe('flujo disciplinario: reclamos, expedientes, resolución y publica
     // El formulario de nuevo expediente se muestra prellenado
     await expect(
       page.getByRole('heading', {
-        level: 3,
+        level: 2,
         name: 'Nuevo expediente disciplinario',
       }),
     ).toBeVisible();
@@ -145,7 +145,7 @@ test.describe('flujo disciplinario: reclamos, expedientes, resolución y publica
     await page.goto('/#/portal/resoluciones');
     await expect(
       page.getByRole('heading', {
-        level: 3,
+        level: 1,
         name: 'Resoluciones disciplinarias',
       }),
     ).toBeVisible();

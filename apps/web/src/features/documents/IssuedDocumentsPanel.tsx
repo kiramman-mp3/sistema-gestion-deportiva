@@ -51,7 +51,7 @@ export function IssuedDocumentsPanel({
 
   return (
     <section aria-labelledby="issued-title">
-      <h3 id="issued-title">Carnés y certificados</h3>
+      <h2 id="issued-title">Carnés y certificados</h2>
       <Notice notice={notice} onClose={() => setNotice(null)} />
       <div className="form-actions">
         <button

@@ -55,7 +55,7 @@ export function DocumentsPage({
   return (
     <section aria-labelledby="documents-title" className="catalog">
       <div className="catalog-header">
-        <h2 id="documents-title">Reportes y documentos</h2>
+        <h1 id="documents-title">Reportes y documentos</h1>
       </div>
       <p className="hint">
         Cada documento lleva la fecha de generación y un código, y queda

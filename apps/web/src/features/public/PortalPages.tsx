@@ -126,7 +126,14 @@ export function MatchRow({ event }: { event: PublicEventSummary }) {
 
 // ───────────────────── Inicio ─────────────────────
 
-export function NewsCard({ item }: { item: PublicAnnouncementSummary }) {
+export function NewsCard({
+  item,
+  headingLevel = 'h2',
+}: {
+  item: PublicAnnouncementSummary;
+  headingLevel?: 'h2' | 'h3';
+}) {
+  const TitleTag = headingLevel;
   return (
     <article className="news-card">
       {item.cover && (
@@ -140,9 +147,9 @@ export function NewsCard({ item }: { item: PublicAnnouncementSummary }) {
           {item.kind === 'comunicado' ? 'Comunicado' : 'Noticia'} ·{' '}
           {dateOnly.format(new Date(item.publishedAt))}
         </span>
-        <h4>
+        <TitleTag>
           <a href={`#/portal/noticias/${item.slug}`}>{item.title}</a>
-        </h4>
+        </TitleTag>
         <p>{item.summary}</p>
       </div>
     </article>
@@ -159,19 +166,19 @@ export function HomePage() {
           {home.data.news.length > 0 && (
             <section className="portal-section" aria-labelledby="home-news">
               <div className="section-header">
-                <h3 id="home-news">Últimas noticias</h3>
+                <h2 id="home-news">Últimas noticias</h2>
                 <a href="#/portal/noticias">Ver todas</a>
               </div>
               <div className="news-grid">
                 {home.data.news.map((n) => (
-                  <NewsCard key={n.slug} item={n} />
+                  <NewsCard key={n.slug} item={n} headingLevel="h3" />
                 ))}
               </div>
             </section>
           )}
           <section className="portal-section" aria-labelledby="home-upcoming">
             <div className="section-header">
-              <h3 id="home-upcoming">Próximos partidos</h3>
+              <h2 id="home-upcoming">Próximos partidos</h2>
               <a href="#/portal/calendario">Ver calendario</a>
             </div>
             {home.data.upcoming.length === 0 ? (
@@ -188,7 +195,7 @@ export function HomePage() {
           </section>
           <section className="portal-section" aria-labelledby="home-recent">
             <div className="section-header">
-              <h3 id="home-recent">Últimos resultados oficiales</h3>
+              <h2 id="home-recent">Últimos resultados oficiales</h2>
               <a href="#/portal/competencias">Ver posiciones</a>
             </div>
             {home.data.recent.length === 0 ? (
@@ -252,7 +259,7 @@ export function CalendarPage() {
   return (
     <section className="portal-section" aria-labelledby="calendar-title">
       <div className="section-header">
-        <h3 id="calendar-title">Calendario de partidos</h3>
+        <h1 id="calendar-title">Calendario de partidos</h1>
       </div>
       <div className="filters">
         <TextField
@@ -348,9 +355,9 @@ export function MatchPage({
       <LoadState state={event} onRetry={reload} />
       {event.kind === 'ready' && (
         <>
-          <h3 id="match-title">
+          <h1 id="match-title">
             {event.data.participants.map((p) => p.name).join(' vs ')}
-          </h3>
+          </h1>
           <p className="hint">
             {event.data.championship.name} ·{' '}
             {event.data.championship.sport.name} ·{' '}
@@ -373,7 +380,7 @@ export function MatchPage({
             <>
               {event.data.result.footballEvents.length > 0 && (
                 <>
-                  <h4>Incidencias del partido</h4>
+                  <h2>Incidencias del partido</h2>
                   <ul className="plain-list">
                     {event.data.result.footballEvents.map((fe, i) => (
                       <li key={i}>
@@ -428,7 +435,7 @@ export function NewsListPage() {
   return (
     <section className="portal-section" aria-labelledby="news-title">
       <div className="section-header">
-        <h3 id="news-title">Noticias y comunicados</h3>
+        <h1 id="news-title">Noticias y comunicados</h1>
       </div>
       <div className="filters">
         <SelectField
@@ -484,7 +491,7 @@ export function NewsArticlePage({ slug }: { slug: string }) {
             {article.data.kind === 'comunicado' ? 'Comunicado' : 'Noticia'} ·{' '}
             {dateOnly.format(new Date(article.data.publishedAt))}
           </span>
-          <h2 id="article-title">{article.data.title}</h2>
+          <h1 id="article-title">{article.data.title}</h1>
           {article.data.cover && (
             <img
               className="article-cover"
@@ -512,7 +519,7 @@ export function ClubsPage() {
   return (
     <section className="portal-section" aria-labelledby="clubs-title">
       <div className="section-header">
-        <h3 id="clubs-title">Organizaciones y clubes afiliados</h3>
+        <h1 id="clubs-title">Organizaciones y clubes afiliados</h1>
       </div>
       <LoadState state={clubs} onRetry={reload} />
       {clubs.kind === 'ready' && clubs.data.items.length === 0 && (
@@ -547,7 +554,7 @@ export function ResolutionsPage() {
   return (
     <section className="portal-section" aria-labelledby="resolutions-title">
       <div className="section-header">
-        <h3 id="resolutions-title">Resoluciones disciplinarias</h3>
+        <h1 id="resolutions-title">Resoluciones disciplinarias</h1>
       </div>
       <p className="hint">
         Solo se publican las resoluciones que la Liga decide hacer públicas, sin
@@ -565,7 +572,7 @@ export function ResolutionsPage() {
                 {r.code} · {dateOnly.format(new Date(r.publishedAt))}
                 {r.championship ? ` · ${r.championship}` : ''}
               </span>
-              <h4>{r.title}</h4>
+              <h2>{r.title}</h2>
               {r.summary && <Paragraphs text={r.summary} />}
               {r.sanctions.length > 0 && (
                 <ul className="plain-list">
@@ -602,7 +609,7 @@ export function AboutPage({ institution }: { institution: PublicInstitution }) {
   return (
     <section className="portal-section" aria-labelledby="about-title">
       <div className="section-header">
-        <h3 id="about-title">{institution.name}</h3>
+        <h1 id="about-title">{institution.name}</h1>
       </div>
       {institution.affiliation && <p>{institution.affiliation}</p>}
       {institution.about ? (
@@ -627,7 +634,7 @@ export function AboutPage({ institution }: { institution: PublicInstitution }) {
         </dl>
       )}
 
-      <h3 id="contact">Contacto</h3>
+      <h2 id="contact">Contacto</h2>
       <dl className="detail-list">
         {institution.address && (
           <>
@@ -662,7 +669,7 @@ export function AboutPage({ institution }: { institution: PublicInstitution }) {
       </dl>
       {institution.contactInfo && <Paragraphs text={institution.contactInfo} />}
 
-      <h3 id="privacy">Política de privacidad</h3>
+      <h2 id="privacy">Política de privacidad</h2>
       {institution.privacyPolicy ? (
         <Paragraphs text={institution.privacyPolicy} />
       ) : (
@@ -690,7 +697,7 @@ export function VerifyPage({ code }: { code?: string }) {
   return (
     <section className="portal-section" aria-labelledby="verify-title">
       <div className="section-header">
-        <h3 id="verify-title">Verificar un documento</h3>
+        <h1 id="verify-title">Verificar un documento</h1>
       </div>
       <p>
         Escriba el código de verificación impreso en el carné o certificado (o
@@ -719,11 +726,11 @@ export function VerifyPage({ code }: { code?: string }) {
         <output
           className={`championship-card ${result.data.valid ? '' : 'invalid-doc'}`}
         >
-          <h4>
+          <h2>
             {result.data.valid
               ? '✔ Documento auténtico y vigente'
               : '✖ Documento anulado o reemplazado'}
-          </h4>
+          </h2>
           <dl className="detail-list">
             <dt>Documento</dt>
             <dd>

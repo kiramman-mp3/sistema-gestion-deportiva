@@ -30,7 +30,7 @@ function currentHash(): string {
 }
 
 function Shell() {
-  const { state, logout } = useAuth();
+  const { state } = useAuth();
   // El token se lee una vez y se borra de la dirección (historial, marcadores, capturas).
   const [credential, setCredential] = useState(readCredentialRoute);
   const [hash, setHash] = useState(currentHash);
@@ -58,43 +58,16 @@ function Shell() {
       <a className="skip-link" href="#contenido">
         Saltar al contenido
       </a>
-      <header className="site-header">
-        <div>
-          <h1>Liga Cantonal de Quero</h1>
-          <p>Campeonatos, calendarios y resultados oficiales</p>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <nav aria-label="Portal y acceso">
-            {isPortalRoute ? (
-              <a href="#/" className="link-button">
-                {state.status === 'authenticated'
-                  ? 'Panel de Administración'
-                  : 'Iniciar sesión'}
-              </a>
-            ) : (
-              <a href="#/portal" className="link-button">
-                Portal Público
-              </a>
-            )}
-          </nav>
-          {state.status === 'authenticated' && !credential && (
-            <div className="session-info">
-              <span>{state.user.displayName}</span>
-              <button type="button" onClick={() => void logout()}>
-                Cerrar sesión
-              </button>
-            </div>
-          )}
-        </div>
-      </header>
-      <main id="contenido" className="container">
-        {credential ? (
+      {credential ? (
+        <main id="contenido" className="container">
           <CompleteCredentialForm
             kind={credential.kind}
             token={credential.token}
             onDone={() => setCredential(null)}
           />
-        ) : printRoute ? (
+        </main>
+      ) : printRoute ? (
+        <main id="contenido">
           <PrintDocumentView
             kind={printRoute.kind}
             id={printRoute.id}
@@ -102,30 +75,36 @@ function Shell() {
               window.location.hash = '#/portal';
             }}
           />
-        ) : isPortalRoute ? (
-          <PublicPortalPage
-            onLoginClick={() => {
-              window.location.hash = '#/';
-            }}
-            onOpenPrintDocument={(kind, id) => {
-              window.location.hash = `#/imprimir/${kind}/${id}`;
-            }}
-          />
-        ) : (
-          <>
-            {state.status === 'loading' && <output>Comprobando sesión…</output>}
-            {state.status === 'anonymous' && (
+        </main>
+      ) : isPortalRoute ? (
+        <PublicPortalPage
+          onLoginClick={() => {
+            window.location.hash = '#/';
+          }}
+          onOpenPrintDocument={(kind, id) => {
+            window.location.hash = `#/imprimir/${kind}/${id}`;
+          }}
+        />
+      ) : (
+        <>
+          {state.status === 'loading' && (
+            <main id="contenido" className="container">
+              <output>Comprobando sesión…</output>
+            </main>
+          )}
+          {state.status === 'anonymous' && (
+            <main id="contenido" className="login-main">
               <LoginForm sessionExpired={state.expired} />
-            )}
-            {state.status === 'authenticated' && (
-              <CatalogsApp
-                permissions={state.permissions}
-                selfId={state.user.id}
-              />
-            )}
-          </>
-        )}
-      </main>
+            </main>
+          )}
+          {state.status === 'authenticated' && (
+            <CatalogsApp
+              permissions={state.permissions}
+              selfId={state.user.id}
+            />
+          )}
+        </>
+      )}
     </>
   );
 }

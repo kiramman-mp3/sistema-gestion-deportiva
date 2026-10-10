@@ -263,6 +263,14 @@
 
   .site-header,
   .main-nav,
+  .panel-shell,
+  .panel-navigation,
+  .panel-sidebar,
+  .panel-topbar,
+  .portal-topbar,
+  .portal-footer,
+  .nav-drawer,
+  .nav-drawer-backdrop,
   .skip-link,
   .no-print,
   .print-toolbar {

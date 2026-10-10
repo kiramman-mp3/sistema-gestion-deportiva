@@ -79,7 +79,7 @@ export function UsersPage({ permissions }: UsersPageProps) {
   return (
     <section aria-labelledby="users-title" className="catalog">
       <div className="catalog-header">
-        <h2 id="users-title">Usuarios</h2>
+        <h1 id="users-title">Usuarios</h1>
         {canCreate && !creating && (
           <button
             type="button"
