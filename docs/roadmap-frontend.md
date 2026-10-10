@@ -179,9 +179,9 @@ Aceptación: D-85 (menores) y D-80 (resoluciones) siguen en verde en `portal.spe
 
 ## Fase 7 — Estados, accesibilidad y detalle (`fix/ui-a11y-polish`)
 
-- [ ] `accesibilidad.spec.ts`: repetir las páginas principales con `colorScheme: 'dark'`; 0 violaciones.
-- [ ] Mensajes de carga/vacío/error unificados con acción de recuperación.
-- [ ] Revisión de objetivos táctiles (≥ 44 px) y foco en todas las pantallas.
+- [x] `accesibilidad.spec.ts`: repetir las páginas principales con `colorScheme: 'dark'`; 0 violaciones.
+- [x] Mensajes de carga/vacío/error unificados con acción de recuperación.
+- [x] Revisión de objetivos táctiles (≥ 44 px) y foco en todas las pantallas.
 
 ## Fase 8 — Regresión y revisión final
 

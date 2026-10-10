@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Icon } from '../../components/Icon.tsx';
+import { LoadState } from '../../components/LoadState.tsx';
 import { Tabs } from '../../components/Tabs.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import type {
@@ -28,9 +29,10 @@ export function CompetitionsView({
     ? `?${queryParams.toString()}`
     : '';
 
-  const [championshipsState] = useFetch<PublicChampionshipsResponse>(
-    `/public/championships${queryString}`,
-  );
+  const [championshipsState, reloadChampionships] =
+    useFetch<PublicChampionshipsResponse>(
+      `/public/championships${queryString}`,
+    );
 
   // Filtrado en memoria por deporte
   const allChampionships =
@@ -85,7 +87,10 @@ export function CompetitionsView({
                 ← Volver al listado
               </button>
             </p>
-            <output>Cargando información del campeonato…</output>
+            <LoadState
+              state={championshipsState}
+              onRetry={reloadChampionships}
+            />
           </div>
         ) : selectedChampionship ? (
           <ChampionshipDetailView
@@ -106,6 +111,13 @@ export function CompetitionsView({
             </p>
             <div className="catalog-error" role="alert">
               <p>Campeonato no encontrado o no disponible públicamente.</p>
+              <button
+                type="button"
+                onClick={handleBack}
+                className="btn btn-secondary"
+              >
+                Volver a competencias
+              </button>
             </div>
           </div>
         )
@@ -150,7 +162,7 @@ export function CompetitionsView({
             aria-labelledby="campeonatos-heading"
           >
             <div className="section-header">
-              <h3 id="campeonatos-heading">Campeonatos Oficiales</h3>
+              <h2 id="campeonatos-heading">Campeonatos Oficiales</h2>
               <span className="count-badge">
                 {filteredChampionships.length}{' '}
                 {filteredChampionships.length === 1
@@ -159,18 +171,10 @@ export function CompetitionsView({
               </span>
             </div>
 
-            {championshipsState.kind === 'loading' && (
-              <output>Cargando información de competencias…</output>
-            )}
-
-            {championshipsState.kind === 'error' && (
-              <div className="catalog-error">
-                <p>
-                  No se pudo cargar los campeonatos:{' '}
-                  {championshipsState.message}
-                </p>
-              </div>
-            )}
+            <LoadState
+              state={championshipsState}
+              onRetry={reloadChampionships}
+            />
 
             {championshipsState.kind === 'ready' &&
               filteredChampionships.length === 0 && (
@@ -198,7 +202,7 @@ export function CompetitionsView({
                     </span>
                   </div>
 
-                  <h4 className="champ-title">{champ.name}</h4>
+                  <h3 className="champ-title">{champ.name}</h3>
                   <p className="season-meta">
                     Temporada: <strong>{champ.season.name}</strong>
                   </p>
@@ -302,7 +306,7 @@ function ChampionshipDetailView({
                 aria-label="Calendario y resultados"
               >
                 <div className="panel-actions">
-                  <h4>Encuentros y Jornadas Oficiales</h4>
+                  <h2>Encuentros y Jornadas Oficiales</h2>
                   <span className="row-actions">
                     <a
                       href={`/api/public/championships/${championship.id}/export/fixtures?format=pdf`}
@@ -324,14 +328,7 @@ function ChampionshipDetailView({
                   </button>
                 </div>
 
-                {fixturesState.kind === 'loading' && (
-                  <output>Cargando calendario oficial…</output>
-                )}
-                {fixturesState.kind === 'error' && (
-                  <div className="catalog-error">
-                    <p>Error: {fixturesState.message}</p>
-                  </div>
-                )}
+                <LoadState state={fixturesState} onRetry={reloadFixtures} />
 
                 {fixturesState.kind === 'ready' &&
                   fixturesState.data.length === 0 && (
@@ -346,10 +343,10 @@ function ChampionshipDetailView({
                 {fixturesState.kind === 'ready' &&
                   fixturesState.data.map((stage) => (
                     <div key={stage.id} className="stage-block">
-                      <h4 className="stage-title">{stage.name}</h4>
+                      <h3 className="stage-title">{stage.name}</h3>
                       {stage.rounds.map((round) => (
                         <div key={round.id} className="round-block">
-                          <h5 className="round-title">{round.name}</h5>
+                          <h4 className="round-title">{round.name}</h4>
                           <div className="matches-grid">
                             {round.events.map((event) => {
                               const local = event.participants.find(
@@ -449,7 +446,7 @@ function ChampionshipDetailView({
             content: (
               <section className="tab-panel" aria-label="Tabla de posiciones">
                 <div className="panel-actions">
-                  <h4>Tabla de Posiciones Oficial</h4>
+                  <h2>Tabla de Posiciones Oficial</h2>
                   <span className="row-actions">
                     <a
                       href={`/api/public/championships/${championship.id}/export/standings?format=pdf`}
@@ -471,14 +468,7 @@ function ChampionshipDetailView({
                   </button>
                 </div>
 
-                {standingsState.kind === 'loading' && (
-                  <output>Calculando tabla de posiciones…</output>
-                )}
-                {standingsState.kind === 'error' && (
-                  <div className="catalog-error">
-                    <p>Error: {standingsState.message}</p>
-                  </div>
-                )}
+                <LoadState state={standingsState} onRetry={reloadStandings} />
 
                 {standingsState.kind === 'ready' && (
                   <div className="standings-table-container">
