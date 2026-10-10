@@ -12,6 +12,8 @@ de aceptación se ha **ejecutado** y pasa.
 - [x] **Fase 1 — Fundación:** `tokens.css`, fuentes locales, base, `print.css` separado,
       `styles.spec.ts`, `e2e/impresion.spec.ts`, `e2e/desbordamiento.spec.ts`.
 - Línea base: 209 pruebas web, 41 e2e, lint/typecheck/formato/build en verde.
+- Revisión de integración (D-101, `fix/ui-integration-review`): las casillas de abajo se revisaron
+  de nuevo; la impresión idéntica y el recorrido visual se ejecutaron tras las correcciones.
 
 Deuda medida en develop (recalcular al empezar cada fase):
 
@@ -181,7 +183,9 @@ Aceptación: D-85 (menores) y D-80 (resoluciones) siguen en verde en `portal.spe
 
 - [x] `accesibilidad.spec.ts`: repetir las páginas principales con `colorScheme: 'dark'`; 0 violaciones.
 - [x] Mensajes de carga/vacío/error unificados con acción de recuperación.
-- [x] Revisión de objetivos táctiles (≥ 44 px) y foco en todas las pantallas.
+- [ ] Revisión de objetivos táctiles (≥ 44 px) y foco en todas las pantallas. Pendiente tras la
+      revisión D-101: enlaces del menú del portal en escritorio (40 px) y enlaces dentro de celdas de
+      tabla (24 px); el foco visible sí está en todos los controles.
 
 ## Fase 8 — Regresión y revisión final
 
