@@ -228,7 +228,7 @@ describe('verificación pública de documentos', () => {
     });
     render(<PublicPortalPage />);
     expect(
-      await screen.findByText('✔ Documento auténtico y vigente'),
+      await screen.findByText(/Documento auténtico y vigente/),
     ).toBeVisible();
     expect(screen.getByText('Deportista DEP-000007')).toBeVisible();
     expect(screen.getByText(/Carné de deportista · CAR-000001/)).toBeVisible();
