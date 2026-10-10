@@ -52,17 +52,17 @@ nuevos `components/AppShell.tsx`, `components/NavDrawer.tsx`, `components/Instit
 
 Tareas:
 
-- [ ] `InstitutionBrand`: lee `GET /api/public/institution` una vez (compartido) y muestra el logotipo
+- [x] `InstitutionBrand`: lee `GET /api/public/institution` una vez (compartido) y muestra el logotipo
       real solo si `hasLogo`; si no, solo el nombre. Nunca un escudo inventado.
-- [ ] Panel: barra lateral agrupada (spec §6) ≥ 64rem; barra superior + `NavDrawer` < 64rem. Mismo
+- [x] Panel: barra lateral agrupada (spec §6) ≥ 64rem; barra superior + `NavDrawer` < 64rem. Mismo
       `SECTIONS`, mismo filtrado por permisos, `aria-label="Secciones"`, mismas etiquetas, contador de
       notificaciones, «Mi cuenta» y «Cerrar sesión» en la barra superior.
-- [ ] Portal: barra superior con marca y menú (`aria-label="Secciones del portal"`), menú móvil.
-- [ ] Encabezados: marca sin rol de encabezado; un `h1` por vista; niveles −1 en todas las vistas
+- [x] Portal: barra superior con marca y menú (`aria-label="Secciones del portal"`), menú móvil.
+- [x] Encabezados: marca sin rol de encabezado; un `h1` por vista; niveles −1 en todas las vistas
       del panel y del portal; un único `h1` en las imprimibles. Actualizar las 22 aserciones de nivel.
-- [ ] Login según spec §12 (dos columnas ≥ 64rem con último resultado oficial real o solo identidad).
-- [ ] `print.css`: añadir los selectores nuevos a la lista oculta al imprimir.
-- [ ] Contenedor del panel `max-width: 80rem`; portal `72rem`.
+- [x] Login según spec §12 (dos columnas ≥ 64rem con último resultado oficial real o solo identidad).
+- [x] `print.css`: añadir los selectores nuevos a la lista oculta al imprimir.
+- [x] Contenedor del panel `max-width: 80rem`; portal `72rem`.
 
 Pruebas nuevas:
 
