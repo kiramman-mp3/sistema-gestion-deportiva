@@ -114,6 +114,8 @@ button {
   background: transparent;
   color: var(--primary);
   cursor: pointer;
+  min-height: var(--target-min, 44px);
+  box-sizing: border-box;
 }
 
 :focus-visible {
@@ -158,7 +160,8 @@ button {
   font-weight: 600;
 }
 
-.field input {
+.field input,
+input:not([type='checkbox']):not([type='radio']) {
   width: 100%;
   padding: 0.5rem 0.75rem;
   font: inherit;
@@ -166,6 +169,8 @@ button {
   background: var(--bg);
   border: 1px solid var(--muted);
   border-radius: 0.25rem;
+  min-height: var(--target-min, 44px);
+  box-sizing: border-box;
 }
 
 .field input[aria-invalid='true'] {
@@ -270,6 +275,7 @@ button.link {
   padding: 0;
   border: 0;
   text-decoration: underline;
+  min-height: auto;
 }
 
 .filters {
@@ -285,7 +291,7 @@ button.link {
 }
 
 .field select,
-.field textarea {
+select {
   width: 100%;
   padding: 0.5rem 0.75rem;
   font: inherit;
@@ -293,6 +299,21 @@ button.link {
   background: var(--bg);
   border: 1px solid var(--muted);
   border-radius: 0.25rem;
+  min-height: var(--target-min, 44px);
+  box-sizing: border-box;
+}
+
+.field textarea,
+textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--muted);
+  border-radius: 0.25rem;
+  min-height: var(--target-min, 44px);
+  box-sizing: border-box;
 }
 
 .hint {
@@ -1553,6 +1574,8 @@ pre.json {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   gap: 1rem;
+  position: relative;
+  z-index: 105;
 }
 .panel-topbar-left {
   display: flex;
@@ -1779,10 +1802,17 @@ pre.json {
     0 10px 25px -5px rgba(0, 0, 0, 0.1),
     0 8px 10px -6px rgba(0, 0, 0, 0.1);
   max-width: 32rem;
+  max-height: 90vh;
+  overflow-y: auto;
   width: 100%;
   padding: var(--space-6, 1.5rem);
   margin: auto;
   position: relative;
+  box-sizing: border-box;
+}
+
+.dialog.dialog-complex {
+  max-width: 48rem;
 }
 
 .dialog-actions {

@@ -11,6 +11,19 @@
   flex-direction: column;
   gap: 1.5rem;
   margin: 0 auto;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media screen {
+  .printable-sheet-scroller {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
+  }
 }
 
 .print-toolbar {
@@ -288,6 +301,12 @@
     border: none !important;
     padding: 0 !important;
     max-width: 100% !important;
+  }
+
+  .printable-sheet-scroller {
+    overflow: visible !important;
+    width: auto !important;
+    max-width: none !important;
   }
 
   @page {
