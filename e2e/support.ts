@@ -24,7 +24,7 @@ export async function login(
 ): Promise<void> {
   await page.goto('/#/');
   await page.getByLabel('Correo electrónico').fill(email);
-  await page.getByLabel('Contraseña').fill(password);
+  await page.getByLabel('Contraseña', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Ingresar' }).click();
   await expect(
     page.getByRole('button', { name: 'Cerrar sesión' }),

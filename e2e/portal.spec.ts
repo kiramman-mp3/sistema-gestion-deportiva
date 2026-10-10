@@ -9,7 +9,7 @@ test.describe('portal público (sin iniciar sesión)', () => {
     await expect(
       page.getByRole('heading', {
         name: 'Liga Deportiva Cantonal de Quero',
-        level: 2,
+        level: 1,
       }),
     ).toBeVisible();
     await expect(
@@ -35,7 +35,7 @@ test.describe('portal público (sin iniciar sesión)', () => {
   }) => {
     await page.goto('/#/portal');
     // Abre una noticia disponible desde el inicio
-    const newsLink = page.locator('.news-grid .news-card h4 a').first();
+    const newsLink = page.locator('.news-grid .news-card a').first();
     await expect(newsLink).toBeVisible();
     const newsTitle = (await newsLink.textContent())?.trim();
     await newsLink.click();
@@ -94,7 +94,7 @@ test.describe('portal público (sin iniciar sesión)', () => {
       .first()
       .click();
     await expect(page).toHaveURL(/#\/portal\/partido\/[0-9a-f-]{36}$/);
-    await expect(page.getByRole('heading', { level: 3 }).first()).toContainText(
+    await expect(page.getByRole('heading', { level: 1 }).first()).toContainText(
       ' vs ',
     );
     await page.getByRole('link', { name: '← Volver al calendario' }).click();
