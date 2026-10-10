@@ -39,7 +39,7 @@ export function VenuesPage({
   return (
     <section aria-labelledby="venues-title" className="catalog">
       <div className="catalog-header">
-        <h2 id="venues-title">Escenarios deportivos</h2>
+        <h1 id="venues-title">Escenarios deportivos</h1>
         {canManage && !creating && !editing && (
           <button
             type="button"
@@ -266,7 +266,7 @@ function VenueForm({
 
   return (
     <form className="catalog-form" onSubmit={submit} noValidate>
-      <h3>{venue ? 'Editar escenario' : 'Nuevo escenario deportivo'}</h3>
+      <h2>{venue ? 'Editar escenario' : 'Nuevo escenario deportivo'}</h2>
       <TextField
         label="Nombre del escenario"
         value={name}

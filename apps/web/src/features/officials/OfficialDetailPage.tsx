@@ -98,9 +98,9 @@ export function OfficialDetailPage({
       {official.kind === 'ready' && (
         <>
           <div className="catalog-header">
-            <h2 id="official-title">
+            <h1 id="official-title">
               {official.data.firstName} {official.data.lastName}
-            </h2>
+            </h1>
             <span
               className={`badge ${official.data.status === 'activo' ? 'badge-ok' : ''}`}
             >
@@ -134,7 +134,7 @@ export function OfficialDetailPage({
             <dd>{official.data.upcomingAssignments}</dd>
           </dl>
 
-          <h3>Disponibilidad</h3>
+          <h2>Disponibilidad</h2>
           <p className="hint">
             Períodos futuros en los que no se le puede designar.
           </p>
@@ -180,7 +180,7 @@ export function OfficialDetailPage({
               onSubmit={addUnavailability}
               noValidate
             >
-              <h4>Registrar indisponibilidad</h4>
+              <h3>Registrar indisponibilidad</h3>
               <TextField
                 label="Desde"
                 type="datetime-local"
@@ -208,7 +208,7 @@ export function OfficialDetailPage({
             </form>
           )}
 
-          <h3>Historial de participación</h3>
+          <h2>Historial de participación</h2>
           <LoadState state={history} onRetry={() => undefined} />
           {history.kind === 'ready' && history.data.items.length === 0 && (
             <p className="empty">Todavía no tiene designaciones.</p>

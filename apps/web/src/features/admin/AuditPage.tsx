@@ -75,7 +75,7 @@ export function AuditPage() {
 
   return (
     <section aria-labelledby="audit-title" className="catalog">
-      <h2 id="audit-title">Auditoría</h2>
+      <h1 id="audit-title">Auditoría</h1>
       <p className="hint">
         Registro de las operaciones sensibles. Es de solo lectura: los registros
         no pueden modificarse ni eliminarse. Los valores que podrían contener

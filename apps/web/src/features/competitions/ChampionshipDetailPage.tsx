@@ -66,7 +66,7 @@ export function ChampionshipDetailPage({
         <>
           <div className="catalog-header">
             <div>
-              <h2 id="champ-detail-title">{champState.data.name}</h2>
+              <h1 id="champ-detail-title">{champState.data.name}</h1>
               <p className="hint">
                 {champState.data.sport.name} · {champState.data.category.name} ·
                 Temporada {champState.data.season.name}
@@ -210,7 +210,7 @@ export function ChampionshipDetailPage({
           {activeTab === 'registrations' && (
             <div className="tab-panel">
               <div className="catalog-header">
-                <h3>Participantes inscritos</h3>
+                <h2>Participantes inscritos</h2>
                 {canRegManage && !addingRegistration && (
                   <button
                     type="button"
@@ -361,7 +361,7 @@ export function ChampionshipDetailPage({
 
           {activeTab === 'rules' && (
             <div className="tab-panel">
-              <h3>Reglamento de competencia</h3>
+              <h2>Reglamento de competencia</h2>
               <p className="hint">
                 Las reglas se encuentran versionadas y quedan asociadas al
                 historial de partidos y tablas de posiciones.
@@ -372,13 +372,13 @@ export function ChampionshipDetailPage({
                   <div className="rules-display">
                     {champState.data.ruleVersions.map((rv) => (
                       <div key={rv.id} className="rule-card">
-                        <h4>
+                        <h3>
                           Versión {rv.version}{' '}
                           {rv.version ===
                             champState.data.ruleVersions?.[0]?.version && (
                             <span className="badge badge-ok">Vigente</span>
                           )}
-                        </h4>
+                        </h3>
                         <p className="hint">
                           Aprobado por:{' '}
                           {rv.approvedBy?.displayName ?? 'Oficial'} el{' '}
@@ -549,7 +549,7 @@ function RegisterParticipantForm({
 
   return (
     <form className="catalog-form" onSubmit={submit} noValidate>
-      <h4>Inscribir {kind === 'equipo' ? 'equipo' : 'deportista'}</h4>
+      <h3>Inscribir {kind === 'equipo' ? 'equipo' : 'deportista'}</h3>
       {kind === 'equipo' ? (
         <SelectField
           label="Equipo"

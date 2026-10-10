@@ -106,9 +106,9 @@ export function AthleteDetailPage({
         <a href="#/deportistas">← Volver a deportistas</a>
       </p>
       <div className="catalog-header">
-        <h2 id="athlete-title">
+        <h1 id="athlete-title">
           {a.firstName} {a.lastName}
-        </h2>
+        </h1>
       </div>
       <Notice notice={notice} onClose={() => setNotice(null)} />
 
@@ -275,7 +275,7 @@ export function AthleteDetailPage({
 
       {can('athletes:validate') && (
         <>
-          <h3>Habilitación</h3>
+          <h2>Habilitación</h2>
           <div className="form-actions">
             {(['habilitado', 'inhabilitado', 'pendiente'] as const)
               .filter((e) => e !== a.eligibility)
@@ -374,7 +374,7 @@ export function AthleteDetailPage({
 
       {can('documents:read') && (
         <>
-          <h3>Documentos de respaldo</h3>
+          <h2>Documentos de respaldo</h2>
           {documents.kind === 'loading' && (
             <p className="loading">Cargando documentos…</p>
           )}
@@ -501,7 +501,7 @@ export function AthleteDetailPage({
 
       {can('teams:read') && (
         <>
-          <h3>Equipos</h3>
+          <h2>Equipos</h2>
           {teams.kind === 'ready' && teams.data.length === 0 && (
             <p className="empty">Sin inscripciones en equipos.</p>
           )}
@@ -645,7 +645,7 @@ function TransferPanel({
       : [];
   return (
     <>
-      <h3>Cambio de club</h3>
+      <h2>Cambio de club</h2>
       <p className="hint">
         Se habilita al terminar la temporada: no debe tener inscripciones en la
         temporada vigente.

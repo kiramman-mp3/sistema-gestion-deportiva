@@ -76,7 +76,7 @@ export function MyAssignmentsPage({
   return (
     <section aria-labelledby="mine-title" className="catalog">
       <div className="catalog-header">
-        <h2 id="mine-title">Mis designaciones</h2>
+        <h1 id="mine-title">Mis designaciones</h1>
       </div>
       <Notice notice={notice} onClose={() => setNotice(null)} />
       <div className="filters">

@@ -35,7 +35,7 @@ export function ClubsPage({ permissions }: { permissions: readonly string[] }) {
   return (
     <section aria-labelledby="clubs-title" className="catalog">
       <div className="catalog-header">
-        <h2 id="clubs-title">Clubes</h2>
+        <h1 id="clubs-title">Clubes</h1>
         {isLeague && !creating && (
           <button
             type="button"
