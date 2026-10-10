@@ -26,6 +26,7 @@ const INSTITUTION: Institution = {
   publicResolutions: false,
   allowSelfApproval: false,
   hasLogo: false,
+  hasCover: false,
 };
 
 afterEach(() => vi.unstubAllGlobals());
@@ -153,5 +154,49 @@ describe('configuración institucional', () => {
     );
     expect(await screen.findByText('Se quitó el logotipo.')).toBeVisible();
     expect(screen.queryByAltText('Logotipo actual de la Liga')).toBeNull();
+  });
+  it('sube y quita la foto de portada sin tocar el logotipo', async () => {
+    let hasCover = false;
+    const api = mockApi({
+      'GET /institution': () => json({ ...INSTITUTION, hasCover }),
+      'PUT /institution/cover': () => {
+        hasCover = true;
+        return json({ success: true });
+      },
+      'DELETE /institution/cover': () => {
+        hasCover = false;
+        return new Response(null, { status: 204 });
+      },
+    });
+    render(
+      <InstitutionPage
+        permissions={['institution:read', 'institution:manage']}
+      />,
+    );
+    const input = await screen.findByLabelText('Foto de portada del portal');
+    await userEvent.upload(
+      input,
+      new File([new Uint8Array([0xff, 0xd8, 0xff])], 'portada.jpg', {
+        type: 'image/jpeg',
+      }),
+    );
+    expect(
+      await screen.findByText('Se actualizó la foto de portada.'),
+    ).toBeVisible();
+    expect(api.of('PUT', '/institution/cover')).toHaveLength(1);
+    expect(api.of('PUT', '/institution/logo')).toHaveLength(0);
+    expect(
+      await screen.findByAltText('Foto de portada actual del portal'),
+    ).toBeVisible();
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Quitar foto de portada' }),
+    );
+    expect(
+      await screen.findByText('Se quitó la foto de portada.'),
+    ).toBeVisible();
+    expect(
+      screen.queryByAltText('Foto de portada actual del portal'),
+    ).toBeNull();
   });
 });
