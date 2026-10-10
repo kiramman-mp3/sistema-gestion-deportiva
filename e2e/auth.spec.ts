@@ -7,17 +7,23 @@ test.describe('inicio de sesión y permisos en la interfaz', () => {
   }) => {
     await page.goto('/#/');
     await page.getByLabel('Correo electrónico').fill(ACCOUNTS.secretaria);
-    await page.getByLabel('Contraseña').fill('contraseña-equivocada-123');
+    await page
+      .getByLabel('Contraseña', { exact: true })
+      .fill('contraseña-equivocada-123');
     await page.getByRole('button', { name: 'Ingresar' }).click();
     await expect(page.getByRole('alert')).toBeVisible();
     await expect(
       page.getByRole('heading', { name: 'Iniciar sesión' }),
     ).toBeVisible();
-    await expect(page.getByLabel('Contraseña')).toHaveValue('');
+    await expect(page.getByLabel('Contraseña', { exact: true })).toHaveValue(
+      '',
+    );
     // La misma respuesta para una cuenta que no existe.
     const first = await page.getByRole('alert').innerText();
     await page.getByLabel('Correo electrónico').fill('nadie@demo.liga.invalid');
-    await page.getByLabel('Contraseña').fill('contraseña-equivocada-123');
+    await page
+      .getByLabel('Contraseña', { exact: true })
+      .fill('contraseña-equivocada-123');
     await page.getByRole('button', { name: 'Ingresar' }).click();
     await expect(page.getByRole('alert')).toHaveText(first);
   });
