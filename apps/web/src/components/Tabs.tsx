@@ -2,7 +2,7 @@ import { type KeyboardEvent, type ReactNode, useId, useRef } from 'react';
 
 export interface TabItem {
   id: string;
-  label: string;
+  label: ReactNode;
   content: ReactNode;
   disabled?: boolean;
 }
@@ -93,7 +93,7 @@ export function Tabs({
               aria-controls={panelId}
               tabIndex={isSelected ? 0 : -1}
               disabled={item.disabled}
-              className={`tab-btn ${isSelected ? 'active' : ''}`.trim()}
+              className={`tab-btn tab ${isSelected ? 'active tab-active' : ''}`.trim()}
               onClick={() => onChange(item.id)}
               onKeyDown={handleKeyDown}
             >
