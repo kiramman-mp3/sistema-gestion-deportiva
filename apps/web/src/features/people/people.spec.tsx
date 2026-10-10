@@ -597,7 +597,12 @@ describe('navegación', () => {
   it('muestra Clubes, Deportistas y Equipos solo con el permiso de lectura correspondiente', () => {
     mockApi({});
     const { unmount } = render(
-      <CatalogsApp permissions={['athletes:read']} selfId="yo" />,
+      <CatalogsApp
+        permissions={['athletes:read']}
+        selfId="yo"
+        userName="Usuaria de prueba"
+        onLogout={() => undefined}
+      />,
     );
     const nav = screen.getByRole('navigation', { name: 'Secciones' });
     expect(

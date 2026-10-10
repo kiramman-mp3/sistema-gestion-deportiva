@@ -30,7 +30,7 @@ function currentHash(): string {
 }
 
 function Shell() {
-  const { state } = useAuth();
+  const { state, logout } = useAuth();
   // El token se lee una vez y se borra de la dirección (historial, marcadores, capturas).
   const [credential, setCredential] = useState(readCredentialRoute);
   const [hash, setHash] = useState(currentHash);
@@ -101,6 +101,8 @@ function Shell() {
             <CatalogsApp
               permissions={state.permissions}
               selfId={state.user.id}
+              userName={state.user.displayName}
+              onLogout={logout}
             />
           )}
         </>
