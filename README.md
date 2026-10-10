@@ -34,6 +34,22 @@ npm run dev:web                   # http://localhost:5173
 
 Detalles de la base de datos, variables de entorno y flujo de migraciones: [`docs/database.md`](docs/database.md).
 
+### Datos de demostración
+
+Para probar la aplicación a mano con los mismos datos que usan las pruebas e2e (clubes, deportistas,
+campeonatos con partidos, árbitros, expedientes, noticias y cuentas por rol) en la base de `.env`:
+
+```bash
+npm run db:backup                     # respaldo previo: la carga no se puede deshacer
+npm run seed                          # muestra a qué base apunta y no cambia nada
+npm run seed -- --confirm             # carga los datos (si ya están cargados, no hace nada)
+npm run seed -- --deactivate-users    # al terminar: desactiva las cuentas de prueba
+```
+
+Las cuentas son `secretaria@demo.liga.invalid`, `comision.tecnica@…`, `disciplinaria@…`, `editor@…`,
+`arbitro1@…`, `dirigente1@…`, etc. Su contraseña es la de `DEMO_USER_PASSWORD` o, si no se define, una
+generada que se muestra una sola vez. Detalle en [`docs/demo-data.md`](docs/demo-data.md).
+
 ## Verificación
 
 ```bash
