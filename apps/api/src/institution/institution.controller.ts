@@ -29,6 +29,25 @@ import { InstitutionService } from './institution.service.js';
 
 const ipOf = (req: AuthedRequest) => req.ip ?? 'desconocida';
 
+const withImageFlags = <
+  T extends { logoFileId: string | null; coverFileId: string | null },
+>(
+  row: T,
+) => ({
+  ...row,
+  hasLogo: row.logoFileId !== null,
+  hasCover: row.coverFileId !== null,
+});
+
+/** Envía una imagen pública con cabeceras seguras y caché corta. */
+function sendImage(res: Response, image: { buffer: Buffer; mimeType: string }) {
+  res.setHeader('Content-Type', image.mimeType);
+  res.setHeader('Content-Disposition', 'inline');
+  res.setHeader('Cache-Control', 'public, max-age=300');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.send(image.buffer);
+}
+
 @ApiTags('institution')
 @Controller('institution')
 export class InstitutionController {
@@ -41,7 +60,7 @@ export class InstitutionController {
   @Get()
   async get() {
     const row = await this.institution.get();
-    return { ...row, hasLogo: row.logoFileId !== null };
+    return withImageFlags(row);
   }
 
   @RequirePermissions('institution:manage')
@@ -56,7 +75,7 @@ export class InstitutionController {
       ipOf(req),
       parseOrThrow(updateInstitutionSchema, body),
     );
-    return { ...row, hasLogo: row.logoFileId !== null };
+    return withImageFlags(row);
   }
 
   @RequirePermissions('institution:manage')
@@ -81,6 +100,29 @@ export class InstitutionController {
   ) {
     await this.institution.removeLogo(auth, ipOf(req));
   }
+
+  @RequirePermissions('institution:manage')
+  @AllowMultipart()
+  @UseInterceptors(FileInterceptor('file'))
+  @Put('cover')
+  async setCover(
+    @CurrentAuth() auth: AuthContext,
+    @Req() req: AuthedRequest,
+    @UploadedFile() file: UploadFilePayload | undefined,
+  ) {
+    await this.institution.setCover(auth, ipOf(req), file);
+    return { success: true };
+  }
+
+  @RequirePermissions('institution:manage')
+  @Delete('cover')
+  @HttpCode(204)
+  async removeCover(
+    @CurrentAuth() auth: AuthContext,
+    @Req() req: AuthedRequest,
+  ) {
+    await this.institution.removeCover(auth, ipOf(req));
+  }
 }
 
 /** Información institucional publicada en el portal, sin sesión. */
@@ -100,11 +142,12 @@ export class PublicInstitutionController {
 
   @Get('logo')
   async logo(@Res() res: Response) {
-    const { buffer, mimeType } = await this.institution.readLogo();
-    res.setHeader('Content-Type', mimeType);
-    res.setHeader('Content-Disposition', 'inline');
-    res.setHeader('Cache-Control', 'public, max-age=300');
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.send(buffer);
+    sendImage(res, await this.institution.readLogo());
+  }
+
+  /** Foto de portada del portal (la sube la Liga; si no hay, 404). */
+  @Get('cover')
+  async cover(@Res() res: Response) {
+    sendImage(res, await this.institution.readCover());
   }
 }

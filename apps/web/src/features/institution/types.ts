@@ -19,6 +19,7 @@ export interface Institution {
   publicResolutions: boolean;
   allowSelfApproval: boolean;
   hasLogo: boolean;
+  hasCover: boolean;
 }
 
 /** Datos institucionales publicados (sin sesión). */
@@ -37,6 +38,7 @@ export interface PublicInstitution {
   presidentName: string | null;
   secretaryName: string | null;
   hasLogo: boolean;
+  hasCover: boolean;
   publication: {
     clubs: boolean;
     athletes: boolean;

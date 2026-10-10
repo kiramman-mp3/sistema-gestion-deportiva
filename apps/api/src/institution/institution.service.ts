@@ -31,6 +31,24 @@ export const INSTITUTION_DEFAULTS = {
 
 const LONG_TEXT_FIELDS = ['about', 'contactInfo', 'privacyPolicy'] as const;
 
+/** Imágenes institucionales: logotipo (documentos y portal) y foto de portada del portal. */
+type InstitutionImage = 'logo' | 'cover';
+
+const IMAGES = {
+  logo: {
+    column: 'logoFileId',
+    relation: 'logoFile',
+    label: 'logo',
+    missing: 'No hay logotipo configurado',
+  },
+  cover: {
+    column: 'coverFileId',
+    relation: 'coverFile',
+    label: 'cover',
+    missing: 'No hay foto de portada configurada',
+  },
+} as const;
+
 /** Campos que se comparan al auditar (todo menos marcas de tiempo y relaciones). */
 const TRACKED = [
   'name',
@@ -126,11 +144,38 @@ export class InstitutionService {
     });
   }
 
-  async setLogo(
+  setLogo(auth: AuthContext, ip: string, file: UploadFilePayload | undefined) {
+    return this.setImage('logo', auth, ip, file);
+  }
+
+  removeLogo(auth: AuthContext, ip: string) {
+    return this.removeImage('logo', auth, ip);
+  }
+
+  readLogo() {
+    return this.readImage('logo');
+  }
+
+  setCover(auth: AuthContext, ip: string, file: UploadFilePayload | undefined) {
+    return this.setImage('cover', auth, ip, file);
+  }
+
+  removeCover(auth: AuthContext, ip: string) {
+    return this.removeImage('cover', auth, ip);
+  }
+
+  readCover() {
+    return this.readImage('cover');
+  }
+
+  /** Sustituye la imagen (logotipo o portada) y borra la anterior del almacenamiento. */
+  private async setImage(
+    kind: InstitutionImage,
     auth: AuthContext,
     ip: string,
     file: UploadFilePayload | undefined,
   ): Promise<void> {
+    const { column, relation, label } = IMAGES[kind];
     if (!file) {
       throw new BadRequestException('No se ha proporcionado ningún archivo');
     }
@@ -148,7 +193,7 @@ export class InstitutionService {
       await this.prisma.client.$transaction(async (tx) => {
         const existing = await tx.institutionSettings.findUniqueOrThrow({
           where: { id: 1 },
-          include: { logoFile: true },
+          include: { logoFile: true, coverFile: true },
         });
         const stored = await tx.storedFile.create({
           data: {
@@ -162,15 +207,16 @@ export class InstitutionService {
         });
         await tx.institutionSettings.update({
           where: { id: 1 },
-          data: { logoFileId: stored.id, updatedById: auth.user.id },
+          data: { [column]: stored.id, updatedById: auth.user.id },
         });
-        if (existing.logoFile) {
-          oldFilename = existing.logoFile.filename;
-          await tx.storedFile.delete({ where: { id: existing.logoFile.id } });
+        const previous = existing[relation];
+        if (previous) {
+          oldFilename = previous.filename;
+          await tx.storedFile.delete({ where: { id: previous.id } });
         }
         await this.audit.record(
           {
-            action: 'institution.logo_changed',
+            action: `institution.${label}_changed`,
             entityType: 'institution',
             entityId: '1',
             userId: auth.user.id,
@@ -187,43 +233,52 @@ export class InstitutionService {
     if (oldFilename) await this.storage.deleteFile(oldFilename);
   }
 
-  async removeLogo(auth: AuthContext, ip: string): Promise<void> {
+  private async removeImage(
+    kind: InstitutionImage,
+    auth: AuthContext,
+    ip: string,
+  ): Promise<void> {
+    const { column, relation, label, missing } = IMAGES[kind];
     const current = await this.prisma.client.institutionSettings.findUnique({
       where: { id: 1 },
-      include: { logoFile: true },
+      include: { logoFile: true, coverFile: true },
     });
-    const logo = current?.logoFile;
-    if (!logo) throw new NotFoundException('No hay logotipo configurado');
+    const image = current?.[relation];
+    if (!image) throw new NotFoundException(missing);
     await this.prisma.client.$transaction(async (tx) => {
       await tx.institutionSettings.update({
         where: { id: 1 },
-        data: { logoFileId: null, updatedById: auth.user.id },
+        data: { [column]: null, updatedById: auth.user.id },
       });
-      await tx.storedFile.delete({ where: { id: logo.id } });
+      await tx.storedFile.delete({ where: { id: image.id } });
       await this.audit.record(
         {
-          action: 'institution.logo_removed',
+          action: `institution.${label}_removed`,
           entityType: 'institution',
           entityId: '1',
           userId: auth.user.id,
           ipHash: this.hash.hash('ip', ip),
-          before: { fileId: logo.id },
+          before: { fileId: image.id },
         },
         tx,
       );
     });
-    await this.storage.deleteFile(logo.filename);
+    await this.storage.deleteFile(image.filename);
   }
 
-  async readLogo(): Promise<{ buffer: Buffer; mimeType: string }> {
+  private async readImage(
+    kind: InstitutionImage,
+  ): Promise<{ buffer: Buffer; mimeType: string }> {
+    const { relation, missing } = IMAGES[kind];
     const current = await this.prisma.client.institutionSettings.findUnique({
       where: { id: 1 },
-      include: { logoFile: true },
+      include: { logoFile: true, coverFile: true },
     });
-    if (!current?.logoFile) throw new NotFoundException('Sin logotipo');
+    const image = current?.[relation];
+    if (!image) throw new NotFoundException(missing);
     return {
-      buffer: await this.storage.readFile(current.logoFile.filename),
-      mimeType: current.logoFile.mimeType,
+      buffer: await this.storage.readFile(image.filename),
+      mimeType: image.mimeType,
     };
   }
 
@@ -245,6 +300,7 @@ export class InstitutionService {
       presidentName: row.presidentName,
       secretaryName: row.secretaryName,
       hasLogo: row.logoFileId !== null,
+      hasCover: row.coverFileId !== null,
       publication: {
         clubs: row.publicClubs,
         athletes: row.publicAthletes,

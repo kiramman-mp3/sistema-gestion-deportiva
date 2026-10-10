@@ -23,6 +23,7 @@ const SAMPLE_PUBLIC_HOME: PublicHome = {
     presidentName: null,
     secretaryName: null,
     hasLogo: false,
+    hasCover: false,
     publication: {
       clubs: true,
       athletes: true,

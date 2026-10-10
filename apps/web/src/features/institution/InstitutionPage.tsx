@@ -109,7 +109,6 @@ function InstitutionForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [logoVersion, setLogoVersion] = useState(0);
 
   const set = (key: keyof Draft) => (value: string) =>
     setDraft((d) => ({ ...d, [key]: value }));
@@ -137,29 +136,6 @@ function InstitutionForm({
       setFormError(describeError(err));
     } finally {
       setSubmitting(false);
-    }
-  }
-
-  async function changeLogo(file: File) {
-    const body = new FormData();
-    body.append('file', file);
-    try {
-      await apiRequest('/institution/logo', { method: 'PUT', body });
-      setLogoVersion((v) => v + 1);
-      onNotice({ type: 'success', text: 'Se actualizó el logotipo.' });
-      onChanged();
-    } catch (err) {
-      onNotice({ type: 'error', text: describeError(err) });
-    }
-  }
-
-  async function removeLogo() {
-    try {
-      await apiRequest('/institution/logo', { method: 'DELETE' });
-      onNotice({ type: 'success', text: 'Se quitó el logotipo.' });
-      onChanged();
-    } catch (err) {
-      onNotice({ type: 'error', text: describeError(err) });
     }
   }
 
@@ -208,44 +184,24 @@ function InstitutionForm({
           maxLength={200}
           disabled={disabled}
         />
-        <div className="field">
-          <span id="logo-label" className="label-like">
-            Logotipo
-          </span>
-          {institution.hasLogo ? (
-            <img
-              className="logo-preview"
-              src={`/api/public/institution/logo?v=${logoVersion}`}
-              alt="Logotipo actual de la Liga"
-            />
-          ) : (
-            <p className="hint">Todavía no hay logotipo.</p>
-          )}
-          {canManage && (
-            <div className="form-actions">
-              <label className="button-like">
-                {institution.hasLogo ? 'Reemplazar logotipo' : 'Subir logotipo'}
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="visually-hidden"
-                  aria-labelledby="logo-label"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) void changeLogo(file);
-                    e.target.value = '';
-                  }}
-                />
-              </label>
-              {institution.hasLogo && (
-                <button type="button" onClick={() => void removeLogo()}>
-                  Quitar logotipo
-                </button>
-              )}
-            </div>
-          )}
-          <p className="hint">Imagen JPG, PNG o WEBP de hasta 5 MB.</p>
-        </div>
+        <InstitutionImageField
+          kind="logo"
+          label="Logotipo"
+          present={institution.hasLogo}
+          canManage={canManage}
+          hint="Imagen JPG, PNG o WEBP de hasta 5 MB."
+          onNotice={onNotice}
+          onChanged={onChanged}
+        />
+        <InstitutionImageField
+          kind="cover"
+          label="Foto de portada del portal"
+          present={institution.hasCover}
+          canManage={canManage}
+          hint="Foto horizontal de la Liga (por ejemplo 1600 × 900 px), JPG, PNG o WEBP de hasta 5 MB. Abre la portada del portal; si no hay, se usan las ilustraciones."
+          onNotice={onNotice}
+          onChanged={onChanged}
+        />
       </fieldset>
 
       <fieldset>
@@ -398,5 +354,109 @@ function InstitutionForm({
         </div>
       )}
     </form>
+  );
+}
+
+const IMAGE_TEXTS = {
+  logo: {
+    noun: 'logotipo',
+    alt: 'Logotipo actual de la Liga',
+    previewClass: 'logo-preview',
+  },
+  cover: {
+    noun: 'foto de portada',
+    alt: 'Foto de portada actual del portal',
+    previewClass: 'cover-preview',
+  },
+} as const;
+
+/** Subir, reemplazar o quitar una imagen institucional (logotipo o portada). */
+function InstitutionImageField({
+  kind,
+  label,
+  present,
+  canManage,
+  hint,
+  onNotice,
+  onChanged,
+}: {
+  kind: 'logo' | 'cover';
+  label: string;
+  present: boolean;
+  canManage: boolean;
+  hint: string;
+  onNotice: (notice: NoticeState) => void;
+  onChanged: () => void;
+}) {
+  const [version, setVersion] = useState(0);
+  const { noun, alt, previewClass } = IMAGE_TEXTS[kind];
+  const labelId = `${kind}-label`;
+  const article = kind === 'logo' ? 'el' : 'la';
+
+  async function change(file: File) {
+    const body = new FormData();
+    body.append('file', file);
+    try {
+      await apiRequest(`/institution/${kind}`, { method: 'PUT', body });
+      setVersion((v) => v + 1);
+      onNotice({
+        type: 'success',
+        text: `Se actualizó ${article} ${noun}.`,
+      });
+      onChanged();
+    } catch (err) {
+      onNotice({ type: 'error', text: describeError(err) });
+    }
+  }
+
+  async function remove() {
+    try {
+      await apiRequest(`/institution/${kind}`, { method: 'DELETE' });
+      onNotice({ type: 'success', text: `Se quitó ${article} ${noun}.` });
+      onChanged();
+    } catch (err) {
+      onNotice({ type: 'error', text: describeError(err) });
+    }
+  }
+
+  return (
+    <div className="field">
+      <span id={labelId} className="label-like">
+        {label}
+      </span>
+      {present ? (
+        <img
+          className={previewClass}
+          src={`/api/public/institution/${kind}?v=${version}`}
+          alt={alt}
+        />
+      ) : (
+        <p className="hint">Todavía no hay {noun}.</p>
+      )}
+      {canManage && (
+        <div className="form-actions">
+          <label className="button-like">
+            {present ? `Reemplazar ${noun}` : `Subir ${noun}`}
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="visually-hidden"
+              aria-labelledby={labelId}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void change(file);
+                e.target.value = '';
+              }}
+            />
+          </label>
+          {present && (
+            <button type="button" onClick={() => void remove()}>
+              Quitar {noun}
+            </button>
+          )}
+        </div>
+      )}
+      <p className="hint">{hint}</p>
+    </div>
   );
 }
