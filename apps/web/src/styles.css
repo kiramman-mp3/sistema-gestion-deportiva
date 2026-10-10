@@ -2696,6 +2696,36 @@ pre.json {
     display: none;
   }
 }
+/* En móvil la barra superior deja los iconos con su nombre accesible para que
+   «Cerrar sesión» siga a la vista; el nombre del usuario se omite. */
+.topbar-left {
+  min-width: 0;
+}
+.topbar-right {
+  flex-shrink: 0;
+}
+@media (max-width: 47.99rem) {
+  .topbar-right {
+    gap: 0.5rem;
+  }
+  .topbar-username {
+    display: none;
+  }
+  .topbar-link,
+  .topbar-logout-button {
+    justify-content: center;
+    min-width: var(--target-min);
+  }
+  .topbar-link-text,
+  .topbar-logout-button span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
 
 /* NavDrawer & InstitutionBrand */
 .nav-drawer-close {
