@@ -94,6 +94,22 @@
   --ease-out: cubic-bezier(0.2, 0.7, 0.3, 1);
   --target-min: 44px;
 
+  /* Espaciado (múltiplos de 4px) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* Capas (z-index) */
+  --z-sticky: 10;
+  --z-drawer: 40;
+  --z-modal: 100;
+  --z-toast: 200;
+
   /* Alias de compatibilidad con los nombres anteriores (se retiran en la fase 5). */
   --bg: var(--color-bg);
   --surface: var(--color-surface);
