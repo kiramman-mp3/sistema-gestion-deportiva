@@ -1,6 +1,7 @@
 import { type FormEvent, useId, useMemo, useState } from 'react';
 import { ApiError, apiRequest } from '../../api/client.ts';
 import { ConfirmDialog } from '../../components/ConfirmDialog.tsx';
+import { Icon } from '../../components/Icon.tsx';
 import {
   Notice,
   type NoticeState,
@@ -67,7 +68,7 @@ export function RoleDetailPage({ roleId, permissions }: Props) {
       <div className="catalog-header">
         <h1 id="role-title">{r.name}</h1>
         <span className={`badge badge-${r.isSystem ? 'neutral' : 'ok'}`}>
-          <span aria-hidden="true">{r.isSystem ? '🔒 ' : '✎ '}</span>
+          <Icon name={r.isSystem ? 'lock' : 'pencil'} size={14} />{' '}
           {r.isSystem ? 'Rol de sistema' : 'Rol configurable'}
         </span>
       </div>

@@ -1,5 +1,6 @@
 import { type FormEvent, useId, useState } from 'react';
 import { ApiError, apiRequest } from '../../api/client.ts';
+import { Icon } from '../../components/Icon.tsx';
 import {
   Notice,
   type NoticeState,
@@ -90,7 +91,7 @@ export function RolesPage({ permissions }: { permissions: readonly string[] }) {
                   <span
                     className={`badge badge-${r.isSystem ? 'neutral' : 'ok'}`}
                   >
-                    <span aria-hidden="true">{r.isSystem ? '🔒 ' : '✎ '}</span>
+                    <Icon name={r.isSystem ? 'lock' : 'pencil'} size={14} />{' '}
                     {r.isSystem ? 'De sistema' : 'Configurable'}
                   </span>
                 </td>

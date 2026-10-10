@@ -43,6 +43,7 @@ export type IconName =
   | 'eye'
   | 'eye-off'
   | 'tag'
+  | 'table'
   | 'user';
 
 export interface IconProps extends SVGProps<SVGSVGElement> {
@@ -303,6 +304,15 @@ export function Icon({ name, size = 20, className = '', ...props }: IconProps) {
         <svg {...commonProps}>
           <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
           <path d="M7 7h.01" />
+        </svg>
+      );
+    case 'table':
+      return (
+        <svg {...commonProps}>
+          <path d="M12 3v18" />
+          <rect width="18" height="18" x="3" y="3" rx="2" />
+          <path d="M3 9h18" />
+          <path d="M3 15h18" />
         </svg>
       );
     case 'user':
