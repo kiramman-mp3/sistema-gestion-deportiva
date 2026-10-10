@@ -1,0 +1,143 @@
+/*
+ * Tokens de diseño de la Liga (D-95). Identidad PROVISIONAL: cuando la Liga entregue
+ * sus colores oficiales, se cambian aquí y en ningún otro archivo.
+ *
+ * Capas: primitivas (--color-*, --font-*, escalas) → alias de compatibilidad con los
+ * nombres anteriores (--bg, --primary…), que se retiran en la fase 5.
+ */
+
+/* Fuentes alojadas en el proyecto (OFL-1.1, ver assets/fonts/README.md). */
+@font-face {
+  font-family: 'Atkinson Hyperlegible Next';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('../assets/fonts/atkinson-hyperlegible-next-latin-wght.woff2')
+    format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../assets/fonts/barlow-condensed-latin-600.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../assets/fonts/barlow-condensed-latin-700.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+
+  /* Tipografía */
+  --font-body:
+    'Atkinson Hyperlegible Next', 'Segoe UI', system-ui, -apple-system, Roboto,
+    sans-serif;
+  --font-display:
+    'Barlow Condensed', 'Arial Narrow', 'Roboto Condensed', 'Segoe UI',
+    sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  /* Color: modo claro (por defecto). Contraste verificado en styles.spec.ts. */
+  --color-bg: #f2f4f1;
+  --color-surface: #ffffff;
+  --color-surface-sunken: #e7ebe8;
+  --color-text: #15212b;
+  --color-text-muted: #4d5b63;
+  --color-border: #d3dad5;
+  --color-control-border: #7a8a88;
+  --color-brand: #0f3d3e;
+  --color-on-brand: #ffffff;
+  --color-primary: #0f3d3e;
+  --color-on-primary: #ffffff;
+  --color-accent: #ffc21a;
+  --color-on-accent: #15212b;
+  --color-focus: #0f3d3e;
+  --color-success: #18794e;
+  --color-success-bg: #e3f4ea;
+  --color-warning: #8a4b00;
+  --color-warning-bg: #fff1d6;
+  --color-danger: #b42318;
+  --color-danger-bg: #fdecea;
+  --color-danger-strong: #b42318;
+  --color-on-danger-strong: #ffffff;
+  --color-info: #1f5fa6;
+  --color-info-bg: #e6effa;
+  --color-backdrop: rgb(21 33 43 / 55%);
+
+  /* Escalas */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+  --shadow-sm: 0 1px 2px rgb(21 33 43 / 8%);
+  --shadow-md: 0 1px 2px rgb(21 33 43 / 8%), 0 8px 24px rgb(21 33 43 / 8%);
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --target-min: 44px;
+
+  /* Alias de compatibilidad con los nombres anteriores (se retiran en la fase 5). */
+  --bg: var(--color-bg);
+  --surface: var(--color-surface);
+  --surface-sunken: var(--color-surface-sunken);
+  --text: var(--color-text);
+  --muted: var(--color-text-muted);
+  --text-muted: var(--color-text-muted);
+  --border: var(--color-border);
+  --primary: var(--color-primary);
+  --ok: var(--color-success);
+  --success-text: var(--color-success);
+  --error: var(--color-danger);
+  --danger-text: var(--color-danger);
+  --error-strong: var(--color-danger-strong);
+  --warning-text: var(--color-warning);
+}
+
+/* Modo oscuro: sigue la preferencia del sistema, como antes. Solo redefine colores. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0f1719;
+    --color-surface: #172124;
+    --color-surface-sunken: #223033;
+    --color-text: #e6ecea;
+    --color-text-muted: #a3b1b0;
+    --color-border: #2c3a3d;
+    --color-control-border: #6b7f80;
+    --color-brand: #0b2b2c;
+    --color-on-brand: #e6ecea;
+    --color-primary: #7cc4b8;
+    --color-on-primary: #0f1719;
+    --color-accent: #ffc93d;
+    --color-on-accent: #15212b;
+    --color-focus: #7cc4b8;
+    --color-success: #5bd08f;
+    --color-success-bg: #12301f;
+    --color-warning: #f5b451;
+    --color-warning-bg: #33250c;
+    --color-danger: #ff8a80;
+    --color-danger-bg: #3a1513;
+    --color-danger-strong: #b42318;
+    --color-on-danger-strong: #ffffff;
+    --color-info: #8db8f2;
+    --color-info-bg: #13253d;
+    --color-backdrop: rgb(0 0 0 / 65%);
+  }
+}
