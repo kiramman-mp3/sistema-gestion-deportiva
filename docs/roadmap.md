@@ -74,7 +74,7 @@ Leyenda: `[x]` hecho · `[ ]` pendiente
 
 ## Rediseño de la interfaz (D-95)
 
-Fases del rediseño visual; su numeración es propia y no coincide con la del plan anterior.
+Fases del rediseño visual; su numeración es propia y no coincide con la del plan anterior. Detalle por fase en [`roadmap-frontend.md`](roadmap-frontend.md); diseño en [`frontend-design-spec.md`](frontend-design-spec.md); instrucciones para el agente en [`frontend-agent-brief.md`](frontend-agent-brief.md).
 
 - [x] Fase 1 — Tokens, fuentes locales, estilos base y hoja de impresión separada (`feature/ui-foundation`)
 - [ ] Fase 2 — Estructura, navegación e inicio de sesión
