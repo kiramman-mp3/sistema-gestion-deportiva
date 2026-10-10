@@ -3,8 +3,9 @@ import { ACCOUNTS, login } from './support.ts';
 
 /**
  * Ninguna pantalla debe obligar a desplazarse en horizontal (D-95).
- * Quedan fuera los pendientes registrados en docs/roadmap.md: portal a 320 px
- * (inicio, calendario y partido) y la vista previa de acta y nómina, de ancho fijo de papel.
+ * Se cubren todas las rutas del portal, panel de administración y
+ * las vistas previas de documentos oficiales imprimibles (acta y nómina)
+ * con contenedor con desplazamiento horizontal propio en pantalla.
  */
 
 const WIDTHS = [320, 375, 768, 1024, 1280];
@@ -70,11 +71,49 @@ async function firstId(page: Page, path: string): Promise<string> {
   return items[0]!.id;
 }
 
+async function firstApprovedEventId(page: Page): Promise<string> {
+  const res = await page.request.get('/api/public/home');
+  expect(res.ok()).toBe(true);
+  const home = (await res.json()) as { recent: { id: string }[] };
+  expect(home.recent.length).toBeGreaterThan(0);
+  return home.recent[0]!.id;
+}
+
+async function firstRegistrationId(page: Page): Promise<string> {
+  const res = await page.request.get('/api/public/championships');
+  const { items } = (await res.json()) as { items: { id: string }[] };
+  for (const { id } of items) {
+    const standings = JSON.stringify(
+      await (
+        await page.request.get(`/api/public/championships/${id}/standings`)
+      ).json(),
+    );
+    const match = /"registrationId":"([0-9a-f-]{36})"/.exec(standings);
+    if (match) return match[1]!;
+  }
+  throw new Error('Ningún campeonato público tiene inscripciones');
+}
+
 test.describe('sin desplazamiento horizontal', () => {
   test('portal público', async ({ page }) => {
     const failures: string[] = [];
     for (const [route, widths] of PORTAL_ROUTES)
       failures.push(...(await overflowingWidths(page, route, widths)));
+    expect(failures).toEqual([]);
+  });
+
+  test('vista previa de documentos imprimibles (acta y nómina)', async ({
+    page,
+  }) => {
+    const eventId = await firstApprovedEventId(page);
+    const registrationId = await firstRegistrationId(page);
+    const failures: string[] = [];
+    for (const route of [
+      `#/imprimir/acta/${eventId}`,
+      `#/imprimir/nomina/${registrationId}`,
+    ]) {
+      failures.push(...(await overflowingWidths(page, route, WIDTHS)));
+    }
     expect(failures).toEqual([]);
   });
 
