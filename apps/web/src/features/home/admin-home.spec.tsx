@@ -155,7 +155,11 @@ const defaultRoutes = () => ({
     } satisfies MyAssignmentsPageData),
   'GET /public/home': () => json(SAMPLE_PUBLIC_HOME),
   'GET /health': () =>
-    json({ status: 'ok', service: 'liga-api', timestamp: '2026-06-01T00:00:00Z' }),
+    json({
+      status: 'ok',
+      service: 'liga-api',
+      timestamp: '2026-06-01T00:00:00Z',
+    }),
 });
 
 afterEach(() => {
@@ -205,15 +209,15 @@ describe('AdminHome (spec §11)', () => {
 
     // El bloque con error muestra su estado de error y botón de reintento
     expect(await screen.findByText('Error')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Reintentar' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Reintentar' }),
+    ).toBeInTheDocument();
 
     // Pero los otros bloques cargaron sus métricas y contenido exitosamente
     expect(await screen.findByText('3')).toBeInTheDocument(); // reclamos
     expect(screen.getByText('2')).toBeInTheDocument(); // expedientes
     expect(screen.getByText('4')).toBeInTheDocument(); // inscripciones abiertas
-    expect(
-      screen.getAllByText('Torneo Apertura 2026')[0],
-    ).toBeInTheDocument();
+    expect(screen.getAllByText('Torneo Apertura 2026')[0]).toBeInTheDocument();
   });
 
   it('muestra «de sus clubes» cuando el usuario no tiene clubs:access_all', async () => {

@@ -24,7 +24,7 @@ export function StatusBadge({ status }: { status: UserStatus }) {
   const symbol = status === 'activo' ? '●' : status === 'pendiente' ? '◐' : '○';
   return (
     <span
-      className={`badge badge-${status === 'activo' ? 'ok' : status === 'pendiente' ? 'neutral' : 'off'}`}
+      className={`badge ${status === 'activo' ? 'badge-success' : status === 'pendiente' ? 'badge-warning' : 'badge-neutral'}`}
     >
       <span aria-hidden="true">{symbol} </span>
       {USER_STATUS_LABELS[status]}

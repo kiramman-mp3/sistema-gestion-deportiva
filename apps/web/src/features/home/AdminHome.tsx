@@ -57,8 +57,9 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
   const [activeChampionshipsState, setActiveChampionshipsState] = useState<
     BlockState<Championship[]>
   >({ kind: 'loading' });
-  const [assignmentsState, setAssignmentsState] =
-    useState<BlockState<MyAssignmentsPageData>>({ kind: 'loading' });
+  const [assignmentsState, setAssignmentsState] = useState<
+    BlockState<MyAssignmentsPageData>
+  >({ kind: 'loading' });
   const [publicHomeState, setPublicHomeState] = useState<
     BlockState<PublicHome>
   >({ kind: 'loading' });
@@ -69,15 +70,22 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
     const signal = controller.signal;
 
     if (hasAthletesRead) {
-      apiGet<Page<unknown>>('/athletes?eligibility=pendiente&pageSize=1', signal)
+      apiGet<Page<unknown>>(
+        '/athletes?eligibility=pendiente&pageSize=1',
+        signal,
+      )
         .then((res) => {
-          if (!signal.aborted) setAthletesState({ kind: 'ready', data: res.total });
+          if (!signal.aborted)
+            setAthletesState({ kind: 'ready', data: res.total });
         })
         .catch((err: unknown) => {
           if (!signal.aborted) {
             setAthletesState({
               kind: 'error',
-              message: err instanceof Error ? err.message : 'Error al cargar deportistas',
+              message:
+                err instanceof Error
+                  ? err.message
+                  : 'Error al cargar deportistas',
             });
           }
         });
@@ -86,13 +94,15 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
     if (hasComplaintsRead) {
       apiGet<Page<unknown>>('/complaints?status=recibido&pageSize=1', signal)
         .then((res) => {
-          if (!signal.aborted) setComplaintsState({ kind: 'ready', data: res.total });
+          if (!signal.aborted)
+            setComplaintsState({ kind: 'ready', data: res.total });
         })
         .catch((err: unknown) => {
           if (!signal.aborted) {
             setComplaintsState({
               kind: 'error',
-              message: err instanceof Error ? err.message : 'Error al cargar reclamos',
+              message:
+                err instanceof Error ? err.message : 'Error al cargar reclamos',
             });
           }
         });
@@ -101,13 +111,17 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
     if (hasCasesRead) {
       apiGet<Page<unknown>>('/cases?status=abierto&pageSize=1', signal)
         .then((res) => {
-          if (!signal.aborted) setCasesState({ kind: 'ready', data: res.total });
+          if (!signal.aborted)
+            setCasesState({ kind: 'ready', data: res.total });
         })
         .catch((err: unknown) => {
           if (!signal.aborted) {
             setCasesState({
               kind: 'error',
-              message: err instanceof Error ? err.message : 'Error al cargar expedientes',
+              message:
+                err instanceof Error
+                  ? err.message
+                  : 'Error al cargar expedientes',
             });
           }
         });
@@ -119,13 +133,17 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
         signal,
       )
         .then((res) => {
-          if (!signal.aborted) setOpenRegState({ kind: 'ready', data: res.total });
+          if (!signal.aborted)
+            setOpenRegState({ kind: 'ready', data: res.total });
         })
         .catch((err: unknown) => {
           if (!signal.aborted) {
             setOpenRegState({
               kind: 'error',
-              message: err instanceof Error ? err.message : 'Error al cargar inscripciones',
+              message:
+                err instanceof Error
+                  ? err.message
+                  : 'Error al cargar inscripciones',
             });
           }
         });
@@ -142,7 +160,10 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
           if (!signal.aborted) {
             setActiveChampionshipsState({
               kind: 'error',
-              message: err instanceof Error ? err.message : 'Error al cargar campeonatos',
+              message:
+                err instanceof Error
+                  ? err.message
+                  : 'Error al cargar campeonatos',
             });
           }
         });
@@ -154,13 +175,17 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
         signal,
       )
         .then((res) => {
-          if (!signal.aborted) setAssignmentsState({ kind: 'ready', data: res });
+          if (!signal.aborted)
+            setAssignmentsState({ kind: 'ready', data: res });
         })
         .catch((err: unknown) => {
           if (!signal.aborted) {
             setAssignmentsState({
               kind: 'error',
-              message: err instanceof Error ? err.message : 'Error al cargar designaciones',
+              message:
+                err instanceof Error
+                  ? err.message
+                  : 'Error al cargar designaciones',
             });
           }
         });
@@ -175,7 +200,10 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
         if (!signal.aborted) {
           setPublicHomeState({
             kind: 'error',
-            message: err instanceof Error ? err.message : 'Error al cargar partidos públicos',
+            message:
+              err instanceof Error
+                ? err.message
+                : 'Error al cargar partidos públicos',
           });
         }
       });
@@ -220,7 +248,10 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
       )}
 
       {/* Fila de tarjetas de métricas / pendientes */}
-      <section className="admin-metrics-grid" aria-label="Métricas y pendientes">
+      <section
+        className="admin-metrics-grid"
+        aria-label="Métricas y pendientes"
+      >
         {hasAthletesRead && (
           <MetricCard
             title={athletesLabel}
@@ -229,8 +260,12 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
             icon="users"
             onRetry={() => {
               setAthletesState({ kind: 'loading' });
-              apiGet<Page<unknown>>('/athletes?eligibility=pendiente&pageSize=1')
-                .then((res) => setAthletesState({ kind: 'ready', data: res.total }))
+              apiGet<Page<unknown>>(
+                '/athletes?eligibility=pendiente&pageSize=1',
+              )
+                .then((res) =>
+                  setAthletesState({ kind: 'ready', data: res.total }),
+                )
                 .catch((err: unknown) =>
                   setAthletesState({
                     kind: 'error',
@@ -250,7 +285,9 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
             onRetry={() => {
               setComplaintsState({ kind: 'loading' });
               apiGet<Page<unknown>>('/complaints?status=recibido&pageSize=1')
-                .then((res) => setComplaintsState({ kind: 'ready', data: res.total }))
+                .then((res) =>
+                  setComplaintsState({ kind: 'ready', data: res.total }),
+                )
                 .catch((err: unknown) =>
                   setComplaintsState({
                     kind: 'error',
@@ -270,7 +307,9 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
             onRetry={() => {
               setCasesState({ kind: 'loading' });
               apiGet<Page<unknown>>('/cases?status=abierto&pageSize=1')
-                .then((res) => setCasesState({ kind: 'ready', data: res.total }))
+                .then((res) =>
+                  setCasesState({ kind: 'ready', data: res.total }),
+                )
                 .catch((err: unknown) =>
                   setCasesState({
                     kind: 'error',
@@ -292,7 +331,9 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
               apiGet<Page<unknown>>(
                 '/championships?status=inscripciones_abiertas&pageSize=1',
               )
-                .then((res) => setOpenRegState({ kind: 'ready', data: res.total }))
+                .then((res) =>
+                  setOpenRegState({ kind: 'ready', data: res.total }),
+                )
                 .catch((err: unknown) =>
                   setOpenRegState({
                     kind: 'error',
@@ -563,7 +604,9 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
               ) : (
                 <div className="admin-match-cards">
                   {publicHomeState.data.upcoming.slice(0, 6).map((m) => {
-                    const local = m.participants.find((p) => p.side === 'local');
+                    const local = m.participants.find(
+                      (p) => p.side === 'local',
+                    );
                     const visitor = m.participants.find(
                       (p) => p.side === 'visitante',
                     );
@@ -602,7 +645,9 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
               ) : (
                 <div className="admin-match-cards">
                   {publicHomeState.data.recent.slice(0, 6).map((m) => {
-                    const local = m.participants.find((p) => p.side === 'local');
+                    const local = m.participants.find(
+                      (p) => p.side === 'local',
+                    );
                     const visitor = m.participants.find(
                       (p) => p.side === 'visitante',
                     );
