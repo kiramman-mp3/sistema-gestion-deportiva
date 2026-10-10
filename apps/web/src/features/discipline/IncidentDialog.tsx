@@ -1,5 +1,6 @@
 import { type FormEvent, useState } from 'react';
 import { ApiError, apiRequest } from '../../api/client.ts';
+import { Modal } from '../../components/Modal.tsx';
 import { describeError } from '../../components/Notice.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import { SelectField, TextAreaField } from '../people/fields.tsx';
@@ -69,7 +70,7 @@ export function IncidentDialog({
   }
 
   return (
-    <dialog open className="dialog-backdrop" aria-modal="true">
+    <Modal onClose={onClose} busy={busy}>
       <div className="dialog-content">
         <h4>Reportar incidencia: {title}</h4>
         <form onSubmit={submit} noValidate>
@@ -123,15 +124,15 @@ export function IncidentDialog({
             </p>
           )}
           <div className="form-actions">
-            <button type="submit" className="primary" disabled={busy}>
-              {busy ? 'Enviando…' : 'Reportar incidencia'}
-            </button>
             <button type="button" onClick={onClose} disabled={busy}>
               Cancelar
+            </button>
+            <button type="submit" className="primary" disabled={busy}>
+              {busy ? 'Enviando…' : 'Reportar incidencia'}
             </button>
           </div>
         </form>
       </div>
-    </dialog>
+    </Modal>
   );
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Icon } from '../../components/Icon.tsx';
+import { Tabs } from '../../components/Tabs.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import type {
   PublicChampionship,
@@ -241,300 +242,333 @@ function ChampionshipDetailView({
       </header>
 
       {/* Tabs */}
-      <div className="detail-tabs" role="tablist">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === 'fixtures'}
-          className={`tab-btn ${activeTab === 'fixtures' ? 'active' : ''}`}
-          onClick={() => setActiveTab('fixtures')}
-        >
-          <Icon name="calendar" /> Calendario y Resultados
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === 'standings'}
-          className={`tab-btn ${activeTab === 'standings' ? 'active' : ''}`}
-          onClick={() => setActiveTab('standings')}
-        >
-          <Icon name="table" /> Tabla de Posiciones Oficial
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === 'rules'}
-          className={`tab-btn ${activeTab === 'rules' ? 'active' : ''}`}
-          onClick={() => setActiveTab('rules')}
-        >
-          <Icon name="file-text" /> Información y Reglamentos
-        </button>
-      </div>
-
-      {/* Panel 1: Calendario y Resultados */}
-      {activeTab === 'fixtures' && (
-        <section className="tab-panel" aria-label="Calendario y resultados">
-          <div className="panel-actions">
-            <h4>Encuentros y Jornadas Oficiales</h4>
-            <span className="row-actions">
-              <a
-                href={`/api/public/championships/${championship.id}/export/fixtures?format=pdf`}
+      <Tabs
+        ariaLabel="Detalles del campeonato"
+        activeId={activeTab}
+        onChange={(id) =>
+          setActiveTab(id as 'fixtures' | 'standings' | 'rules')
+        }
+        className="detail-tabs"
+        items={[
+          {
+            id: 'fixtures',
+            label: (
+              <>
+                <Icon name="calendar" /> Calendario y Resultados
+              </>
+            ),
+            content: (
+              <section
+                className="tab-panel"
+                aria-label="Calendario y resultados"
               >
-                PDF
-              </a>
-              <a
-                href={`/api/public/championships/${championship.id}/export/fixtures?format=csv`}
-              >
-                CSV
-              </a>
-            </span>
-            <button
-              type="button"
-              onClick={reloadFixtures}
-              className="link-button"
-            >
-              Actualizar
-            </button>
-          </div>
+                <div className="panel-actions">
+                  <h4>Encuentros y Jornadas Oficiales</h4>
+                  <span className="row-actions">
+                    <a
+                      href={`/api/public/championships/${championship.id}/export/fixtures?format=pdf`}
+                    >
+                      PDF
+                    </a>
+                    <a
+                      href={`/api/public/championships/${championship.id}/export/fixtures?format=csv`}
+                    >
+                      CSV
+                    </a>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={reloadFixtures}
+                    className="link-button"
+                  >
+                    Actualizar
+                  </button>
+                </div>
 
-          {fixturesState.kind === 'loading' && (
-            <output>Cargando calendario oficial…</output>
-          )}
-          {fixturesState.kind === 'error' && (
-            <div className="catalog-error">
-              <p>Error: {fixturesState.message}</p>
-            </div>
-          )}
+                {fixturesState.kind === 'loading' && (
+                  <output>Cargando calendario oficial…</output>
+                )}
+                {fixturesState.kind === 'error' && (
+                  <div className="catalog-error">
+                    <p>Error: {fixturesState.message}</p>
+                  </div>
+                )}
 
-          {fixturesState.kind === 'ready' &&
-            fixturesState.data.length === 0 && (
-              <p>No se han programado jornadas para este campeonato aún.</p>
-            )}
+                {fixturesState.kind === 'ready' &&
+                  fixturesState.data.length === 0 && (
+                    <div className="empty-state">
+                      <p>
+                        No hay etapas o partidos programados para este
+                        campeonato.
+                      </p>
+                    </div>
+                  )}
 
-          {fixturesState.kind === 'ready' &&
-            fixturesState.data.map((stage) => (
-              <div key={stage.id} className="stage-block">
-                <h4 className="stage-name">{stage.name}</h4>
-                {stage.rounds.map((round) => (
-                  <div key={round.id} className="round-block">
-                    <h5 className="round-name">{round.name}</h5>
-                    <div className="events-list">
-                      {round.events.map((event) => {
-                        const local =
-                          event.participants.find((p) => p.side === 'local') ??
-                          event.participants[0];
-                        const away =
-                          event.participants.find(
-                            (p) => p.side === 'visitante',
-                          ) ?? event.participants[1];
-                        const isApproved = event.result !== null;
+                {fixturesState.kind === 'ready' &&
+                  fixturesState.data.map((stage) => (
+                    <div key={stage.id} className="stage-block">
+                      <h4 className="stage-title">{stage.name}</h4>
+                      {stage.rounds.map((round) => (
+                        <div key={round.id} className="round-block">
+                          <h5 className="round-title">{round.name}</h5>
+                          <div className="matches-grid">
+                            {round.events.map((event) => {
+                              const local = event.participants.find(
+                                (p) => p.side === 'local',
+                              );
+                              const away = event.participants.find(
+                                (p) => p.side === 'visitante',
+                              );
+                              const isApproved = event.result !== null;
 
-                        return (
-                          <div key={event.id} className="match-card">
-                            <div className="match-meta">
-                              <span className="match-venue">
-                                <Icon name="map-pin" />{' '}
-                                {event.venue?.name ?? 'Por confirmar'}
-                              </span>
-                              <span className="match-date">
-                                <Icon name="clock" />{' '}
-                                {event.scheduledAt
-                                  ? new Date(event.scheduledAt).toLocaleString(
-                                      'es-EC',
-                                      {
-                                        dateStyle: 'medium',
-                                        timeStyle: 'short',
-                                      },
-                                    )
-                                  : 'Fecha por definir'}
-                              </span>
-                              <span
-                                className={`match-status-pill status-${event.status}`}
-                              >
-                                {event.status}
-                              </span>
-                            </div>
+                              return (
+                                <div key={event.id} className="match-card">
+                                  <div className="match-meta">
+                                    <span className="match-venue">
+                                      <Icon name="map-pin" />{' '}
+                                      {event.venue?.name ?? 'Por confirmar'}
+                                    </span>
+                                    <span className="match-date">
+                                      <Icon name="clock" />{' '}
+                                      {event.scheduledAt
+                                        ? new Date(
+                                            event.scheduledAt,
+                                          ).toLocaleString('es-EC', {
+                                            dateStyle: 'medium',
+                                            timeStyle: 'short',
+                                          })
+                                        : 'Fecha por definir'}
+                                    </span>
+                                    <span
+                                      className={`match-status-pill status-${event.status}`}
+                                    >
+                                      {event.status}
+                                    </span>
+                                  </div>
 
-                            <div className="match-teams-row">
-                              <div className="match-team local">
-                                <span className="team-name">
-                                  {local?.name ?? 'Por definir'}
-                                </span>
-                                <small className="team-club">
-                                  {local?.clubName}
-                                </small>
-                              </div>
+                                  <div className="match-teams-row">
+                                    <div className="match-team local">
+                                      <span className="team-name">
+                                        {local?.name ?? 'Por definir'}
+                                      </span>
+                                      <small className="team-club">
+                                        {local?.clubName}
+                                      </small>
+                                    </div>
 
-                              <div className="match-score">
-                                {isApproved ? (
-                                  <span className="score-numbers">
-                                    {local?.score ?? 0} — {away?.score ?? 0}
-                                  </span>
-                                ) : (
-                                  <span className="vs-badge">VS</span>
-                                )}
-                              </div>
+                                    <div className="match-score">
+                                      {isApproved ? (
+                                        <span className="score-numbers">
+                                          {local?.score ?? 0} —{' '}
+                                          {away?.score ?? 0}
+                                        </span>
+                                      ) : (
+                                        <span className="vs-badge">VS</span>
+                                      )}
+                                    </div>
 
-                              <div className="match-team away">
-                                <span className="team-name">
-                                  {away?.name ?? 'Por definir'}
-                                </span>
-                                <small className="team-club">
-                                  {away?.clubName}
-                                </small>
-                              </div>
-                            </div>
+                                    <div className="match-team away">
+                                      <span className="team-name">
+                                        {away?.name ?? 'Por definir'}
+                                      </span>
+                                      <small className="team-club">
+                                        {away?.clubName}
+                                      </small>
+                                    </div>
+                                  </div>
 
-                            <div className="match-footer-actions">
+                                  <div className="match-footer-actions">
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        onOpenPrint('acta', event.id)
+                                      }
+                                      className="print-link-button"
+                                    >
+                                      <Icon name="printer" /> Ver / Imprimir
+                                      Acta Oficial
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+              </section>
+            ),
+          },
+          {
+            id: 'standings',
+            label: (
+              <>
+                <Icon name="table" /> Tabla de Posiciones Oficial
+              </>
+            ),
+            content: (
+              <section className="tab-panel" aria-label="Tabla de posiciones">
+                <div className="panel-actions">
+                  <h4>Tabla de Posiciones Oficial</h4>
+                  <span className="row-actions">
+                    <a
+                      href={`/api/public/championships/${championship.id}/export/standings?format=pdf`}
+                    >
+                      PDF
+                    </a>
+                    <a
+                      href={`/api/public/championships/${championship.id}/export/standings?format=csv`}
+                    >
+                      CSV
+                    </a>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={reloadStandings}
+                    className="link-button"
+                  >
+                    Actualizar
+                  </button>
+                </div>
+
+                {standingsState.kind === 'loading' && (
+                  <output>Calculando tabla de posiciones…</output>
+                )}
+                {standingsState.kind === 'error' && (
+                  <div className="catalog-error">
+                    <p>Error: {standingsState.message}</p>
+                  </div>
+                )}
+
+                {standingsState.kind === 'ready' && (
+                  <div className="standings-table-container">
+                    <table className="portal-table responsive-table">
+                      <thead>
+                        <tr>
+                          <th>Pos</th>
+                          <th>Participante</th>
+                          <th>Club</th>
+                          <th title="Partidos Jugados">PJ</th>
+                          <th title="Partidos Ganados">PG</th>
+                          <th title="Partidos Empatados">PE</th>
+                          <th title="Partidos Perdidos">PP</th>
+                          <th title="Goles / Puntos a favor">GF</th>
+                          <th title="Goles / Puntos en contra">GC</th>
+                          <th title="Diferencia de goles / puntos">DG</th>
+                          <th title="Puntos oficiales">Pts</th>
+                          <th>Nómina Oficial</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {standingsState.data.standings.map((row) => (
+                          <tr
+                            key={row.registrationId}
+                            className={row.position <= 2 ? 'top-row' : ''}
+                          >
+                            <td data-label="Pos" className="center bold">
+                              {row.position}°
+                            </td>
+                            <td data-label="Participante" className="bold">
+                              {row.name}
+                            </td>
+                            <td data-label="Club">{row.clubName}</td>
+                            <td data-label="PJ" className="center">
+                              {row.played}
+                            </td>
+                            <td data-label="PG" className="center">
+                              {row.won}
+                            </td>
+                            <td data-label="PE" className="center">
+                              {row.drawn}
+                            </td>
+                            <td data-label="PP" className="center">
+                              {row.lost}
+                            </td>
+                            <td data-label="GF" className="center">
+                              {row.goalsFor}
+                            </td>
+                            <td data-label="GC" className="center">
+                              {row.goalsAgainst}
+                            </td>
+                            <td data-label="DG" className="center">
+                              {row.goalDifference > 0
+                                ? `+${row.goalDifference}`
+                                : row.goalDifference}
+                            </td>
+                            <td
+                              data-label="Pts"
+                              className="center bold pts-cell"
+                            >
+                              {row.points}
+                            </td>
+                            <td data-label="Nómina" className="center">
                               <button
                                 type="button"
-                                onClick={() => onOpenPrint('acta', event.id)}
-                                className="print-link-button"
+                                onClick={() =>
+                                  onOpenPrint('nomina', row.registrationId)
+                                }
+                                className="action-link"
                               >
-                                <Icon name="printer" /> Ver / Imprimir Acta
-                                Oficial
+                                <Icon name="file-text" /> Ver Nómina
                               </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                ))}
-              </div>
-            ))}
-        </section>
-      )}
-
-      {/* Panel 2: Tabla de Posiciones */}
-      {activeTab === 'standings' && (
-        <section className="tab-panel" aria-label="Tabla de posiciones">
-          <div className="panel-actions">
-            <h4>Tabla de Posiciones Oficial</h4>
-            <span className="row-actions">
-              <a
-                href={`/api/public/championships/${championship.id}/export/standings?format=pdf`}
+                )}
+              </section>
+            ),
+          },
+          {
+            id: 'rules',
+            label: (
+              <>
+                <Icon name="file-text" /> Información y Reglamentos
+              </>
+            ),
+            content: (
+              <section
+                className="tab-panel"
+                aria-label="Información y reglamento"
               >
-                PDF
-              </a>
-              <a
-                href={`/api/public/championships/${championship.id}/export/standings?format=csv`}
-              >
-                CSV
-              </a>
-            </span>
-            <button
-              type="button"
-              onClick={reloadStandings}
-              className="link-button"
-            >
-              Actualizar
-            </button>
-          </div>
-
-          {standingsState.kind === 'loading' && (
-            <output>Calculando tabla de posiciones…</output>
-          )}
-          {standingsState.kind === 'error' && (
-            <div className="catalog-error">
-              <p>Error: {standingsState.message}</p>
-            </div>
-          )}
-
-          {standingsState.kind === 'ready' && (
-            <div className="standings-table-container">
-              <table className="portal-table">
-                <thead>
-                  <tr>
-                    <th>Pos</th>
-                    <th>Participante</th>
-                    <th>Club</th>
-                    <th title="Partidos Jugados">PJ</th>
-                    <th title="Partidos Ganados">PG</th>
-                    <th title="Partidos Empatados">PE</th>
-                    <th title="Partidos Perdidos">PP</th>
-                    <th title="Goles / Puntos a favor">GF</th>
-                    <th title="Goles / Puntos en contra">GC</th>
-                    <th title="Diferencia de goles / puntos">DG</th>
-                    <th title="Puntos oficiales">Pts</th>
-                    <th>Nómina Oficial</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {standingsState.data.standings.map((row) => (
-                    <tr
-                      key={row.registrationId}
-                      className={row.position <= 2 ? 'top-row' : ''}
-                    >
-                      <td className="center bold">{row.position}°</td>
-                      <td className="bold">{row.name}</td>
-                      <td>{row.clubName}</td>
-                      <td className="center">{row.played}</td>
-                      <td className="center">{row.won}</td>
-                      <td className="center">{row.drawn}</td>
-                      <td className="center">{row.lost}</td>
-                      <td className="center">{row.goalsFor}</td>
-                      <td className="center">{row.goalsAgainst}</td>
-                      <td className="center">
-                        {row.goalDifference > 0
-                          ? `+${row.goalDifference}`
-                          : row.goalDifference}
-                      </td>
-                      <td className="center bold pts-cell">{row.points}</td>
-                      <td className="center">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            onOpenPrint('nomina', row.registrationId)
-                          }
-                          className="action-link"
-                        >
-                          <Icon name="file-text" /> Ver Nómina
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* Panel 3: Información y Reglamentos */}
-      {activeTab === 'rules' && (
-        <section className="tab-panel" aria-label="Información y reglamento">
-          <div className="rules-info-box">
-            <h4>Bases y Reglamento del Campeonato</h4>
-            <p>
-              Campeonato oficial regido por las directrices de la{' '}
-              <strong>Liga Deportiva Cantonal de Quero</strong> y las
-              federaciones deportivas ecuatorianas correspondientes.
-            </p>
-            <ul>
-              <li>
-                <strong>Deporte:</strong> {championship.sport.name}
-              </li>
-              <li>
-                <strong>Categoría:</strong> {championship.category.name}
-              </li>
-              <li>
-                <strong>Modalidad de competencia:</strong>{' '}
-                {championship.format.replace(/_/g, ' ')}
-              </li>
-              <li>
-                <strong>Puntuación oficial:</strong> Reglamentada por acta
-                aprobada
-              </li>
-              <li>
-                <strong>Criterios de Desempate:</strong> Diferencia de
-                goles/puntos, mayor cantidad de goles/puntos a favor, juego
-                limpio (tarjetas amarillas y rojas) y confrontación directa.
-              </li>
-            </ul>
-          </div>
-        </section>
-      )}
+                <div className="rules-info-box">
+                  <h4>Bases y Reglamento del Campeonato</h4>
+                  <p>
+                    Campeonato oficial regido por las directrices de la{' '}
+                    <strong>Liga Deportiva Cantonal de Quero</strong> y las
+                    federaciones deportivas ecuatorianas correspondientes.
+                  </p>
+                  <ul>
+                    <li>
+                      <strong>Deporte:</strong> {championship.sport.name}
+                    </li>
+                    <li>
+                      <strong>Categoría:</strong> {championship.category.name}
+                    </li>
+                    <li>
+                      <strong>Modalidad de competencia:</strong>{' '}
+                      {championship.format.replace(/_/g, ' ')}
+                    </li>
+                    <li>
+                      <strong>Puntuación oficial:</strong> Reglamentada por acta
+                      aprobada
+                    </li>
+                    <li>
+                      <strong>Criterios de Desempate:</strong> Diferencia de
+                      goles/puntos, mayor cantidad de goles/puntos a favor,
+                      juego limpio (tarjetas amarillas y rojas) y confrontación
+                      directa.
+                    </li>
+                  </ul>
+                </div>
+              </section>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }
