@@ -231,7 +231,7 @@ export function LoginForm({ sessionExpired }: { sessionExpired: boolean }) {
           <button
             type="submit"
             disabled={submitting}
-            className="login-submit-button"
+            className="primary login-submit-button"
           >
             {submitting ? 'Ingresando…' : 'Ingresar'}
           </button>
