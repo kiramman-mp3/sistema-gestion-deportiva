@@ -31,11 +31,10 @@ const ADMIN_ROUTES = [
   '#/cuenta',
 ];
 
-/** Pendiente de la fase 6 del rediseño: los nombres de equipo de `.match-team` a 320 px. */
 const PORTAL_ROUTES: [string, number[]][] = [
-  ['#/portal', WIDTHS.filter((w) => w !== 320)],
+  ['#/portal', WIDTHS],
   ['#/portal/competencias', WIDTHS],
-  ['#/portal/calendario', WIDTHS.filter((w) => w !== 320)],
+  ['#/portal/calendario', WIDTHS],
   ['#/portal/noticias', WIDTHS],
   ['#/portal/clubes', WIDTHS],
   ['#/portal/liga', WIDTHS],

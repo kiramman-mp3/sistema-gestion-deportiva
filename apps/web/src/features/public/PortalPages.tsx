@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Icon } from '../../components/Icon.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import { Pagination } from '../../components/Pagination.tsx';
 import { LoadState, SelectField, TextField } from '../people/fields.tsx';
@@ -81,10 +82,11 @@ export function MatchRow({ event }: { event: PublicEventSummary }) {
     <article className="match-card">
       <div className="match-meta">
         <span className="match-venue">
-          📍 {event.venue?.name ?? 'Por confirmar'}
+          <Icon name="map-pin" size={14} />{' '}
+          {event.venue?.name ?? 'Por confirmar'}
         </span>
         <span className="match-date">
-          🕒{' '}
+          <Icon name="clock" size={14} />{' '}
           {event.scheduledAt
             ? dateTime.format(new Date(event.scheduledAt))
             : 'Fecha por definir'}
@@ -156,59 +158,135 @@ export function NewsCard({
   );
 }
 
+export interface ScoreboardBandProps {
+  recent?: PublicEventSummary[];
+  upcoming?: PublicEventSummary[];
+  loading?: boolean;
+  error?: string | null;
+  onRetry?: () => void;
+}
+
+export function ScoreboardBand({
+  recent = [],
+  upcoming = [],
+  loading = false,
+  error = null,
+  onRetry,
+}: ScoreboardBandProps) {
+  if (loading) {
+    return (
+      <section className="scoreboard-band" aria-labelledby="scoreboard-title">
+        <div className="scoreboard-band-header">
+          <h2 id="scoreboard-title" className="scoreboard-band-title">
+            Esta semana
+          </h2>
+          <a href="#/portal/calendario" className="scoreboard-calendar-link">
+            Calendario completo
+          </a>
+        </div>
+        <output className="scoreboard-band-loading">
+          Cargando marcadores…
+        </output>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="scoreboard-band" aria-labelledby="scoreboard-title">
+        <div className="scoreboard-band-header">
+          <h2 id="scoreboard-title" className="scoreboard-band-title">
+            Esta semana
+          </h2>
+          <a href="#/portal/calendario" className="scoreboard-calendar-link">
+            Calendario completo
+          </a>
+        </div>
+        <div className="scoreboard-band-error" role="alert">
+          <p>{error}</p>
+          {onRetry && (
+            <button
+              type="button"
+              className="scoreboard-retry-btn"
+              onClick={onRetry}
+            >
+              Reintentar
+            </button>
+          )}
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="scoreboard-band" aria-labelledby="scoreboard-title">
+      <div className="scoreboard-band-header">
+        <h2 id="scoreboard-title" className="scoreboard-band-title">
+          Esta semana
+        </h2>
+        <a href="#/portal/calendario" className="scoreboard-calendar-link">
+          Calendario completo
+        </a>
+      </div>
+      <div className="scoreboard-sections">
+        <div className="scoreboard-sub-section">
+          <h3 id="home-upcoming" className="scoreboard-sub-title">
+            Próximos partidos
+          </h3>
+          {upcoming.length === 0 ? (
+            <p className="scoreboard-empty">
+              No hay partidos programados por ahora.
+            </p>
+          ) : (
+            <div className="events-list">
+              {upcoming.map((e) => (
+                <MatchRow key={e.id} event={e} />
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="scoreboard-sub-section">
+          <h3 id="home-recent" className="scoreboard-sub-title">
+            Últimos resultados oficiales
+          </h3>
+          {recent.length === 0 ? (
+            <p className="scoreboard-empty">Aún no hay resultados aprobados.</p>
+          ) : (
+            <div className="events-list">
+              {recent.map((e) => (
+                <MatchRow key={e.id} event={e} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function HomePage() {
   const [home, reload] = useFetch<PublicHome>('/public/home');
   return (
     <>
-      <LoadState state={home} onRetry={reload} />
-      {home.kind === 'ready' && (
-        <>
-          {home.data.news.length > 0 && (
-            <section className="portal-section" aria-labelledby="home-news">
-              <div className="section-header">
-                <h2 id="home-news">Últimas noticias</h2>
-                <a href="#/portal/noticias">Ver todas</a>
-              </div>
-              <div className="news-grid">
-                {home.data.news.map((n) => (
-                  <NewsCard key={n.slug} item={n} headingLevel="h3" />
-                ))}
-              </div>
-            </section>
-          )}
-          <section className="portal-section" aria-labelledby="home-upcoming">
-            <div className="section-header">
-              <h2 id="home-upcoming">Próximos partidos</h2>
-              <a href="#/portal/calendario">Ver calendario</a>
-            </div>
-            {home.data.upcoming.length === 0 ? (
-              <p className="empty-state">
-                No hay partidos programados por ahora.
-              </p>
-            ) : (
-              <div className="events-list">
-                {home.data.upcoming.map((e) => (
-                  <MatchRow key={e.id} event={e} />
-                ))}
-              </div>
-            )}
-          </section>
-          <section className="portal-section" aria-labelledby="home-recent">
-            <div className="section-header">
-              <h2 id="home-recent">Últimos resultados oficiales</h2>
-              <a href="#/portal/competencias">Ver posiciones</a>
-            </div>
-            {home.data.recent.length === 0 ? (
-              <p className="empty-state">Aún no hay resultados aprobados.</p>
-            ) : (
-              <div className="events-list">
-                {home.data.recent.map((e) => (
-                  <MatchRow key={e.id} event={e} />
-                ))}
-              </div>
-            )}
-          </section>
-        </>
+      <ScoreboardBand
+        recent={home.kind === 'ready' ? home.data.recent : []}
+        upcoming={home.kind === 'ready' ? home.data.upcoming : []}
+        loading={home.kind === 'loading'}
+        error={home.kind === 'error' ? home.message : null}
+        onRetry={reload}
+      />
+      {home.kind === 'ready' && home.data.news.length > 0 && (
+        <section className="portal-section" aria-labelledby="home-news">
+          <div className="section-header">
+            <h2 id="home-news">Últimas noticias</h2>
+            <a href="#/portal/noticias">Ver todas</a>
+          </div>
+          <div className="news-grid">
+            {home.data.news.slice(0, 3).map((n) => (
+              <NewsCard key={n.slug} item={n} headingLevel="h3" />
+            ))}
+          </div>
+        </section>
       )}
     </>
   );
