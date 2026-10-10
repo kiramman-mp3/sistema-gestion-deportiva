@@ -3217,42 +3217,6 @@ pre.json {
   font-weight: 600;
 }
 
-/* Documentos oficiales vista e impresión */
-.header-seal {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1rem;
-}
-.seal-emblem {
-  font-size: 2.5rem;
-}
-.header-text {
-  text-align: center;
-}
-.meta-item {
-  display: flex;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-}
-.status-tag {
-  display: inline-block;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-.subscores-section {
-  margin: 1rem 0;
-}
-.lineups-section {
-  margin: 1.5rem 0;
-}
-.empty-cell {
-  color: var(--color-text-muted);
-  text-align: center;
-}
-.roster-table-section {
-  margin: 1.5rem 0;
-}
-
 /* Badges de compatibilidad y estados */
 .badge-alert {
   background-color: var(--color-danger-bg);

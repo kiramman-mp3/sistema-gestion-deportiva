@@ -323,10 +323,10 @@
     max-width: 100% !important;
   }
 
+  /* Al imprimir, el contenedor de desplazamiento desaparece: la hoja vuelve a ser hija
+     directa del contenedor flexible y se maqueta igual que antes de añadirlo (D-53). */
   .printable-sheet-scroller {
-    overflow: visible !important;
-    width: auto !important;
-    max-width: none !important;
+    display: contents;
   }
 
   @page {

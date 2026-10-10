@@ -67,7 +67,7 @@ function Shell() {
           />
         </main>
       ) : printRoute ? (
-        <main id="contenido">
+        <main id="contenido" className="container">
           <PrintDocumentView
             kind={printRoute.kind}
             id={printRoute.id}
