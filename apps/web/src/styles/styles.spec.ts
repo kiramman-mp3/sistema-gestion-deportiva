@@ -252,7 +252,23 @@ describe('estilos: tokens de diseño', () => {
       addClass(`btn-${size}`);
     }
 
-    const missing = [...used].filter((name) => !defined.has(name));
+    // Clases del documento oficial impreso que no llevan estilo a propósito: darles uno
+    // cambiaría el acta o la nómina (D-53). Solo print.css puede tocar la hoja.
+    const OFFICIAL_SHEET_UNSTYLED = new Set([
+      'header-seal',
+      'seal-emblem',
+      'header-text',
+      'meta-item',
+      'status-tag',
+      'subscores-section',
+      'lineups-section',
+      'empty-cell',
+      'roster-table-section',
+    ]);
+
+    const missing = [...used].filter(
+      (name) => !defined.has(name) && !OFFICIAL_SHEET_UNSTYLED.has(name),
+    );
     expect(missing).toEqual([]);
   });
 });
