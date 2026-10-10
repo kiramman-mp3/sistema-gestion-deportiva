@@ -2865,23 +2865,26 @@ pre.json {
   display: flex;
   align-items: center;
 }
+.password-input-container input {
+  flex: 1;
+  min-width: 0;
+  padding-right: calc(var(--target-min) + 0.25rem);
+}
 .password-toggle-button {
   position: absolute;
-  right: 0.5rem;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  min-width: var(--target-min);
+  min-height: var(--target-min);
   background: transparent;
   border: none;
   color: var(--color-text-muted);
   cursor: pointer;
-  padding: 0.25rem;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.field-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 0.25rem;
 }
 
 /* Portal público (cabecera y pie) */
