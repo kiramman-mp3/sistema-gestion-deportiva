@@ -234,6 +234,7 @@ export interface PublicInstitution {
   presidentName: string | null;
   secretaryName: string | null;
   hasLogo: boolean;
+  hasCover: boolean;
   publication: {
     clubs: boolean;
     athletes: boolean;

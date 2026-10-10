@@ -1243,6 +1243,17 @@ pre.json {
   background: #fff;
 }
 
+.cover-preview {
+  display: block;
+  width: 100%;
+  max-width: 24rem;
+  aspect-ratio: 16 / 9;
+  margin: 0.5rem 0;
+  object-fit: cover;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
 .label-like {
   display: block;
   margin-bottom: 0.25rem;

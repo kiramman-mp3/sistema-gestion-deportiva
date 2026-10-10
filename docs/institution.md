@@ -28,7 +28,8 @@ Una única fila (`institution_settings`, `id = 1`, con restricción `CHECK`). La
 
 ## Reglas
 
-- Los cambios se auditan (`institution.updated`, `institution.logo_changed`, `institution.logo_removed`). Los textos largos no se copian a la auditoría: solo su longitud.
+- Foto de portada del portal (opcional): `PUT`/`DELETE /api/institution/cover` (permiso `institution:manage`, JPEG/PNG/WebP hasta 5 MiB) y pública en `GET /api/public/institution/cover`; `GET /api/public/institution` indica `hasCover`. Si no hay foto, el portal usa sus ilustraciones.
+- Los cambios se auditan (`institution.updated`, `institution.logo_changed`, `institution.logo_removed`, `institution.cover_changed`, `institution.cover_removed`). Los textos largos no se copian a la auditoría: solo su longitud.
 - Los parámetros de publicación apagan el contenido correspondiente del portal: `GET /api/public/clubs*` y `GET /api/public/athletes/*` responden 404 cuando están desactivados. Los de noticias y resoluciones se aplican en sus módulos.
 - Las actas y nóminas imprimibles toman el encabezado (nombre, afiliación, cantón y pie) de esta configuración.
 - No se aceptan campos desconocidos ni protocolos distintos de `http`/`https` en el sitio web.
