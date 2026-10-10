@@ -22,9 +22,9 @@ interface PublicPortalPageProps {
   onOpenPrintDocument?: (kind: 'acta' | 'nomina', id: string) => void;
 }
 
-type PortalRoute =
+export type PortalRoute =
   | { page: 'inicio' }
-  | { page: 'competencias' }
+  | { page: 'competencias'; championshipId?: string }
   | { page: 'calendario' }
   | { page: 'partido'; id: string }
   | { page: 'noticias' }
@@ -34,12 +34,14 @@ type PortalRoute =
   | { page: 'liga' }
   | { page: 'verificar'; code?: string };
 
-/** `#/portal`, `#/portal/noticias/<slug>`, `#/portal/partido/<id>`… */
+/** `#/portal`, `#/portal/competencias/<id>`, `#/portal/noticias/<slug>`, `#/portal/partido/<id>`… */
 export function parsePortalRoute(hash: string): PortalRoute {
   const [, , section, param] = hash.split('/');
   switch (section) {
     case 'competencias':
-      return { page: 'competencias' };
+      return param
+        ? { page: 'competencias', championshipId: param }
+        : { page: 'competencias' };
     case 'calendario':
       return { page: 'calendario' };
     case 'partido':
@@ -218,7 +220,10 @@ export function PublicPortalPage({
           </>
         )}
         {route.page === 'competencias' && (
-          <CompetitionsView onOpenPrintDocument={onOpenPrintDocument} />
+          <CompetitionsView
+            championshipId={route.championshipId}
+            onOpenPrintDocument={onOpenPrintDocument}
+          />
         )}
         {route.page === 'calendario' && <CalendarPage />}
         {route.page === 'partido' && (

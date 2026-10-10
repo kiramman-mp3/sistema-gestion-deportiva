@@ -10,16 +10,17 @@ import type {
 } from './types.ts';
 
 interface CompetitionsViewProps {
+  championshipId?: string;
   onOpenPrintDocument?: (kind: 'acta' | 'nomina', id: string) => void;
 }
 
 /** Campeonatos oficiales con su calendario, resultados y tabla de posiciones. */
 export function CompetitionsView({
+  championshipId,
   onOpenPrintDocument,
 }: CompetitionsViewProps) {
   const [selectedSport, setSelectedSport] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedChampId, setSelectedChampId] = useState<string | null>(null);
 
   const queryParams = new URLSearchParams();
   if (searchQuery.trim()) queryParams.set('q', searchQuery.trim());
@@ -49,9 +50,17 @@ export function CompetitionsView({
     })),
   ];
 
-  const selectedChampionship = allChampionships.find(
-    (c) => c.id === selectedChampId,
-  );
+  const selectedChampionship = championshipId
+    ? allChampionships.find((c) => c.id === championshipId)
+    : null;
+
+  const handleSelectChamp = (id: string) => {
+    window.location.hash = `#/portal/competencias/${id}`;
+  };
+
+  const handleBack = () => {
+    window.location.hash = '#/portal/competencias';
+  };
 
   const handleOpenPrint = (kind: 'acta' | 'nomina', id: string) => {
     if (onOpenPrintDocument) {
@@ -64,12 +73,42 @@ export function CompetitionsView({
   return (
     <div className="public-portal">
       {/* Si hay un campeonato seleccionado, muestra la vista detallada */}
-      {selectedChampId && selectedChampionship ? (
-        <ChampionshipDetailView
-          championship={selectedChampionship}
-          onBack={() => setSelectedChampId(null)}
-          onOpenPrint={handleOpenPrint}
-        />
+      {championshipId ? (
+        championshipsState.kind === 'loading' ? (
+          <div className="section-header">
+            <p>
+              <button
+                type="button"
+                onClick={handleBack}
+                className="secondary-button"
+              >
+                ← Volver al listado
+              </button>
+            </p>
+            <output>Cargando información del campeonato…</output>
+          </div>
+        ) : selectedChampionship ? (
+          <ChampionshipDetailView
+            championship={selectedChampionship}
+            onBack={handleBack}
+            onOpenPrint={handleOpenPrint}
+          />
+        ) : (
+          <div className="section-header">
+            <p>
+              <button
+                type="button"
+                onClick={handleBack}
+                className="secondary-button"
+              >
+                ← Volver al listado
+              </button>
+            </p>
+            <div className="catalog-error" role="alert">
+              <p>Campeonato no encontrado o no disponible públicamente.</p>
+            </div>
+          </div>
+        )
       ) : (
         <>
           <div className="section-header">
@@ -181,7 +220,7 @@ export function CompetitionsView({
 
                   <button
                     type="button"
-                    onClick={() => setSelectedChampId(champ.id)}
+                    onClick={() => handleSelectChamp(champ.id)}
                     className="primary-button full-width"
                   >
                     Ver Calendario y Posiciones →
@@ -457,6 +496,7 @@ function ChampionshipDetailView({
                           <th title="Goles / Puntos en contra">GC</th>
                           <th title="Diferencia de goles / puntos">DG</th>
                           <th title="Puntos oficiales">Pts</th>
+                          <th title="Juego Limpio">Juego Limpio</th>
                           <th>Nómina Oficial</th>
                         </tr>
                       </thead>
@@ -464,9 +504,17 @@ function ChampionshipDetailView({
                         {standingsState.data.standings.map((row) => (
                           <tr
                             key={row.registrationId}
-                            className={row.position <= 2 ? 'top-row' : ''}
+                            className={[
+                              row.position === 1 ? 'standings-row-leader' : '',
+                              row.position <= 2 ? 'top-row' : '',
+                            ]
+                              .filter(Boolean)
+                              .join(' ')}
                           >
-                            <td data-label="Pos" className="center bold">
+                            <td
+                              data-label="Pos"
+                              className="center bold standings-pos-cell"
+                            >
                               {row.position}°
                             </td>
                             <td data-label="Participante" className="bold">
@@ -492,15 +540,48 @@ function ChampionshipDetailView({
                               {row.goalsAgainst}
                             </td>
                             <td data-label="DG" className="center">
-                              {row.goalDifference > 0
-                                ? `+${row.goalDifference}`
-                                : row.goalDifference}
+                              <span
+                                className={`standings-diff ${
+                                  row.goalDifference > 0
+                                    ? 'diff-positive'
+                                    : row.goalDifference < 0
+                                      ? 'diff-negative'
+                                      : ''
+                                }`.trim()}
+                              >
+                                {row.goalDifference > 0
+                                  ? `+${row.goalDifference}`
+                                  : row.goalDifference}
+                              </span>
                             </td>
                             <td
                               data-label="Pts"
                               className="center bold pts-cell"
                             >
-                              {row.points}
+                              <strong className="standings-pts">
+                                {row.points}
+                              </strong>
+                            </td>
+                            <td data-label="Juego Limpio" className="center">
+                              <span className="fair-play-item">
+                                <span
+                                  className="card-shape yellow-card-shape"
+                                  aria-hidden="true"
+                                />
+                                <span className="visually-hidden">
+                                  Amarillas:{' '}
+                                </span>
+                                {row.yellowCards}
+                              </span>
+                              {' · '}
+                              <span className="fair-play-item">
+                                <span
+                                  className="card-shape red-card-shape"
+                                  aria-hidden="true"
+                                />
+                                <span className="visually-hidden">Rojas: </span>
+                                {row.redCards}
+                              </span>
                             </td>
                             <td data-label="Nómina" className="center">
                               <button

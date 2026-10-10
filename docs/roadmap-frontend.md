@@ -169,10 +169,10 @@ resoluciones, La Liga, verificar).
 
 Tareas:
 
-- [ ] Detalle de campeonato con dirección propia `#/portal/competencias/<id>` en `parsePortalRoute`
+- [x] Detalle de campeonato con dirección propia `#/portal/competencias/<id>` en `parsePortalRoute`
       (compartible; «Atrás» vuelve a la lista). Sin cambiar la API.
-- [ ] Tabla de posiciones según spec §9 (tarjetas como formas con texto accesible).
-- [ ] Páginas del portal con la nueva jerarquía y estados.
+- [x] Tabla de posiciones según spec §9 (tarjetas como formas con texto accesible).
+- [x] Páginas del portal con la nueva jerarquía y estados.
 
 Aceptación: D-85 (menores) y D-80 (resoluciones) siguen en verde en `portal.spec.ts` y
 `seguridad-roles.spec.ts`; sin desbordes.

@@ -79,6 +79,10 @@ describe('rutas del portal', () => {
     expect(parsePortalRoute('#/portal/competencias')).toEqual({
       page: 'competencias',
     });
+    expect(parsePortalRoute('#/portal/competencias/champ-123')).toEqual({
+      page: 'competencias',
+      championshipId: 'champ-123',
+    });
     expect(parsePortalRoute('#/portal/calendario')).toEqual({
       page: 'calendario',
     });
@@ -379,6 +383,84 @@ describe('portal público', () => {
     expect(
       screen.getByText('La política de privacidad todavía no fue publicada.'),
     ).toBeVisible();
+  });
+
+  it('permite acceder directamente al detalle de un campeonato por URL compartible y volver al listado', async () => {
+    withRoute('#/portal/competencias/c1');
+    mockApi({
+      'GET /public/institution': () => json(INSTITUTION),
+      'GET /public/championships': () =>
+        json({
+          items: [
+            {
+              id: 'c1',
+              name: 'Torneo Oficial 2026',
+              format: 'todos_contra_todos',
+              status: 'en_curso',
+              startDate: null,
+              endDate: null,
+              season: { id: 'se1', name: '2026' },
+              sport: { id: 's1', code: 'futbol', name: 'Fútbol' },
+              category: { id: 'k1', code: 'libre', name: 'Libre' },
+              _count: { registrations: 8 },
+            },
+          ],
+          page: 1,
+          pageSize: 100,
+          total: 1,
+        }),
+      'GET /public/championships/c1/fixtures': () => json([]),
+      'GET /public/championships/c1/standings': () =>
+        json({
+          championship: {
+            id: 'c1',
+            name: 'Torneo Oficial 2026',
+            sport: { id: 's1', code: 'futbol', name: 'Fútbol' },
+            category: { id: 'k1', code: 'libre', name: 'Libre' },
+            season: { id: 'se1', name: '2026' },
+          },
+          rules: { pointsWin: 3, pointsDraw: 1, pointsLoss: 0 },
+          standings: [
+            {
+              position: 1,
+              registrationId: 'reg1',
+              participantId: 'p1',
+              name: 'Club Alfa',
+              clubName: 'Alfa',
+              played: 5,
+              won: 4,
+              drawn: 1,
+              lost: 0,
+              goalsFor: 12,
+              goalsAgainst: 3,
+              goalDifference: 9,
+              points: 13,
+              yellowCards: 4,
+              redCards: 0,
+            },
+          ],
+        }),
+    });
+    render(<PublicPortalPage />);
+    expect(
+      await screen.findByRole('heading', {
+        level: 1,
+        name: 'Torneo Oficial 2026',
+      }),
+    ).toBeVisible();
+
+    const standingsTab = screen.getByRole('tab', {
+      name: /Tabla de Posiciones Oficial/,
+    });
+    await userEvent.click(standingsTab);
+    expect(await screen.findByText('Club Alfa')).toBeVisible();
+    expect(screen.getByText('1°')).toBeVisible();
+    expect(screen.getByText('+9')).toBeVisible();
+    expect(screen.getByText('Amarillas:')).toBeVisible();
+
+    const backBtn = screen.getByRole('button', { name: '← Volver al listado' });
+    await userEvent.click(backBtn);
+    expect(window.location.hash).toBe('#/portal/competencias');
   });
 });
 
