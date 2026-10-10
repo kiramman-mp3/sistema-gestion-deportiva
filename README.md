@@ -114,11 +114,11 @@ La interfaz web (`apps/web`) cuenta con un sistema de diseño propio y accesible
 
 - **Identidad visual**: Paleta institucional basada en páramo (`--color-brand`), acento dorado (`--color-accent`), superficies adaptativas y tipografías locales WOFF2 (_Barlow Condensed_ para marcadores/títulos y _Atkinson Hyperlegible Next_ para lectura).
 - **Modo oscuro automático**: Sigue la preferencia del sistema (`prefers-color-scheme: dark`) con contraste verificado AA (≥ 4.5:1) en todas las pantallas.
-- **Navegación responsiva**: Panel lateral modal (`NavDrawer`) con trampa de foco y atajo `Escape` para dispositivos móviles (≤ 768 px). Sin desbordamiento horizontal en 320, 375, 768, 1024 y 1280 px.
+- **Navegación responsiva**: Panel lateral modal (`NavDrawer`) con trampa de foco y atajo `Escape` por debajo de 64 rem (1024 px). Sin desbordamiento horizontal en 320, 375, 768, 1024 y 1280 px.
 - **Tablero de inicio administrativo**: Inicio por bloques funcionales condicionados por permisos reales (`AdminHome`), evitando llamadas no autorizadas y optimizando las tareas frecuentes según rol.
-- **Portal público**: Multipágina con rutas directas (`#/portal/competencias/<id>`, `#/portal/noticias/<slug>`, etc.), tablas de posiciones con formas accesibles para tarjetas y estricta jerarquía de encabezados (`h1` a `h4`).
+- **Portal público**: Multipágina con rutas directas (`#/portal/competencias/<id>`, `#/portal/noticias/<slug>`, etc.), tablas de posiciones con formas accesibles para tarjetas y un único `h1` por vista sin saltos de nivel (comprobado en e2e).
 - **Documentos oficiales idénticos**: Impresión de actas y nóminas en hoja A4 (`apps/web/src/styles/print.css`), aislada de los estilos de pantalla y protegida contra regresiones (D-53).
-- **Auditoría continua**: Validada con `@axe-core/playwright` (0 violaciones en modo claro y oscuro) y prueba estática de clases CSS (`styles.spec.ts`).
+- **Auditoría continua**: Validada con `@axe-core/playwright` (0 violaciones en modo claro y oscuro, a 375 y 1280 px) y prueba estática de clases CSS (`styles.spec.ts`), que además impide dar estilos de pantalla a las clases del documento oficial.
 
 ## Documentación
 
