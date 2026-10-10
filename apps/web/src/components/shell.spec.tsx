@@ -123,6 +123,7 @@ describe('InstitutionBrand', () => {
     presidentName: null,
     secretaryName: null,
     hasLogo: true,
+    hasCover: false,
     publication: {
       clubs: true,
       athletes: true,
@@ -157,6 +158,7 @@ describe('InstitutionBrand', () => {
         json({
           ...baseInstitution,
           hasLogo: false,
+          hasCover: false,
           affiliation: null,
         }),
     });
@@ -187,6 +189,7 @@ describe('LoginForm', () => {
     presidentName: null,
     secretaryName: null,
     hasLogo: false,
+    hasCover: false,
     publication: { clubs: true, athletes: true, news: true, resolutions: true },
   };
 

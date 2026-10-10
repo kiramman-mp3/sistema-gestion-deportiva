@@ -25,6 +25,7 @@ const INSTITUTION: PublicInstitution = {
   presidentName: 'Presidente Demo',
   secretaryName: null,
   hasLogo: true,
+  hasCover: false,
   publication: { clubs: true, athletes: true, news: true, resolutions: true },
 };
 
