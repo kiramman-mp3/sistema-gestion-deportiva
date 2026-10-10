@@ -1,12 +1,14 @@
 import { type FormEvent, useState } from 'react';
 import { ApiError, apiRequest } from '../../api/client.ts';
 import { ConfirmDialog } from '../../components/ConfirmDialog.tsx';
+import { Modal } from '../../components/Modal.tsx';
 import {
   Notice,
   type NoticeState,
   describeError,
 } from '../../components/Notice.tsx';
 import { Pagination } from '../../components/Pagination.tsx';
+import { Tabs } from '../../components/Tabs.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import {
   CheckboxField,
@@ -73,51 +75,42 @@ export function DisciplinePage({
         <p className="empty">Su cuenta no tiene acceso a esta sección.</p>
       ) : (
         <>
-          <div role="tablist" aria-label="Disciplina" className="tabs">
-            {visible.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                role="tab"
-                id={`tab-${t.id}`}
-                aria-selected={active?.id === t.id}
-                aria-controls={`panel-${t.id}`}
-                className={active?.id === t.id ? 'tab active' : 'tab'}
-                onClick={() => setTab(t.id)}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-          <div
-            role="tabpanel"
-            id={`panel-${active?.id}`}
-            aria-labelledby={`tab-${active?.id}`}
-          >
-            {active?.id === 'incidencias' && (
-              <IncidentsTab
-                canOpenCase={can('cases:manage')}
-                onOpenCase={openCaseFrom}
-              />
-            )}
-            {active?.id === 'reclamos' && (
-              <ComplaintsTab
-                canSubmit={can('complaints:submit')}
-                canManage={can('cases:manage')}
-                onOpenCase={openCaseFrom}
-                onNotice={setNotice}
-              />
-            )}
-            {active?.id === 'expedientes' && (
-              <CasesTab
-                canManage={can('cases:manage')}
-                prefill={prefill}
-                onClearPrefill={() => setPrefill(null)}
-                onNotice={setNotice}
-              />
-            )}
-            {active?.id === 'sanciones' && <SanctionsTab />}
-          </div>
+          <Tabs
+            ariaLabel="Disciplina"
+            activeId={active?.id ?? ''}
+            onChange={(id) => setTab(id as TabId)}
+            items={visible.map((t) => ({
+              id: t.id,
+              label: t.label,
+              content: (
+                <>
+                  {t.id === 'incidencias' && (
+                    <IncidentsTab
+                      canOpenCase={can('cases:manage')}
+                      onOpenCase={openCaseFrom}
+                    />
+                  )}
+                  {t.id === 'reclamos' && (
+                    <ComplaintsTab
+                      canSubmit={can('complaints:submit')}
+                      canManage={can('cases:manage')}
+                      onOpenCase={openCaseFrom}
+                      onNotice={setNotice}
+                    />
+                  )}
+                  {t.id === 'expedientes' && (
+                    <CasesTab
+                      canManage={can('cases:manage')}
+                      prefill={prefill}
+                      onClearPrefill={() => setPrefill(null)}
+                      onNotice={setNotice}
+                    />
+                  )}
+                  {t.id === 'sanciones' && <SanctionsTab />}
+                </>
+              ),
+            }))}
+          />
         </>
       )}
     </section>
@@ -531,7 +524,7 @@ function ComplaintForm({
   );
 }
 
-function ComplaintDialog({
+export function ComplaintDialog({
   complaintId,
   canAttach,
   onClose,
@@ -579,7 +572,7 @@ function ComplaintDialog({
     ['resuelto', 'desestimado'].includes(detail.data.status);
 
   return (
-    <dialog open className="dialog-backdrop" aria-modal="true">
+    <Modal onClose={onClose} className="dialog-complex" busy={busy}>
       <div className="dialog-content">
         <LoadState state={detail} onRetry={reload} />
         {detail.kind === 'ready' && (
@@ -654,7 +647,7 @@ function ComplaintDialog({
           </button>
         </div>
       </div>
-    </dialog>
+    </Modal>
   );
 }
 

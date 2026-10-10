@@ -49,17 +49,21 @@ export function PrintDocumentView({
       )}
 
       {state.kind === 'ready' && kind === 'acta' && (
-        <ScoresheetDocument
-          data={state.data as ScoresheetPrintData}
-          onPrint={handlePrint}
-        />
+        <div className="printable-sheet-scroller">
+          <ScoresheetDocument
+            data={state.data as ScoresheetPrintData}
+            onPrint={handlePrint}
+          />
+        </div>
       )}
 
       {state.kind === 'ready' && kind === 'nomina' && (
-        <RosterDocument
-          data={state.data as RosterPrintData}
-          onPrint={handlePrint}
-        />
+        <div className="printable-sheet-scroller">
+          <RosterDocument
+            data={state.data as RosterPrintData}
+            onPrint={handlePrint}
+          />
+        </div>
       )}
     </div>
   );
