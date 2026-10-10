@@ -106,13 +106,13 @@ consumidores que se migren.
 
 Tareas:
 
-- [ ] Crear los componentes según spec §8 (iconos con aviso de licencia ISC de Lucide).
-- [ ] `ConfirmDialog` sobre `Modal` sin cambiar su API.
-- [ ] Mover `LoadState` y campos de `features/people/fields.tsx` a `components/` (reexportar o
+- [x] Crear los componentes según spec §8 (iconos con aviso de licencia ISC de Lucide).
+- [x] `ConfirmDialog` sobre `Modal` sin cambiar su API.
+- [x] Mover `LoadState` y campos de `features/people/fields.tsx` a `components/` (reexportar o
       actualizar importaciones).
-- [ ] Reemplazar emojis fuera del documento oficial (Notice, Roles, RoleDetail, CatalogAdmin,
+- [x] Reemplazar emojis fuera del documento oficial (Notice, Roles, RoleDetail, CatalogAdmin,
       ApiStatus, StandingsTab, CompetitionsView, PortalPages, PublicPortalPage, barra de impresión).
-- [ ] Añadir prueba «sin emojis en TSX» que excluya solo el contenido de `.institutional-sheet`
+- [x] Añadir prueba «sin emojis en TSX» que excluya solo el contenido de `.institutional-sheet`
       documentado en la spec §15.
 
 Pruebas nuevas: `Modal` (foco inicial, Tab/Mayús+Tab, Escape, `busy`, devolución del foco);
