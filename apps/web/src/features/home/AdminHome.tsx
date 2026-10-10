@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { apiGet } from '../../api/client.ts';
 import { EmptyState } from '../../components/EmptyState.tsx';
 import { Icon, type IconName } from '../../components/Icon.tsx';
@@ -15,9 +15,81 @@ export interface AdminHomeProps {
 }
 
 type BlockState<T> =
+  | { kind: 'idle' }
   | { kind: 'loading' }
   | { kind: 'ready'; data: T }
   | { kind: 'error'; message: string };
+
+/**
+ * Un bloque del inicio (spec §11): solo pide su ruta si `enabled`, tiene su propia
+ * carga/error, y la petición se cancela al salir o al reintentar.
+ */
+function useBlock<T>(
+  enabled: boolean,
+  path: string,
+): [BlockState<T>, () => void] {
+  const [state, setState] = useState<BlockState<T>>({ kind: 'loading' });
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    if (!enabled) return;
+    const controller = new AbortController();
+    apiGet<T>(path, controller.signal)
+      .then((data) => {
+        if (!controller.signal.aborted) setState({ kind: 'ready', data });
+      })
+      .catch((err: unknown) => {
+        if (!controller.signal.aborted)
+          setState({
+            kind: 'error',
+            message: err instanceof Error ? err.message : 'Error desconocido',
+          });
+      });
+    return () => controller.abort();
+  }, [enabled, path, attempt]);
+
+  const retry = useCallback(() => {
+    setState({ kind: 'loading' });
+    setAttempt((n) => n + 1);
+  }, []);
+
+  return [enabled ? state : { kind: 'idle' }, retry];
+}
+
+/** Accesos directos a tareas frecuentes, según los permisos del usuario. */
+const SHORTCUTS: { permission: string; label: string; href: string }[] = [
+  {
+    permission: 'athletes:validate',
+    label: 'Habilitar deportistas',
+    href: '#/deportistas',
+  },
+  {
+    permission: 'results:approve',
+    label: 'Revisar y aprobar actas',
+    href: '#/campeonatos',
+  },
+  {
+    permission: 'complaints:read',
+    label: 'Atender reclamos',
+    href: '#/disciplina',
+  },
+  {
+    permission: 'announcements:manage',
+    label: 'Publicar noticias',
+    href: '#/noticias',
+  },
+  {
+    permission: 'reports:read',
+    label: 'Generar reportes',
+    href: '#/documentos',
+  },
+  {
+    permission: 'assignments:read_own',
+    label: 'Responder mis designaciones',
+    href: '#/mis-designaciones',
+  },
+  { permission: 'users:create', label: 'Crear usuarios', href: '#/usuarios' },
+];
 
 const dateTime = new Intl.DateTimeFormat('es-EC', {
   dateStyle: 'medium',
@@ -42,182 +114,33 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
   const hasAllClubsAccess = permissions.includes('clubs:access_all');
   const hasAnyAdmin = permissions.some((p) => p !== 'assignments:read_own');
 
-  const [athletesState, setAthletesState] = useState<BlockState<number>>({
-    kind: 'loading',
-  });
-  const [complaintsState, setComplaintsState] = useState<BlockState<number>>({
-    kind: 'loading',
-  });
-  const [casesState, setCasesState] = useState<BlockState<number>>({
-    kind: 'loading',
-  });
-  const [openRegState, setOpenRegState] = useState<BlockState<number>>({
-    kind: 'loading',
-  });
-  const [activeChampionshipsState, setActiveChampionshipsState] = useState<
-    BlockState<Championship[]>
-  >({ kind: 'loading' });
-  const [assignmentsState, setAssignmentsState] = useState<
-    BlockState<MyAssignmentsPageData>
-  >({ kind: 'loading' });
-  const [publicHomeState, setPublicHomeState] = useState<
-    BlockState<PublicHome>
-  >({ kind: 'loading' });
-
-  // Disparar las solicitudes en paralelo respetando permisos y AbortController
-  useEffect(() => {
-    const controller = new AbortController();
-    const signal = controller.signal;
-
-    if (hasAthletesRead) {
-      apiGet<Page<unknown>>(
-        '/athletes?eligibility=pendiente&pageSize=1',
-        signal,
-      )
-        .then((res) => {
-          if (!signal.aborted)
-            setAthletesState({ kind: 'ready', data: res.total });
-        })
-        .catch((err: unknown) => {
-          if (!signal.aborted) {
-            setAthletesState({
-              kind: 'error',
-              message:
-                err instanceof Error
-                  ? err.message
-                  : 'Error al cargar deportistas',
-            });
-          }
-        });
-    }
-
-    if (hasComplaintsRead) {
-      apiGet<Page<unknown>>('/complaints?status=recibido&pageSize=1', signal)
-        .then((res) => {
-          if (!signal.aborted)
-            setComplaintsState({ kind: 'ready', data: res.total });
-        })
-        .catch((err: unknown) => {
-          if (!signal.aborted) {
-            setComplaintsState({
-              kind: 'error',
-              message:
-                err instanceof Error ? err.message : 'Error al cargar reclamos',
-            });
-          }
-        });
-    }
-
-    if (hasCasesRead) {
-      apiGet<Page<unknown>>('/cases?status=abierto&pageSize=1', signal)
-        .then((res) => {
-          if (!signal.aborted)
-            setCasesState({ kind: 'ready', data: res.total });
-        })
-        .catch((err: unknown) => {
-          if (!signal.aborted) {
-            setCasesState({
-              kind: 'error',
-              message:
-                err instanceof Error
-                  ? err.message
-                  : 'Error al cargar expedientes',
-            });
-          }
-        });
-    }
-
-    if (hasChampionshipsRead) {
-      apiGet<Page<unknown>>(
-        '/championships?status=inscripciones_abiertas&pageSize=1',
-        signal,
-      )
-        .then((res) => {
-          if (!signal.aborted)
-            setOpenRegState({ kind: 'ready', data: res.total });
-        })
-        .catch((err: unknown) => {
-          if (!signal.aborted) {
-            setOpenRegState({
-              kind: 'error',
-              message:
-                err instanceof Error
-                  ? err.message
-                  : 'Error al cargar inscripciones',
-            });
-          }
-        });
-
-      apiGet<Page<Championship>>(
-        '/championships?status=en_curso&pageSize=5',
-        signal,
-      )
-        .then((res) => {
-          if (!signal.aborted)
-            setActiveChampionshipsState({ kind: 'ready', data: res.items });
-        })
-        .catch((err: unknown) => {
-          if (!signal.aborted) {
-            setActiveChampionshipsState({
-              kind: 'error',
-              message:
-                err instanceof Error
-                  ? err.message
-                  : 'Error al cargar campeonatos',
-            });
-          }
-        });
-    }
-
-    if (hasAssignmentsRead) {
-      apiGet<MyAssignmentsPageData>(
-        '/assignments/mine?scope=proximas&pageSize=3',
-        signal,
-      )
-        .then((res) => {
-          if (!signal.aborted)
-            setAssignmentsState({ kind: 'ready', data: res });
-        })
-        .catch((err: unknown) => {
-          if (!signal.aborted) {
-            setAssignmentsState({
-              kind: 'error',
-              message:
-                err instanceof Error
-                  ? err.message
-                  : 'Error al cargar designaciones',
-            });
-          }
-        });
-    }
-
-    // El bloque público siempre se carga
-    apiGet<PublicHome>('/public/home', signal)
-      .then((res) => {
-        if (!signal.aborted) setPublicHomeState({ kind: 'ready', data: res });
-      })
-      .catch((err: unknown) => {
-        if (!signal.aborted) {
-          setPublicHomeState({
-            kind: 'error',
-            message:
-              err instanceof Error
-                ? err.message
-                : 'Error al cargar partidos públicos',
-          });
-        }
-      });
-
-    return () => {
-      controller.abort();
-    };
-  }, [
+  const [athletes, retryAthletes] = useBlock<Page<unknown>>(
     hasAthletesRead,
+    '/athletes?eligibility=pendiente&pageSize=1',
+  );
+  const [complaints, retryComplaints] = useBlock<Page<unknown>>(
     hasComplaintsRead,
+    '/complaints?status=recibido&pageSize=1',
+  );
+  const [cases, retryCases] = useBlock<Page<unknown>>(
     hasCasesRead,
+    '/cases?status=abierto&pageSize=1',
+  );
+  const [openRegistrations, retryOpenRegistrations] = useBlock<Page<unknown>>(
     hasChampionshipsRead,
+    '/championships?status=inscripciones_abiertas&pageSize=1',
+  );
+  const [activeChampionships, retryActiveChampionships] = useBlock<
+    Page<Championship>
+  >(hasChampionshipsRead, '/championships?status=en_curso&pageSize=5');
+  const [assignments, retryAssignments] = useBlock<MyAssignmentsPageData>(
     hasAssignmentsRead,
-  ]);
+    '/assignments/mine?scope=proximas&pageSize=3',
+  );
+  const [publicHome, retryPublicHome] = useBlock<PublicHome>(
+    true,
+    '/public/home',
+  );
 
   const athletesLabel = hasAllClubsAccess
     ? 'Deportistas por habilitar'
@@ -226,6 +149,8 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
   const complaintsLabel = hasAllClubsAccess
     ? 'Reclamos recibidos'
     : 'Reclamos recibidos de sus clubes';
+
+  const shortcuts = SHORTCUTS.filter((s) => permissions.includes(s.permission));
 
   return (
     <div className="admin-home">
@@ -247,7 +172,7 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
         </div>
       )}
 
-      {/* Fila de tarjetas de métricas / pendientes */}
+      {/* Fila de pendientes: cada tarjeta es un enlace; el reintento queda fuera de él. */}
       <section
         className="admin-metrics-grid"
         aria-label="Métricas y pendientes"
@@ -255,107 +180,68 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
         {hasAthletesRead && (
           <MetricCard
             title={athletesLabel}
-            state={athletesState}
+            state={athletes}
             href="#/deportistas"
             icon="users"
-            onRetry={() => {
-              setAthletesState({ kind: 'loading' });
-              apiGet<Page<unknown>>(
-                '/athletes?eligibility=pendiente&pageSize=1',
-              )
-                .then((res) =>
-                  setAthletesState({ kind: 'ready', data: res.total }),
-                )
-                .catch((err: unknown) =>
-                  setAthletesState({
-                    kind: 'error',
-                    message: err instanceof Error ? err.message : 'Error',
-                  }),
-                );
-            }}
+            onRetry={retryAthletes}
           />
         )}
-
         {hasComplaintsRead && (
           <MetricCard
             title={complaintsLabel}
-            state={complaintsState}
+            state={complaints}
             href="#/disciplina"
             icon="alert-triangle"
-            onRetry={() => {
-              setComplaintsState({ kind: 'loading' });
-              apiGet<Page<unknown>>('/complaints?status=recibido&pageSize=1')
-                .then((res) =>
-                  setComplaintsState({ kind: 'ready', data: res.total }),
-                )
-                .catch((err: unknown) =>
-                  setComplaintsState({
-                    kind: 'error',
-                    message: err instanceof Error ? err.message : 'Error',
-                  }),
-                );
-            }}
+            onRetry={retryComplaints}
           />
         )}
-
         {hasCasesRead && (
           <MetricCard
             title="Expedientes abiertos"
-            state={casesState}
+            state={cases}
             href="#/disciplina"
             icon="file-text"
-            onRetry={() => {
-              setCasesState({ kind: 'loading' });
-              apiGet<Page<unknown>>('/cases?status=abierto&pageSize=1')
-                .then((res) =>
-                  setCasesState({ kind: 'ready', data: res.total }),
-                )
-                .catch((err: unknown) =>
-                  setCasesState({
-                    kind: 'error',
-                    message: err instanceof Error ? err.message : 'Error',
-                  }),
-                );
-            }}
+            onRetry={retryCases}
           />
         )}
-
         {hasChampionshipsRead && (
           <MetricCard
             title="Inscripciones abiertas"
-            state={openRegState}
+            state={openRegistrations}
             href="#/campeonatos"
             icon="trophy"
-            onRetry={() => {
-              setOpenRegState({ kind: 'loading' });
-              apiGet<Page<unknown>>(
-                '/championships?status=inscripciones_abiertas&pageSize=1',
-              )
-                .then((res) =>
-                  setOpenRegState({ kind: 'ready', data: res.total }),
-                )
-                .catch((err: unknown) =>
-                  setOpenRegState({
-                    kind: 'error',
-                    message: err instanceof Error ? err.message : 'Error',
-                  }),
-                );
-            }}
+            onRetry={retryOpenRegistrations}
           />
         )}
-
-        <a
-          href="#/notificaciones"
-          className="admin-metric-card"
-          aria-label={`Avisos pendientes (${unreadCount})`}
-        >
-          <div className="admin-metric-header">
-            <span className="admin-metric-title">Notificaciones sin leer</span>
-            <Icon name="bell" size={20} />
-          </div>
-          <div className="admin-metric-value">{unreadCount}</div>
-        </a>
+        <div className="admin-metric-card">
+          <a href="#/notificaciones" className="admin-metric-link">
+            <span className="admin-metric-header">
+              <span className="admin-metric-title">
+                Notificaciones sin leer
+              </span>
+              <Icon name="bell" size={20} />
+            </span>
+            <span className="admin-metric-value">{unreadCount}</span>
+          </a>
+        </div>
       </section>
+
+      {shortcuts.length > 0 && (
+        <section className="admin-section" aria-labelledby="shortcuts-title">
+          <div className="admin-section-header">
+            <h2 id="shortcuts-title">Accesos directos</h2>
+          </div>
+          <ul className="admin-shortcuts">
+            {shortcuts.map((s) => (
+              <li key={s.permission}>
+                <a href={s.href} className="admin-shortcut">
+                  {s.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* Bloque: Campeonatos en curso */}
       {hasChampionshipsRead && (
@@ -370,44 +256,14 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
             </a>
           </div>
 
-          {activeChampionshipsState.kind === 'loading' && (
-            <output className="loading" aria-live="polite">
-              Cargando campeonatos en curso…
-            </output>
-          )}
+          <BlockStatus
+            state={activeChampionships}
+            loadingText="Cargando campeonatos en curso…"
+            onRetry={retryActiveChampionships}
+          />
 
-          {activeChampionshipsState.kind === 'error' && (
-            <div className="state-error" role="alert">
-              <p>{activeChampionshipsState.message}</p>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => {
-                  setActiveChampionshipsState({ kind: 'loading' });
-                  apiGet<Page<Championship>>(
-                    '/championships?status=en_curso&pageSize=5',
-                  )
-                    .then((res) =>
-                      setActiveChampionshipsState({
-                        kind: 'ready',
-                        data: res.items,
-                      }),
-                    )
-                    .catch((err: unknown) =>
-                      setActiveChampionshipsState({
-                        kind: 'error',
-                        message: err instanceof Error ? err.message : 'Error',
-                      }),
-                    );
-                }}
-              >
-                Reintentar
-              </button>
-            </div>
-          )}
-
-          {activeChampionshipsState.kind === 'ready' &&
-            (activeChampionshipsState.data.length === 0 ? (
+          {activeChampionships.kind === 'ready' &&
+            (activeChampionships.data.items.length === 0 ? (
               <EmptyState
                 title="No hay campeonatos en curso"
                 description="Los campeonatos activos aparecerán aquí para acceso directo."
@@ -419,13 +275,13 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
                   <thead>
                     <tr>
                       <th scope="col">Campeonato</th>
-                      <th scope="col">Deporte y Categoría</th>
+                      <th scope="col">Deporte y categoría</th>
                       <th scope="col">Temporada</th>
                       <th scope="col">Estado</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {activeChampionshipsState.data.map((c) => (
+                    {activeChampionships.data.items.map((c) => (
                       <tr key={c.id}>
                         <td data-label="Campeonato">
                           <a
@@ -436,7 +292,7 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
                             <strong>{c.name}</strong>
                           </a>
                         </td>
-                        <td data-label="Deporte y Categoría">
+                        <td data-label="Deporte y categoría">
                           {c.sport.name} · {c.category.name}
                         </td>
                         <td data-label="Temporada">{c.season.name}</td>
@@ -465,48 +321,21 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
             </a>
           </div>
 
-          {assignmentsState.kind === 'loading' && (
-            <output className="loading" aria-live="polite">
-              Cargando designaciones…
-            </output>
-          )}
+          <BlockStatus
+            state={assignments}
+            loadingText="Cargando designaciones…"
+            onRetry={retryAssignments}
+          />
 
-          {assignmentsState.kind === 'error' && (
-            <div className="state-error" role="alert">
-              <p>{assignmentsState.message}</p>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => {
-                  setAssignmentsState({ kind: 'loading' });
-                  apiGet<MyAssignmentsPageData>(
-                    '/assignments/mine?scope=proximas&pageSize=3',
-                  )
-                    .then((res) =>
-                      setAssignmentsState({ kind: 'ready', data: res }),
-                    )
-                    .catch((err: unknown) =>
-                      setAssignmentsState({
-                        kind: 'error',
-                        message: err instanceof Error ? err.message : 'Error',
-                      }),
-                    );
-                }}
-              >
-                Reintentar
-              </button>
-            </div>
-          )}
-
-          {assignmentsState.kind === 'ready' &&
-            (!assignmentsState.data.linked ? (
+          {assignments.kind === 'ready' &&
+            (!assignments.data.linked ? (
               <div className="admin-callout" role="note">
                 <Icon name="info" size={18} />
                 <p>
                   Su cuenta no está vinculada a un árbitro u oficial de mesa.
                 </p>
               </div>
-            ) : assignmentsState.data.items.length === 0 ? (
+            ) : assignments.data.items.length === 0 ? (
               <EmptyState
                 title="No tiene designaciones próximas"
                 description="Cuando sea designado para un partido, sus asignaciones aparecerán aquí."
@@ -525,7 +354,7 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
                     </tr>
                   </thead>
                   <tbody>
-                    {assignmentsState.data.items.map((a) => (
+                    {assignments.data.items.map((a) => (
                       <tr key={a.id}>
                         <td data-label="Partido">
                           <strong>{a.event.match}</strong>
@@ -562,48 +391,23 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
           </a>
         </div>
 
-        {publicHomeState.kind === 'loading' && (
-          <output className="loading" aria-live="polite">
-            Cargando partidos…
-          </output>
-        )}
+        <BlockStatus
+          state={publicHome}
+          loadingText="Cargando partidos…"
+          onRetry={retryPublicHome}
+        />
 
-        {publicHomeState.kind === 'error' && (
-          <div className="state-error" role="alert">
-            <p>{publicHomeState.message}</p>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => {
-                setPublicHomeState({ kind: 'loading' });
-                apiGet<PublicHome>('/public/home')
-                  .then((res) =>
-                    setPublicHomeState({ kind: 'ready', data: res }),
-                  )
-                  .catch((err: unknown) =>
-                    setPublicHomeState({
-                      kind: 'error',
-                      message: err instanceof Error ? err.message : 'Error',
-                    }),
-                  );
-              }}
-            >
-              Reintentar
-            </button>
-          </div>
-        )}
-
-        {publicHomeState.kind === 'ready' && (
+        {publicHome.kind === 'ready' && (
           <div className="admin-matches-grid">
             <div className="admin-matches-column">
               <h3 className="admin-subheading">Próximos partidos</h3>
-              {publicHomeState.data.upcoming.length === 0 ? (
+              {publicHome.data.upcoming.length === 0 ? (
                 <p className="admin-empty-text">
                   No hay partidos programados por ahora.
                 </p>
               ) : (
                 <div className="admin-match-cards">
-                  {publicHomeState.data.upcoming.slice(0, 6).map((m) => {
+                  {publicHome.data.upcoming.slice(0, 6).map((m) => {
                     const local = m.participants.find(
                       (p) => p.side === 'local',
                     );
@@ -638,13 +442,13 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
 
             <div className="admin-matches-column">
               <h3 className="admin-subheading">Últimos resultados oficiales</h3>
-              {publicHomeState.data.recent.length === 0 ? (
+              {publicHome.data.recent.length === 0 ? (
                 <p className="admin-empty-text">
                   Aún no hay resultados aprobados.
                 </p>
               ) : (
                 <div className="admin-match-cards">
-                  {publicHomeState.data.recent.slice(0, 6).map((m) => {
+                  {publicHome.data.recent.slice(0, 6).map((m) => {
                     const local = m.participants.find(
                       (p) => p.side === 'local',
                     );
@@ -661,13 +465,13 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
                         </div>
                         <div className="admin-match-teams admin-match-scores">
                           <span className="admin-team-name">
-                            {local ? local.name : 'Equipo'}
+                            {local ? local.name : 'Por definir'}
                           </span>
                           <span className="admin-score-display">
-                            {local?.score ?? 0} - {visitor?.score ?? 0}
+                            {local?.score ?? '–'} - {visitor?.score ?? '–'}
                           </span>
                           <span className="admin-team-name">
-                            {visitor ? visitor.name : 'Equipo'}
+                            {visitor ? visitor.name : 'Por definir'}
                           </span>
                         </div>
                       </div>
@@ -686,9 +490,35 @@ export function AdminHome({ permissions, unreadCount = 0 }: AdminHomeProps) {
   );
 }
 
+interface BlockStatusProps {
+  state: BlockState<unknown>;
+  loadingText: string;
+  onRetry: () => void;
+}
+
+/** Carga y error de un bloque de sección, con «Reintentar». */
+function BlockStatus({ state, loadingText, onRetry }: BlockStatusProps) {
+  if (state.kind === 'loading')
+    return (
+      <output className="loading" aria-live="polite">
+        {loadingText}
+      </output>
+    );
+  if (state.kind === 'error')
+    return (
+      <div className="state-error" role="alert">
+        <p>No se pudo cargar este bloque: {state.message}</p>
+        <button type="button" className="btn btn-secondary" onClick={onRetry}>
+          Reintentar
+        </button>
+      </div>
+    );
+  return null;
+}
+
 interface MetricCardProps {
   title: string;
-  state: BlockState<number>;
+  state: BlockState<Page<unknown>>;
   href: string;
   icon: IconName;
   onRetry: () => void;
@@ -696,37 +526,34 @@ interface MetricCardProps {
 
 function MetricCard({ title, state, href, icon, onRetry }: MetricCardProps) {
   return (
-    <a href={href} className="admin-metric-card">
-      <div className="admin-metric-header">
-        <span className="admin-metric-title">{title}</span>
-        <Icon name={icon} size={20} />
-      </div>
-      <div className="admin-metric-body">
+    <div className="admin-metric-card">
+      <a href={href} className="admin-metric-link">
+        <span className="admin-metric-header">
+          <span className="admin-metric-title">{title}</span>
+          <Icon name={icon} size={20} />
+        </span>
         {state.kind === 'loading' && (
-          <span className="admin-metric-loading" aria-label="Cargando">
-            …
+          <span className="admin-metric-loading">
+            <span aria-hidden="true">…</span>
+            <span className="visually-hidden">Cargando</span>
           </span>
         )}
         {state.kind === 'ready' && (
-          <span className="admin-metric-value">{state.data}</span>
+          <span className="admin-metric-value">{state.data.total}</span>
         )}
-        {state.kind === 'error' && (
-          <div className="admin-metric-error">
-            <span>Error</span>
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onRetry();
-              }}
-            >
-              Reintentar
-            </button>
-          </div>
-        )}
-      </div>
-    </a>
+      </a>
+      {state.kind === 'error' && (
+        <div className="admin-metric-error" role="alert">
+          <span>No se pudo cargar.</span>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={onRetry}
+          >
+            Reintentar
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
