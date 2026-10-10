@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { apiGet } from '../../api/client.ts';
+import { Icon } from '../../components/Icon.tsx';
 
 interface HealthResponse {
   status: 'ok';
@@ -46,13 +47,12 @@ export function ApiStatus() {
         )}
         {state.kind === 'ready' && (
           <p className="status-ok">
-            <span aria-hidden="true">✔ </span>Servidor operativo
+            <Icon name="check" size={14} /> Servidor operativo
           </p>
         )}
         {state.kind === 'error' && (
           <p className="status-error">
-            <span aria-hidden="true">✖ </span>
-            {state.message}
+            <Icon name="alert-triangle" size={14} /> {state.message}
           </p>
         )}
       </output>

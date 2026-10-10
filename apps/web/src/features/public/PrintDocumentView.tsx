@@ -1,3 +1,4 @@
+import { Icon } from '../../components/Icon.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import type { RosterPrintData, ScoresheetPrintData } from './types.ts';
 
@@ -30,7 +31,7 @@ export function PrintDocumentView({
           ← Volver al portal
         </button>
         <button type="button" onClick={handlePrint} className="primary-button">
-          🖨️ Imprimir / Guardar PDF
+          <Icon name="printer" /> Imprimir / Guardar PDF
         </button>
       </div>
 
