@@ -300,28 +300,26 @@ describe('Verificación visual y semántica: Sin emojis en TSX fuera de .institu
       const content = readFileSync(filePath, 'utf-8');
       const lines = content.split('\n');
 
-      const isPrintView = filePath.includes('PrintDocumentView.tsx');
+      // Solo el contenido del documento oficial impreso puede tener emojis (spec §15):
+      // las líneas entre cada <article className="institutional-sheet"> y su </article>.
+      const insideSheet = new Set<number>();
+      if (filePath.includes('PrintDocumentView.tsx')) {
+        let open = false;
+        lines.forEach((lineText, idx) => {
+          if (lineText.includes('<article className="institutional-sheet">'))
+            open = true;
+          if (open) insideSheet.add(idx);
+          if (open && lineText.includes('</article>')) open = false;
+        });
+      }
 
       lines.forEach((lineText, idx) => {
-        if (emojiRegex.test(lineText)) {
-          // Si es PrintDocumentView, verificamos si está dentro de las hojas de acta o nómina institucionales
-          // Líneas fuera de la hoja institucional no deben tener emojis
-          if (isPrintView) {
-            // Línea 33 es la toolbar de impresión fuera de la hoja institucional
-            if (idx + 1 < 50) {
-              offendingOccurrences.push({
-                file: filePath,
-                line: idx + 1,
-                text: lineText.trim(),
-              });
-            }
-          } else {
-            offendingOccurrences.push({
-              file: filePath,
-              line: idx + 1,
-              text: lineText.trim(),
-            });
-          }
+        if (emojiRegex.test(lineText) && !insideSheet.has(idx)) {
+          offendingOccurrences.push({
+            file: filePath,
+            line: idx + 1,
+            text: lineText.trim(),
+          });
         }
       });
     }
