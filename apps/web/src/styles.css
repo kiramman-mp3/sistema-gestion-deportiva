@@ -64,12 +64,6 @@ a {
   top: 1rem;
 }
 
-.site-header {
-  padding: 1.5rem 1rem;
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
-}
-
 .site-header h1 {
   margin: 0;
   font-size: 1.5rem;
@@ -124,6 +118,9 @@ button {
 }
 
 .site-header {
+  padding: 1.5rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
@@ -278,14 +275,6 @@ button.link {
   min-height: auto;
 }
 
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: flex-end;
-  margin: 1rem 0;
-}
-
 .filters .field {
   margin-bottom: 0;
 }
@@ -348,10 +337,6 @@ textarea {
   gap: 0.5rem;
 }
 
-.dialog-actions {
-  justify-content: flex-end;
-}
-
 .notice.success {
   border-left-color: var(--color-success);
 }
@@ -385,18 +370,6 @@ textarea {
   vertical-align: middle;
 }
 
-.badge {
-  white-space: nowrap;
-}
-
-.badge-ok {
-  color: var(--color-success);
-}
-
-.badge-off {
-  color: var(--color-text-muted);
-}
-
 .pagination {
   display: flex;
   flex-wrap: wrap;
@@ -404,26 +377,6 @@ textarea {
   align-items: center;
   justify-content: space-between;
   margin-top: 1rem;
-}
-
-.dialog-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  background: var(--color-backdrop);
-}
-
-.dialog {
-  width: 100%;
-  max-width: 28rem;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
 }
 
 .dialog h2 {
@@ -507,14 +460,6 @@ textarea {
 
 .definition-list dd {
   margin: 0;
-}
-
-.plain-list {
-  padding-left: 1.25rem;
-}
-
-.plain-list li {
-  margin-bottom: 0.5rem;
 }
 
 .plain-list li button {
@@ -613,15 +558,6 @@ pre.json {
   flex-direction: column;
   gap: 2rem;
   width: 100%;
-  min-width: 0;
-}
-
-.portal-container {
-  max-width: 72rem;
-  width: 100%;
-  margin: 0 auto;
-  padding: 0 1rem;
-  box-sizing: border-box;
   min-width: 0;
 }
 
@@ -1032,6 +968,7 @@ pre.json {
 }
 
 .badge {
+  white-space: nowrap;
   padding: 0.25rem 0.5rem;
   background: var(--color-bg);
   border: 1px solid var(--color-border);
@@ -1052,18 +989,6 @@ pre.json {
   display: flex;
   gap: 0.5rem;
   border-bottom: 2px solid var(--color-border);
-}
-
-.tab-btn {
-  padding: 0.75rem 1.25rem;
-  background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
-  color: var(--color-text-muted);
-  font-weight: 600;
-  font-size: 0.9375rem;
-  cursor: pointer;
-  margin-bottom: -2px;
 }
 
 .tab-btn.active {
@@ -1207,6 +1132,8 @@ pre.json {
 }
 
 .filters {
+  flex-wrap: wrap;
+  margin: 1rem 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
   gap: 0.75rem;
@@ -1762,6 +1689,8 @@ pre.json {
   gap: 1rem;
 }
 .portal-container {
+  box-sizing: border-box;
+  min-width: 0;
   max-width: 72rem;
   margin: 0 auto;
   padding: 1.5rem 1rem;
@@ -1833,6 +1762,7 @@ pre.json {
    ───────────────────────────────────────────────────────────── */
 
 .dialog-backdrop {
+  background: var(--color-backdrop);
   position: fixed;
   inset: 0;
   background-color: var(--color-backdrop);
@@ -2648,16 +2578,7 @@ pre.json {
 .drawer-navigation {
   display: block;
 }
-.topbar-left {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
+
 .topbar-menu-button {
   display: flex;
   align-items: center;
@@ -2741,9 +2662,15 @@ pre.json {
 /* En móvil la barra superior deja los iconos con su nombre accesible para que
    «Cerrar sesión» siga a la vista; el nombre del usuario se omite. */
 .topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   min-width: 0;
 }
 .topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   flex-shrink: 0;
 }
 @media (max-width: 47.99rem) {
