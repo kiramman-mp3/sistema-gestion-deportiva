@@ -197,16 +197,18 @@ button[disabled] {
 
 /* ───────── Administración de catálogos ───────── */
 
+/* Con !important: reglas como `.field input { width: 100% }` no deben volverlo visible
+   ni ensanchar la página (pasaba con el selector de logotipo en Institución). */
 .visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 
 .main-nav ul {
