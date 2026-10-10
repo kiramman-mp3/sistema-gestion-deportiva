@@ -87,10 +87,10 @@ Archivos: `features/public/PublicPortalPage.tsx`, `features/public/PortalPages.t
 
 Tareas:
 
-- [ ] Banda de marcador con datos reales de `/public/home` (vacío y error diseñados).
-- [ ] Filtro por deporte sin emojis; noticias con jerarquía clara.
-- [ ] Quitar degradado e insignia «PORTAL OFICIAL»; acceso al panel en la barra.
-- [ ] Corregir `.match-team` a 320 px en portada **y** calendario/partido (mismo componente) y quitar
+- [x] Banda de marcador con datos reales de `/public/home` (vacío y error diseñados).
+- [x] Filtro por deporte sin emojis; noticias con jerarquía clara.
+- [x] Quitar degradado e insignia «PORTAL OFICIAL»; acceso al panel en la barra.
+- [x] Corregir `.match-team` a 320 px en portada **y** calendario/partido (mismo componente) y quitar
       las exclusiones correspondientes de `desbordamiento.spec.ts`.
 
 Pruebas nuevas: unitarias de la banda (con resultados, sin resultados, error); e2e de portada a 320 px.

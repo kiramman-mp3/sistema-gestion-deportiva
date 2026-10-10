@@ -78,7 +78,7 @@ Fases del rediseño visual; su numeración es propia y no coincide con la del pl
 
 - [x] Fase 1 — Tokens, fuentes locales, estilos base y hoja de impresión separada (`feature/ui-foundation`)
 - [x] Fase 2 — Estructura, navegación e inicio de sesión
-- [ ] Fase 2b — Portada del portal (adelantada desde la fase 6 para que el cambio sea visible antes)
+- [x] Fase 2b — Portada del portal (adelantada desde la fase 6 para que el cambio sea visible antes)
 - [ ] Fase 3 — Componentes compartidos
 - [ ] Fase 4 — Formularios, tablas, filtros y diálogos
 - [ ] Fase 5 — Módulos administrativos e inicio del panel
@@ -96,7 +96,7 @@ Otros defectos que ya existían en `develop` y se corrigieron en la fase 1: vari
 
 Pendientes que ya existían en `develop`:
 
-- [ ] Portal a 320 px (inicio, calendario y partido): los nombres de equipo de `.match-team` desbordan hasta 359 px. Fase 2b para la portada y fase 6 para calendario y partido.
+- [x] Portal a 320 px (inicio, calendario y partido): corregido con `.match-team` responsive (`min-width: 0`, `overflow-wrap: break-word`) en fase 2b.
 - [ ] Acta y nómina en pantallas estrechas: la hoja tiene ancho fijo de papel (770 y 502 px) y desborda en la vista previa por debajo de ese ancho. Fase 6, que incluye las vistas imprimibles del portal; sin alterar la impresión (D-53).
 - [x] Dos `h1` en las vistas imprimibles (cabecera de la aplicación y documento). Fase 2.
 - [ ] Sin favicon: el navegador pide `/favicon.ico` y recibe 404. Debe hacerse con el escudo oficial de la Liga, sin uno provisional.
