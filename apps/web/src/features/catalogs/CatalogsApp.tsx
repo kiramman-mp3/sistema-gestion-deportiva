@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { AppShell } from '../../components/AppShell.tsx';
+import { useOptionalAuth } from '../auth/AuthContext.tsx';
 import { AuditPage } from '../admin/AuditPage.tsx';
 import { ChangePasswordForm } from '../admin/PasswordForms.tsx';
 import { RoleDetailPage } from '../admin/RoleDetailPage.tsx';
@@ -145,30 +147,24 @@ export function CatalogsApp({
   const active = visible.find((s) => matches(s, hash)) ?? visible[0]!;
   const detailId = hash.split('/')[2];
   const hasAdminAccess = visible.some((s) => s.permission);
+  const auth = useOptionalAuth();
+  const user =
+    auth && auth.state.status === 'authenticated'
+      ? auth.state.user
+      : { displayName: 'Usuario de la Liga' };
+  const logout = auth ? auth.logout : () => Promise.resolve();
 
   return (
-    <>
-      <nav className="main-nav" aria-label="Secciones">
-        <ul>
-          {visible.map((s) => (
-            <li key={s.hash}>
-              <a href={s.hash} aria-current={s === active ? 'page' : undefined}>
-                {s.label}
-                {s.hash === '#/notificaciones' && unread > 0 && (
-                  <span className="nav-badge">
-                    <span aria-hidden="true"> ({unread})</span>
-                    <span className="visually-hidden">, {unread} sin leer</span>
-                  </span>
-                )}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-
+    <AppShell
+      user={user}
+      permissions={permissions}
+      unreadCount={unread}
+      logout={logout}
+      activeHash={hash}
+    >
       {active.hash === '#/' && (
         <section aria-labelledby="home-title">
-          <h2 id="home-title">Inicio</h2>
+          <h1 id="home-title">Inicio</h1>
           {hasAdminAccess ? (
             <p>Seleccione una sección para administrar la Liga.</p>
           ) : (
@@ -282,6 +278,6 @@ export function CatalogsApp({
         <NotificationsPage permissions={permissions} />
       )}
       {active.hash === '#/cuenta' && <ChangePasswordForm />}
-    </>
+    </AppShell>
   );
 }
