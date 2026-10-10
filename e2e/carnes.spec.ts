@@ -25,7 +25,7 @@ test.describe('emisión, descarga, verificación y anulación de carnés deporti
     // Abrir ficha del deportista
     await athleteRow.getByRole('link', { name: /Ver a|Ver ficha/ }).click();
     await expect(
-      page.getByRole('heading', { level: 3, name: 'Carnés y certificados' }),
+      page.getByRole('heading', { level: 2, name: 'Carnés y certificados' }),
     ).toBeVisible();
 
     // Ubicar el panel de Carnés y certificados
@@ -74,14 +74,14 @@ test.describe('emisión, descarga, verificación y anulación de carnés deporti
     await page.goto(`/#/portal/verificar/${verificationCode}`);
     await expect(
       page.getByRole('heading', {
-        level: 3,
+        level: 1,
         name: 'Verificar un documento',
       }),
     ).toBeVisible();
 
     const cardOutput = page.locator('output.championship-card');
     await expect(cardOutput).toBeVisible();
-    await expect(cardOutput.getByRole('heading', { level: 4 })).toContainText(
+    await expect(cardOutput.getByRole('heading', { level: 2 })).toContainText(
       'Documento auténtico y vigente',
     );
     await expect(cardOutput).toContainText('Carné de deportista');
@@ -116,7 +116,7 @@ test.describe('emisión, descarga, verificación y anulación de carnés deporti
     // 6. Verificación posterior en el portal mostrando claramente el estado ANULADO
     await page.goto(`/#/portal/verificar/${verificationCode}`);
     await expect(cardOutput).toBeVisible();
-    await expect(cardOutput.getByRole('heading', { level: 4 })).toContainText(
+    await expect(cardOutput.getByRole('heading', { level: 2 })).toContainText(
       'Documento anulado o reemplazado',
     );
     await expect(

@@ -147,7 +147,7 @@ export function CatalogAdmin<T extends CatalogItem>({
   return (
     <section aria-labelledby="catalog-title" className="catalog">
       <div className="catalog-header">
-        <h2 id="catalog-title">{config.title}</h2>
+        <h1 id="catalog-title">{config.title}</h1>
         {canManage && !editor && (
           <button
             type="button"

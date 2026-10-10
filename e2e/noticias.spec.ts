@@ -68,7 +68,7 @@ test.describe('publicación de noticias y control de acceso', () => {
     // 6. Abrir la noticia completa en el portal público
     await newsCard.getByRole('link', { name: title }).click();
     await expect(
-      page.getByRole('heading', { level: 2, name: title }),
+      page.getByRole('heading', { level: 1, name: title }),
     ).toBeVisible();
     await expect(page.locator('.lead')).toHaveText(summary);
     await expect(page.locator('.article')).toContainText(content);

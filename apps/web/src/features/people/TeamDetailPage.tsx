@@ -57,7 +57,7 @@ export function TeamDetailPage({ teamId, permissions }: Props) {
         <a href="#/equipos">← Volver a equipos</a>
       </p>
       <div className="catalog-header">
-        <h2 id="team-title">{t.name}</h2>
+        <h1 id="team-title">{t.name}</h1>
       </div>
       <p>
         {t.club.name} · {t.sport.name} ·{' '}
@@ -65,7 +65,7 @@ export function TeamDetailPage({ teamId, permissions }: Props) {
       </p>
       <Notice notice={notice} onClose={() => setNotice(null)} />
 
-      <h3>Temporadas</h3>
+      <h2>Temporadas</h2>
       {t.seasons.length === 0 && (
         <p className="empty">
           El equipo aún no está inscrito en ninguna temporada.
@@ -211,7 +211,7 @@ function EnrollForm({
       noValidate
       aria-label="Inscribir en una temporada"
     >
-      <h3>Inscribir en una temporada</h3>
+      <h2>Inscribir en una temporada</h2>
       <SelectField
         label="Temporada"
         required
@@ -342,10 +342,10 @@ function RosterPanel({
 
   return (
     <section aria-labelledby="roster-title">
-      <h3 id="roster-title">
+      <h2 id="roster-title">
         Plantilla · {teamSeason.name} · {teamSeason.season.name} ·{' '}
         {teamSeason.category.name}
-      </h3>
+      </h2>
       {!editable && (
         <p className="hint">
           La temporada está cerrada: la plantilla es solo de consulta.
@@ -451,7 +451,7 @@ function RosterPanel({
           onSubmit={add}
           aria-label="Agregar a la plantilla"
         >
-          <h4>Agregar deportista</h4>
+          <h3>Agregar deportista</h3>
           <p className="hint">
             Solo deportistas habilitados del club. Un deportista no puede estar
             en dos equipos del mismo deporte en la misma temporada.

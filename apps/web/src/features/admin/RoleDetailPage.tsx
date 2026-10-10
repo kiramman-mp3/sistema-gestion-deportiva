@@ -65,7 +65,7 @@ export function RoleDetailPage({ roleId, permissions }: Props) {
         <a href="#/roles">← Volver a roles</a>
       </p>
       <div className="catalog-header">
-        <h2 id="role-title">{r.name}</h2>
+        <h1 id="role-title">{r.name}</h1>
         <span className={`badge badge-${r.isSystem ? 'neutral' : 'ok'}`}>
           <span aria-hidden="true">{r.isSystem ? '🔒 ' : '✎ '}</span>
           {r.isSystem ? 'Rol de sistema' : 'Rol configurable'}
@@ -167,7 +167,7 @@ function PermissionsEditor({
 
   return (
     <>
-      <h3>Permisos</h3>
+      <h2>Permisos</h2>
       <p className="hint">
         Cada capacidad es independiente: <strong>Consultar</strong> permite ver
         información, <strong>Gestionar</strong> permite crear y modificar, y{' '}

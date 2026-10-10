@@ -17,7 +17,7 @@ export function RolesPage({ permissions }: { permissions: readonly string[] }) {
   return (
     <section aria-labelledby="roles-title" className="catalog">
       <div className="catalog-header">
-        <h2 id="roles-title">Roles y permisos</h2>
+        <h1 id="roles-title">Roles y permisos</h1>
         {canManage && !creating && (
           <button
             type="button"

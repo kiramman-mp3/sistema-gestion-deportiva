@@ -47,7 +47,7 @@ export function ChampionshipsPage({
   return (
     <section aria-labelledby="championships-title" className="catalog">
       <div className="catalog-header">
-        <h2 id="championships-title">Campeonatos</h2>
+        <h1 id="championships-title">Campeonatos</h1>
         {canManage && !creating && (
           <button
             type="button"
@@ -267,7 +267,7 @@ function CreateChampionshipForm({
 
   return (
     <form className="catalog-form" onSubmit={submit} noValidate>
-      <h3>Nuevo campeonato deportivo</h3>
+      <h2>Nuevo campeonato deportivo</h2>
       <SelectField
         label="Temporada deportiva"
         value={seasonId}

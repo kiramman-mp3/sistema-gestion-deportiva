@@ -51,10 +51,10 @@ test.describe('seguridad, separación de roles (RBAC) y privacidad de menores', 
     // Intentos de navegación directa por URL vuelven a inicio
     await page.goto('/#/usuarios');
     await expect(
-      page.getByRole('heading', { level: 2, name: 'Usuarios' }),
+      page.getByRole('heading', { level: 1, name: 'Usuarios' }),
     ).not.toBeVisible();
     await expect(
-      page.getByRole('heading', { level: 2, name: 'Inicio' }),
+      page.getByRole('heading', { level: 1, name: 'Inicio' }),
     ).toBeVisible();
 
     // Peticiones directas a la API sin permiso son rechazadas con 403 Forbidden
@@ -196,7 +196,7 @@ test.describe('seguridad, separación de roles (RBAC) y privacidad de menores', 
     // 4. Verificamos la navegación por el calendario público
     await page.goto('/#/portal/calendario');
     await expect(
-      page.getByRole('heading', { level: 3, name: 'Calendario de partidos' }),
+      page.getByRole('heading', { level: 1, name: 'Calendario de partidos' }),
     ).toBeVisible();
 
     const text = await pageText(page);

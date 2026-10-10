@@ -48,7 +48,7 @@ export function AthletesPage({
   return (
     <section aria-labelledby="athletes-title" className="catalog">
       <div className="catalog-header">
-        <h2 id="athletes-title">Deportistas</h2>
+        <h1 id="athletes-title">Deportistas</h1>
         {canCreate && !creating && (
           <button
             type="button"

@@ -78,6 +78,9 @@ export function CompetitionsView({
         />
       ) : (
         <>
+          <div className="section-header">
+            <h1 className="portal-page-title">Competencias</h1>
+          </div>
           {/* Barra de Filtros por Deporte y Búsqueda */}
           <section
             className="portal-controls"
@@ -232,7 +235,7 @@ function ChampionshipDetailView({
           {championship.sport.name} · {championship.category.name} ·{' '}
           {championship.season.name}
         </span>
-        <h2>{championship.name}</h2>
+        <h1>{championship.name}</h1>
         <div className="champ-tags">
           <span className="badge">
             Modalidad: {championship.format.replace(/_/g, ' ')}

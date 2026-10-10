@@ -71,7 +71,7 @@ export function InstitutionPage({
   return (
     <section aria-labelledby="institution-title" className="catalog">
       <div className="catalog-header">
-        <h2 id="institution-title">Configuración institucional</h2>
+        <h1 id="institution-title">Configuración institucional</h1>
       </div>
       <Notice notice={notice} onClose={() => setNotice(null)} />
       <LoadState state={state} onRetry={reload} />

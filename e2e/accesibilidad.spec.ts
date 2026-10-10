@@ -15,7 +15,7 @@ test.describe('accesibilidad web (axe-core)', () => {
       await expect(
         page.getByRole('heading', {
           name: 'Liga Deportiva Cantonal de Quero',
-          level: 2,
+          level: 1,
         }),
       ).toBeVisible();
 
@@ -29,7 +29,7 @@ test.describe('accesibilidad web (axe-core)', () => {
       await page.goto('/#/portal/noticias');
       await expect(
         page.getByRole('heading', {
-          level: 3,
+          level: 1,
           name: 'Noticias y comunicados',
         }),
       ).toBeVisible();
@@ -44,7 +44,7 @@ test.describe('accesibilidad web (axe-core)', () => {
       await page.goto('/#/portal/calendario');
       await expect(
         page.getByRole('heading', {
-          level: 3,
+          level: 1,
           name: 'Calendario de partidos',
         }),
       ).toBeVisible();
@@ -59,7 +59,7 @@ test.describe('accesibilidad web (axe-core)', () => {
       await page.goto('/#/portal/verificar');
       await expect(
         page.getByRole('heading', {
-          level: 3,
+          level: 1,
           name: 'Verificar un documento',
         }),
       ).toBeVisible();
@@ -74,7 +74,7 @@ test.describe('accesibilidad web (axe-core)', () => {
       await page.goto('/#/portal/liga');
       await expect(
         page.getByRole('heading', {
-          level: 3,
+          level: 2,
           name: 'Contacto',
         }),
       ).toBeVisible();
@@ -103,7 +103,7 @@ test.describe('accesibilidad web (axe-core)', () => {
       await login(page, ACCOUNTS.admin);
       await goToSection(page, 'Campeonatos');
       await expect(
-        page.getByRole('heading', { level: 2, name: 'Campeonatos' }),
+        page.getByRole('heading', { level: 1, name: 'Campeonatos' }),
       ).toBeVisible();
 
       const results = await checkA11y(page);
@@ -117,7 +117,7 @@ test.describe('accesibilidad web (axe-core)', () => {
       await login(page, ACCOUNTS.admin);
       await goToSection(page, 'Deportistas');
       await expect(
-        page.getByRole('heading', { level: 2, name: 'Deportistas' }),
+        page.getByRole('heading', { level: 1, name: 'Deportistas' }),
       ).toBeVisible();
 
       const results = await checkA11y(page);
@@ -131,11 +131,70 @@ test.describe('accesibilidad web (axe-core)', () => {
       await login(page, ACCOUNTS.admin);
       await goToSection(page, 'Notificaciones');
       await expect(
-        page.getByRole('heading', { level: 2, name: 'Notificaciones' }),
+        page.getByRole('heading', { level: 1, name: 'Notificaciones' }),
       ).toBeVisible();
 
       const results = await checkA11y(page);
       expect(results.violations).toEqual([]);
+      await logout(page);
+    });
+
+    test('las rutas principales tienen exactamente un h1 y no hay encabezados h1 duplicados', async ({
+      page,
+    }) => {
+      // Portal
+      await page.goto('/#/portal');
+      await expect(page.locator('h1')).toHaveCount(1);
+
+      await page.goto('/#/portal/noticias');
+      await expect(page.locator('h1')).toHaveCount(1);
+
+      await page.goto('/#/portal/calendario');
+      await expect(page.locator('h1')).toHaveCount(1);
+
+      await page.goto('/#/portal/verificar');
+      await expect(page.locator('h1')).toHaveCount(1);
+
+      // Login
+      await page.goto('/#/');
+      await expect(page.locator('h1')).toHaveCount(1);
+
+      // Panel con sesión
+      await login(page, ACCOUNTS.admin);
+      await expect(page.locator('h1')).toHaveCount(1);
+
+      await goToSection(page, 'Campeonatos');
+      await expect(page.locator('h1')).toHaveCount(1);
+
+      await goToSection(page, 'Deportistas');
+      await expect(page.locator('h1')).toHaveCount(1);
+
+      await goToSection(page, 'Notificaciones');
+      await expect(page.locator('h1')).toHaveCount(1);
+
+      await logout(page);
+    });
+
+    test('el menú móvil a 375 px abre el panel lateral y navega a una sección', async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 375, height: 667 });
+      await login(page, ACCOUNTS.admin);
+      await expect(page.locator('h1')).toHaveCount(1);
+
+      const menuBtn = page.getByRole('button', { name: 'Menú' });
+      await expect(menuBtn).toBeVisible();
+      await menuBtn.click();
+
+      const drawer = page.getByRole('dialog', { name: 'Secciones de la Liga' });
+      await expect(drawer).toBeVisible();
+
+      await drawer.getByRole('link', { name: 'Campeonatos' }).click();
+
+      await expect(
+        page.getByRole('heading', { level: 1, name: 'Campeonatos' }),
+      ).toBeVisible();
+      await expect(drawer).not.toBeVisible();
       await logout(page);
     });
   });
