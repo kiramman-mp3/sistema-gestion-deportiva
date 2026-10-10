@@ -72,6 +72,34 @@ Leyenda: `[x]` hecho · `[ ]` pendiente
 - [x] §5.13 Noticias, comunicados y portal público multi-página (D-81 a D-85)
 - [x] §5.14 Notificaciones del sistema y cola de correo (D-59 a D-63)
 
+## Rediseño de la interfaz (D-95)
+
+Fases del rediseño visual; su numeración es propia y no coincide con la del plan anterior.
+
+- [x] Fase 1 — Tokens, fuentes locales, estilos base y hoja de impresión separada (`feature/ui-foundation`)
+- [ ] Fase 2 — Estructura y navegación
+- [ ] Fase 3 — Componentes compartidos
+- [ ] Fase 4 — Formularios, tablas, filtros y diálogos
+- [ ] Fase 5 — Módulos administrativos e inicio del panel
+- [ ] Fase 6 — Portal público
+- [ ] Fase 7 — Estados, accesibilidad y detalle
+- [ ] Fase 8 — Regresión y revisión final
+
+Desbordamientos horizontales corregidos en la fase 1 (revisión de 40 rutas a 320, 375, 768, 1024 y 1280 px):
+
+- [x] Institución en todos los anchos: el selector de logotipo oculto ensanchaba la página (ya existía en `develop`).
+- [x] Usuarios a 320 y 768 px, detalle de usuario a 320 px y ficha de deportista a 320 y 375 px (ya existían en `develop`). Las tablas se apilan como tarjetas hasta 60rem y las listas de detalle se apilan en móvil.
+- [x] Roles a 768 px y Auditoría a 320 px: los introdujo la nueva fuente, más ancha, y se corrigieron antes de integrar la fase.
+
+Otros defectos que ya existían en `develop` y se corrigieron en la fase 1: variables CSS sin definir (`--text-muted`, `--surface-sunken`…), el botón de acceso del portal casi invisible y los enlaces con el azul del navegador, sin contraste en modo oscuro.
+
+Pendientes que ya existían en `develop`:
+
+- [ ] Portal a 320 px (inicio, calendario y partido): los nombres de equipo de `.match-team` desbordan hasta 359 px. Fase 6.
+- [ ] Acta y nómina en pantallas estrechas: la hoja tiene ancho fijo de papel (770 y 502 px) y desborda en la vista previa por debajo de ese ancho. Fase 6, que incluye las vistas imprimibles del portal; sin alterar la impresión (D-53).
+- [ ] Dos `h1` en las vistas imprimibles (cabecera de la aplicación y documento). Fase 2.
+- [ ] Sin favicon: el navegador pide `/favicon.ico` y recibe 404. Debe hacerse con el escudo oficial de la Liga, sin uno provisional.
+
 ## Pendiente institucional (Segunda etapa y preguntas abiertas)
 
 - [ ] Definición institucional de la matriz definitiva de roles por la Liga (D-14, D-93)
