@@ -2910,6 +2910,9 @@ pre.json {
   }
 }
 .portal-nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
   color: var(--color-text);
   text-decoration: none;
   font-weight: 500;
