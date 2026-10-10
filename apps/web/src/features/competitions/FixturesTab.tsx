@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { apiRequest } from '../../api/client.ts';
+import { Modal } from '../../components/Modal.tsx';
 import { describeError } from '../../components/Notice.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import {
@@ -709,7 +710,7 @@ export function FixturesTab({
 
       {/* Modal de reprogramación */}
       {reschedulingEvent && (
-        <dialog open className="dialog-backdrop" aria-modal="true">
+        <Modal onClose={() => setReschedulingEvent(null)}>
           <div className="dialog-content">
             <h3>Reprogramar partido</h3>
             <p style={{ fontSize: '0.875rem' }}>
@@ -756,19 +757,19 @@ export function FixturesTab({
                 />
               </div>
               <div className="form-actions">
-                <button type="submit" className="primary">
-                  Confirmar reprogramación
-                </button>
                 <button
                   type="button"
                   onClick={() => setReschedulingEvent(null)}
                 >
                   Cancelar
                 </button>
+                <button type="submit" className="primary">
+                  Confirmar reprogramación
+                </button>
               </div>
             </form>
           </div>
-        </dialog>
+        </Modal>
       )}
 
       {assignmentsEvent && (
