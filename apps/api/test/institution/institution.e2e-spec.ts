@@ -207,6 +207,71 @@ describe('configuración institucional', () => {
     });
   });
 
+  describe('foto de portada', () => {
+    it('sube, publica, reemplaza y elimina la portada sin tocar el logotipo', async () => {
+      await t.http().get('/api/public/institution/cover').expect(404);
+      await api()
+        .put('/api/institution/logo')
+        .attach('file', validPng, 'logo.png')
+        .expect(200);
+
+      await api()
+        .put('/api/institution/cover')
+        .attach('file', validPng, 'portada.png')
+        .expect(200);
+      const info = (await t.http().get('/api/public/institution').expect(200))
+        .body;
+      expect(info).toMatchObject({ hasLogo: true, hasCover: true });
+      expect(
+        (await api().get('/api/institution').expect(200)).body,
+      ).toMatchObject({ hasLogo: true, hasCover: true });
+      const served = await t
+        .http()
+        .get('/api/public/institution/cover')
+        .expect(200);
+      expect(served.headers['content-type']).toBe('image/png');
+      expect(served.headers['x-content-type-options']).toBe('nosniff');
+      expect(served.body).toEqual(validPng);
+
+      const before = await prisma.storedFile.count();
+      await api()
+        .put('/api/institution/cover')
+        .attach('file', validPng, 'portada2.png')
+        .expect(200);
+      expect(await prisma.storedFile.count()).toBe(before);
+
+      await api().delete('/api/institution/cover').expect(204);
+      await t.http().get('/api/public/institution/cover').expect(404);
+      await api().delete('/api/institution/cover').expect(404);
+      // El logotipo sigue en su sitio.
+      await t.http().get('/api/public/institution/logo').expect(200);
+      expect(
+        (await t.http().get('/api/public/institution').expect(200)).body,
+      ).toMatchObject({ hasLogo: true, hasCover: false });
+
+      const actions = (await prisma.auditLog.findMany()).map((l) => l.action);
+      expect(actions).toEqual(
+        expect.arrayContaining([
+          'institution.cover_changed',
+          'institution.cover_removed',
+        ]),
+      );
+    });
+
+    it('exige permiso de gestión y rechaza archivos que no son imágenes', async () => {
+      const reader = await adminWith(t, prisma, ['institution:read']);
+      await authed(t, reader.session)
+        .put('/api/institution/cover')
+        .attach('file', validPng, 'portada.png')
+        .expect(403);
+      await api()
+        .put('/api/institution/cover')
+        .attach('file', Buffer.from('<script>alert(1)</script>'), 'p.png')
+        .expect(400);
+      await api().put('/api/institution/cover').expect(415);
+    });
+  });
+
   describe('portal público', () => {
     it('publica solo los datos institucionales, sin identificadores internos', async () => {
       await api()
