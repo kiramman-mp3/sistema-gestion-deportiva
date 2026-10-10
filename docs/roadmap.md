@@ -99,7 +99,7 @@ Pendientes que ya existían en `develop`:
 - [x] Portal a 320 px (inicio, calendario y partido): corregido con `.match-team` responsive (`min-width: 0`, `overflow-wrap: break-word`) en fase 2b.
 - [x] Acta y nómina en pantallas estrechas: contenedor con desplazamiento horizontal propio solo en pantalla (`.printable-sheet-scroller`); la impresión es idéntica a la anterior al píxel, comprobado tras D-101 (D-53).
 - [x] Dos `h1` en las vistas imprimibles (cabecera de la aplicación y documento). Fase 2.
-- [ ] Objetivos táctiles por debajo de 44 px: enlaces del menú del portal en escritorio (40 px) y enlaces dentro de celdas de tabla (24 px).
+- [ ] Objetivos táctiles por debajo de 44 px: enlaces dentro de celdas de tabla (24 px, mínimo AA cumplido) y casillas de permisos en la ficha de rol.
 - [ ] Sin favicon: el navegador pide `/favicon.ico` y recibe 404. Debe hacerse con el escudo oficial de la Liga, sin uno provisional.
 
 ## Pendiente institucional (Segunda etapa y preguntas abiertas)
