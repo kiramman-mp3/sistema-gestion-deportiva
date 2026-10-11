@@ -561,31 +561,6 @@ pre.json {
   min-width: 0;
 }
 
-.portal-home-header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.5rem 0 1rem 0;
-  min-width: 0;
-}
-
-.portal-title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(1.75rem, 5vw, 2.5rem);
-  font-weight: 700;
-  color: var(--color-text);
-  line-height: 1.15;
-}
-
-.portal-description {
-  margin: 0;
-  font-size: 1rem;
-  color: var(--color-text-muted);
-  max-width: 66ch;
-  line-height: 1.5;
-}
-
 .scoreboard-band {
   background: var(--color-brand);
   color: var(--color-on-brand);
