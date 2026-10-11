@@ -211,17 +211,7 @@ export function PublicPortalPage({
       <main className="portal-container" id="contenido">
         {route.page === 'inicio' && (
           <>
-            <div className="portal-home-header">
-              <h1 className="portal-title">
-                {info?.name ?? 'Liga Deportiva Cantonal de Quero'}
-              </h1>
-              <p className="portal-description">
-                {info?.affiliation ? `${info.affiliation}. ` : ''}
-                Resultados oficiales, clasificaciones, calendarios y noticias de
-                las competencias deportivas cantonales.
-              </p>
-            </div>
-            <HomePage />
+            <HomePage institution={info} />
           </>
         )}
         {route.page === 'competencias' && (

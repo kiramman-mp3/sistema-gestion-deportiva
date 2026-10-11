@@ -3,6 +3,7 @@ import { Icon } from '../../components/Icon.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import { Pagination } from '../../components/Pagination.tsx';
 import { Confetti, SportArt, sportKey } from '../../components/SportArt.tsx';
+import { groupBySport, HomeHero, SportsShowcase } from './HomeSections.tsx';
 import { LoadState, SelectField, TextField } from '../people/fields.tsx';
 import type {
   PublicAnnouncement,
@@ -275,10 +276,33 @@ export function ScoreboardBand({
   );
 }
 
-export function HomePage() {
+export function HomePage({
+  institution,
+}: {
+  institution: PublicInstitution | null;
+}) {
   const [home, reload] = useFetch<PublicHome>('/public/home');
+  const [championships] = useFetch<PublicChampionshipsResponse>(
+    '/public/championships?pageSize=100',
+  );
+  // El conteo de clubes solo se pide si la Liga los publica (D-56).
+  const [clubs] = useFetch<PublicPage<PublicClub>>(
+    institution?.publication.clubs ? '/public/clubs?pageSize=1' : null,
+  );
+  const items = championships.kind === 'ready' ? championships.data.items : [];
+  const sports = groupBySport(items);
   return (
     <>
+      <HomeHero
+        institution={institution}
+        season={items[0]?.season.name}
+        sports={sports}
+        championships={
+          championships.kind === 'ready' ? championships.data.total : undefined
+        }
+        clubs={clubs.kind === 'ready' ? clubs.data.total : undefined}
+      />
+      <SportsShowcase sports={sports} />
       <ScoreboardBand
         recent={home.kind === 'ready' ? home.data.recent : []}
         upcoming={home.kind === 'ready' ? home.data.upcoming : []}
