@@ -3418,3 +3418,25 @@ pre.json {
   --sport: var(--color-sport-otro);
   --sport-soft: var(--color-sport-otro-soft);
 }
+
+/* Tarjetas de partido con el color de su deporte y noticias sin portada. */
+.match-card {
+  border-left: 6px solid var(--sport, var(--color-border));
+}
+
+.match-sport {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.news-card-placeholder {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 10rem;
+  overflow: hidden;
+  background: var(--color-accent);
+}
