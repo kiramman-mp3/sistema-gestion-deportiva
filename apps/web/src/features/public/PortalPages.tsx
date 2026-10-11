@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Icon } from '../../components/Icon.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import { Pagination } from '../../components/Pagination.tsx';
+import { Confetti, SportArt, sportKey } from '../../components/SportArt.tsx';
+import { groupBySport, HomeHero, SportsShowcase } from './HomeSections.tsx';
 import { LoadState, SelectField, TextField } from '../people/fields.tsx';
 import type {
   PublicAnnouncement,
@@ -78,9 +80,14 @@ export function MatchRow({ event }: { event: PublicEventSummary }) {
   const b =
     event.participants.find((p) => p.side === 'visitante') ??
     event.participants[1];
+  const sport = event.championship.sport;
   return (
-    <article className="match-card">
+    <article className={`match-card sport-${sportKey(sport.code)}`}>
       <div className="match-meta">
+        <span className="match-sport">
+          <SportArt sport={sport.code} size={28} />
+          {sport.name}
+        </span>
         <span className="match-venue">
           <Icon name="map-pin" size={14} />{' '}
           {event.venue?.name ?? 'Por confirmar'}
@@ -138,11 +145,16 @@ export function NewsCard({
   const TitleTag = headingLevel;
   return (
     <article className="news-card">
-      {item.cover && (
+      {item.cover ? (
         <img
           src={`/api/public/media/${item.cover.id}`}
           alt={item.cover.altText}
         />
+      ) : (
+        <span className="news-card-placeholder" aria-hidden="true">
+          <Confetti />
+          <SportArt sport={null} size={72} />
+        </span>
       )}
       <div className="news-body">
         <span className="sport-tag">
@@ -264,10 +276,33 @@ export function ScoreboardBand({
   );
 }
 
-export function HomePage() {
+export function HomePage({
+  institution,
+}: {
+  institution: PublicInstitution | null;
+}) {
   const [home, reload] = useFetch<PublicHome>('/public/home');
+  const [championships] = useFetch<PublicChampionshipsResponse>(
+    '/public/championships?pageSize=100',
+  );
+  // El conteo de clubes solo se pide si la Liga los publica (D-56).
+  const [clubs] = useFetch<PublicPage<PublicClub>>(
+    institution?.publication.clubs ? '/public/clubs?pageSize=1' : null,
+  );
+  const items = championships.kind === 'ready' ? championships.data.items : [];
+  const sports = groupBySport(items);
   return (
     <>
+      <HomeHero
+        institution={institution}
+        season={items[0]?.season.name}
+        sports={sports}
+        championships={
+          championships.kind === 'ready' ? championships.data.total : undefined
+        }
+        clubs={clubs.kind === 'ready' ? clubs.data.total : undefined}
+      />
+      <SportsShowcase sports={sports} />
       <ScoreboardBand
         recent={home.kind === 'ready' ? home.data.recent : []}
         upcoming={home.kind === 'ready' ? home.data.upcoming : []}

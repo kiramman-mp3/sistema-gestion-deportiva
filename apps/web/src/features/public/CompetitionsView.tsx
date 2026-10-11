@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Icon } from '../../components/Icon.tsx';
+import { SportArt, sportKey } from '../../components/SportArt.tsx';
 import { LoadState } from '../../components/LoadState.tsx';
 import { Tabs } from '../../components/Tabs.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
@@ -12,15 +13,22 @@ import type {
 
 interface CompetitionsViewProps {
   championshipId?: string;
+  /** Código del deporte con el que empieza filtrado el listado (`?deporte=`). */
+  sport?: string;
   onOpenPrintDocument?: (kind: 'acta' | 'nomina', id: string) => void;
 }
+
+/** Clase de color del filtro: cada deporte el suyo; «Todos» usa el genérico. */
+const toneOf = (code: string) =>
+  code === 'all' ? 'sport-otro' : `sport-${sportKey(code)}`;
 
 /** Campeonatos oficiales con su calendario, resultados y tabla de posiciones. */
 export function CompetitionsView({
   championshipId,
+  sport,
   onOpenPrintDocument,
 }: CompetitionsViewProps) {
-  const [selectedSport, setSelectedSport] = useState('all');
+  const [selectedSport, setSelectedSport] = useState(sport ?? 'all');
   const [searchQuery, setSearchQuery] = useState('');
 
   const queryParams = new URLSearchParams();
@@ -124,10 +132,13 @@ export function CompetitionsView({
                 <button
                   key={s.code}
                   type="button"
-                  className={`sport-tab-button ${selectedSport === s.code ? 'active' : ''}`}
+                  className={`sport-tab-button ${toneOf(s.code)} ${
+                    selectedSport === s.code ? 'active' : ''
+                  }`}
                   onClick={() => setSelectedSport(s.code)}
                   aria-pressed={selectedSport === s.code}
                 >
+                  {s.code !== 'all' && <SportArt sport={s.code} size={22} />}
                   {s.label}
                 </button>
               ))}
