@@ -6,6 +6,7 @@ import { ClubsModule } from '../clubs/clubs.module.js';
 import { TeamsModule } from '../teams/teams.module.js';
 import { PeopleModule } from '../people/people.module.js';
 import { AthletesController } from './athletes.controller.js';
+import { AthleteOriginService } from './athlete-origin.service.js';
 import { AthletesService } from './athletes.service.js';
 
 @Module({
@@ -18,7 +19,7 @@ import { AthletesService } from './athletes.service.js';
     TeamsModule,
   ],
   controllers: [AthletesController],
-  providers: [AthletesService],
+  providers: [AthletesService, AthleteOriginService],
   exports: [AthletesService],
 })
 export class AthletesModule {}

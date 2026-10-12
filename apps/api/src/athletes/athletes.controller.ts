@@ -16,6 +16,8 @@ import { CurrentAuth, RequirePermissions } from '../auth/decorators.js';
 import { parseOrThrow, uuidSchema } from '../auth/schemas.js';
 import {
   athleteListQuerySchema,
+  athleteLookupSchema,
+  originLinksSchema,
   athleteStatusSchema,
   createAthleteSchema,
   createConsentSchema,
@@ -26,6 +28,7 @@ import {
   updateAthleteSchema,
 } from './athletes.schemas.js';
 import { RosterService } from '../teams/roster.service.js';
+import { AthleteOriginService } from './athlete-origin.service.js';
 import { AthletesService } from './athletes.service.js';
 
 const ipOf = (req: AuthedRequest) => req.ip ?? 'desconocida';
@@ -36,6 +39,7 @@ export class AthletesController {
   constructor(
     @Inject(AthletesService) private readonly athletes: AthletesService,
     @Inject(RosterService) private readonly roster: RosterService,
+    @Inject(AthleteOriginService) private readonly origin: AthleteOriginService,
   ) {}
 
   @RequirePermissions('athletes:read')
@@ -45,6 +49,13 @@ export class AthletesController {
       auth,
       parseOrThrow(athleteListQuerySchema, query),
     );
+  }
+
+  /** Antes de `:id` para que «lookup» no se tome como identificador. */
+  @RequirePermissions('athletes:manage')
+  @Get('lookup')
+  lookup(@CurrentAuth() auth: AuthContext, @Query() query: unknown) {
+    return this.origin.lookup(auth, parseOrThrow(athleteLookupSchema, query));
   }
 
   @RequirePermissions('athletes:read')
@@ -201,5 +212,27 @@ export class AthletesController {
     const athleteId = parseOrThrow(uuidSchema, id);
     await this.athletes.get(auth, athleteId); // comprueba el alcance por club
     return this.roster.forAthlete(athleteId);
+  }
+
+  @RequirePermissions('athletes:read')
+  @Get(':id/origin-links')
+  originLinks(@CurrentAuth() auth: AuthContext, @Param('id') id: string) {
+    return this.origin.listLinks(auth, parseOrThrow(uuidSchema, id));
+  }
+
+  @RequirePermissions('athletes:manage')
+  @Put(':id/origin-links')
+  replaceOriginLinks(
+    @CurrentAuth() auth: AuthContext,
+    @Req() req: AuthedRequest,
+    @Param('id') id: string,
+    @Body() body: unknown,
+  ) {
+    return this.origin.replaceLinks(
+      auth,
+      parseOrThrow(uuidSchema, id),
+      parseOrThrow(originLinksSchema, body),
+      ipOf(req),
+    );
   }
 }
