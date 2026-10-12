@@ -9,10 +9,7 @@ import {
 import { LoginForm } from '../features/auth/LoginForm.tsx';
 import { AuthProvider } from '../features/auth/AuthContext.tsx';
 import { error, json, mockApi } from '../test/mockApi.ts';
-import type {
-  PublicHome,
-  PublicInstitution,
-} from '../features/public/types.ts';
+import type { PublicInstitution } from '../features/public/types.ts';
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -195,76 +192,10 @@ describe('LoginForm', () => {
     publication: { clubs: true, athletes: true, news: true, resolutions: true },
   };
 
-  it('muestra el marcador lateral solo cuando hay un partido reciente (recent[0])', async () => {
-    const homeWithRecent: PublicHome = {
-      institution: dummyInstitution,
-      news: [],
-      upcoming: [],
-      recent: [
-        {
-          id: 'match-1',
-          scheduledAt: '2026-06-15T16:00:00.000Z',
-          status: 'finalizado',
-          postponementReason: null,
-          venue: { id: 'v-1', name: 'Estadio Central' },
-          stage: 'Fase Regular',
-          round: 'Fecha 1',
-          championship: {
-            id: 'champ-1',
-            name: 'Torneo Oficial Senior 2026',
-            sport: { id: 's-1', code: 'fut', name: 'Fútbol' },
-            category: { id: 'cat-1', name: 'Senior' },
-            season: { id: 'sea-1', name: 'Temporada 2026' },
-          },
-          participants: [
-            {
-              id: 'p-1',
-              side: 'local',
-              name: 'Club Deportivo Huracán',
-              clubName: 'Club Deportivo Huracán',
-              score: 3,
-              outcome: null,
-            },
-            {
-              id: 'p-2',
-              side: 'visitante',
-              name: 'Club Atlético Oriental',
-              clubName: 'Club Atlético Oriental',
-              score: 1,
-              outcome: null,
-            },
-          ],
-          hasResult: true,
-        },
-      ],
-    };
-
-    mockApi({
+  it('muestra el lema de identidad sin pedir resultados a la API', async () => {
+    const api = mockApi({
       'GET /auth/session': () => error(401, 'No autenticado'),
       'GET /public/institution': () => json(dummyInstitution),
-      'GET /public/home': () => json(homeWithRecent),
-    });
-
-    render(
-      <AuthProvider>
-        <LoginForm sessionExpired={false} />
-      </AuthProvider>,
-    );
-
-    const scoreboard = await screen.findByLabelText('Último resultado oficial');
-    expect(scoreboard).toBeVisible();
-    expect(screen.getByText('Torneo Oficial Senior 2026')).toBeInTheDocument();
-    expect(screen.getByText('Club Deportivo Huracán')).toBeInTheDocument();
-    expect(screen.getByText('3')).toBeInTheDocument();
-    expect(screen.getByText('Club Atlético Oriental')).toBeInTheDocument();
-    expect(screen.getByText('1')).toBeInTheDocument();
-  });
-
-  it('muestra solo el lema de identidad cuando la API falla o recent está vacío', async () => {
-    mockApi({
-      'GET /auth/session': () => error(401, 'No autenticado'),
-      'GET /public/institution': () => json(dummyInstitution),
-      'GET /public/home': () => error(500, 'Error interno del servidor'),
     });
 
     render(
@@ -278,6 +209,7 @@ describe('LoginForm', () => {
         'Gestión deportiva cantonal, resultados transparentes y actas oficiales.',
       ),
     ).toBeVisible();
+    expect(api.calls.some((c) => c.path === '/public/home')).toBe(false);
     expect(
       screen.queryByLabelText('Último resultado oficial'),
     ).not.toBeInTheDocument();

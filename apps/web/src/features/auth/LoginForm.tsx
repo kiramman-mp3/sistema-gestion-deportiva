@@ -1,8 +1,7 @@
-import { type FormEvent, useEffect, useId, useState } from 'react';
-import { ApiError, apiGet } from '../../api/client.ts';
+import { type FormEvent, useId, useState } from 'react';
+import { ApiError } from '../../api/client.ts';
 import { Icon } from '../../components/Icon.tsx';
 import { InstitutionBrand } from '../../components/InstitutionBrand.tsx';
-import type { PublicHome } from '../public/types.ts';
 import { useAuth } from './AuthContext.tsx';
 
 interface FieldErrors {
@@ -48,24 +47,6 @@ export function LoginForm({ sessionExpired }: { sessionExpired: boolean }) {
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Carga del último resultado oficial real vía `/public/home` para el panel lateral
-  const [homeData, setHomeData] = useState<PublicHome | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    apiGet<PublicHome>('/public/home')
-      .then((data) => {
-        if (active) setHomeData(data);
-      })
-      .catch(() => {
-        // En caso de fallo o si la API no está disponible, no mostramos marcador inventado
-        if (active) setHomeData(null);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submitting) return;
@@ -86,61 +67,17 @@ export function LoginForm({ sessionExpired }: { sessionExpired: boolean }) {
     }
   }
 
-  const recentMatch =
-    homeData && homeData.recent && homeData.recent.length > 0
-      ? homeData.recent[0]
-      : null;
-
-  const localParticipant =
-    recentMatch?.participants.find((p) => p.side === 'local') ??
-    recentMatch?.participants[0];
-  const awayParticipant =
-    recentMatch?.participants.find((p) => p.side === 'visitante') ??
-    recentMatch?.participants[1];
-
   return (
     <div className="login-page-container">
-      {/* Panel lateral en escritorio (≥ 64rem): marca + último resultado oficial o solo identidad */}
+      {/* Panel lateral en escritorio (≥ 64rem): marca e identidad */}
       <aside className="login-brand-panel">
         <div className="login-brand-header">
           <InstitutionBrand showSubtitle />
         </div>
-
-        {recentMatch && localParticipant && awayParticipant ? (
-          <div
-            className="login-scoreboard"
-            aria-label="Último resultado oficial"
-          >
-            <span className="scoreboard-badge">Último resultado oficial</span>
-            <div className="scoreboard-championship">
-              {recentMatch.championship.name}
-            </div>
-            <div className="scoreboard-matchup">
-              <div className="scoreboard-team">
-                <span className="team-name">{localParticipant.name}</span>
-                <span className="team-score">
-                  {localParticipant.score !== null
-                    ? localParticipant.score
-                    : '-'}
-                </span>
-              </div>
-              <div className="scoreboard-vs">vs</div>
-              <div className="scoreboard-team">
-                <span className="team-name">{awayParticipant.name}</span>
-                <span className="team-score">
-                  {awayParticipant.score !== null ? awayParticipant.score : '-'}
-                </span>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="login-identity-message">
-            <p className="login-motto">
-              Gestión deportiva cantonal, resultados transparentes y actas
-              oficiales.
-            </p>
-          </div>
-        )}
+        <p className="login-motto">
+          Gestión deportiva cantonal, resultados transparentes y actas
+          oficiales.
+        </p>
       </aside>
 
       {/* Formulario de inicio de sesión */}
