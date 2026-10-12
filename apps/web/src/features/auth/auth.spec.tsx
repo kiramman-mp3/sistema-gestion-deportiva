@@ -80,6 +80,7 @@ describe('autenticación en la interfaz', () => {
 
   beforeEach(() => {
     setCsrfToken(null);
+    window.location.hash = '#/ingresar';
     local = spyStorage();
     session = spyStorage();
     vi.stubGlobal('localStorage', local.storage);
@@ -104,6 +105,24 @@ describe('autenticación en la interfaz', () => {
       'password',
     );
     expect(screen.queryByText('Cerrar sesión')).not.toBeInTheDocument();
+  });
+
+  it('sin sesión la raíz muestra la portada pública, que lleva al inicio de sesión', async () => {
+    window.location.hash = '';
+    mockApi({ 'GET /auth/session': unauthorized });
+    render(<App />);
+
+    const access = await screen.findByRole('button', {
+      name: 'Acceso para dirigentes y árbitros',
+    });
+    expect(
+      screen.queryByRole('heading', { name: 'Iniciar sesión' }),
+    ).not.toBeInTheDocument();
+    await userEvent.click(access);
+    expect(
+      await screen.findByRole('heading', { name: 'Iniciar sesión' }),
+    ).toBeInTheDocument();
+    expect(window.location.hash).toBe('#/ingresar');
   });
 
   it('recupera la sesión existente consultando al servidor, con credenciales', async () => {
