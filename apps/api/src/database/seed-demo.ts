@@ -5,6 +5,8 @@ import { deflateSync } from 'node:zlib';
 import { PasswordService } from '../auth/password.service.js';
 import { PERMISSIONS } from '../authz/permissions.js';
 import { normalizeKey, slugify } from '../common/keys.js';
+import { toDate } from '../catalogs/seasons/seasons.rules.js';
+import { todayInGuayaquil } from '../people/people.schemas.js';
 import type { Prisma, PrismaClient } from '../generated/prisma/client.js';
 import { seedAuthorization } from './seed.js';
 import { seedProvisionalCatalogs } from './seed-provisional.js';
@@ -1879,6 +1881,7 @@ export async function seedDemo(
         },
       ];
       for (const p of posts) {
+        const at = new Date(now.getTime() - p.ago * 86_400_000);
         await tx.announcement.create({
           data: {
             kind: p.kind,
@@ -1887,10 +1890,8 @@ export async function seedDemo(
             summary: p.summary,
             content: p.content,
             status: p.status,
-            publishedAt:
-              p.status === 'publicado'
-                ? new Date(now.getTime() - p.ago * 86_400_000)
-                : null,
+            publishedAt: p.status === 'publicado' ? at : null,
+            publishDate: toDate(todayInGuayaquil(at)),
             authorId: editor.id,
             coverId: p.cover ?? null,
           },

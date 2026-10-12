@@ -1695,6 +1695,8 @@ model Announcement {
   content     String
   status      AnnouncementStatus @default(borrador)
   publishedAt DateTime?          @map("published_at") @db.Timestamptz(3)
+  /// Fecha elegida al redactar (hora de Ecuador). Futura = programada hasta ese día.
+  publishDate DateTime           @map("publish_date") @db.Date
   authorId    String             @map("author_id") @db.Uuid
   updatedById String?            @map("updated_by_id") @db.Uuid
   coverId     String?            @map("cover_id") @db.Uuid
@@ -1706,6 +1708,7 @@ model Announcement {
   cover     MediaAsset? @relation(fields: [coverId], references: [id], onDelete: Restrict)
 
   @@index([status, publishedAt])
+  @@index([publishDate])
   @@index([kind, status])
   @@index([authorId])
   @@index([updatedById])
