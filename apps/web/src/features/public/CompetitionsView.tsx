@@ -4,6 +4,7 @@ import { SportArt, sportKey } from '../../components/SportArt.tsx';
 import { LoadState } from '../../components/LoadState.tsx';
 import { Tabs } from '../../components/Tabs.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
+import { PageBanner } from './PortalPages.tsx';
 import type {
   PublicChampionship,
   PublicChampionshipsResponse,
@@ -119,9 +120,12 @@ export function CompetitionsView({
         )
       ) : (
         <>
-          <div className="section-header">
-            <h1 className="portal-page-title">Competencias</h1>
-          </div>
+          <PageBanner
+            title="Competencias"
+            lead="Campeonatos oficiales de la temporada, con su calendario y tabla de posiciones."
+            icon="trophy"
+            tone="futbol"
+          />
           {/* Barra de Filtros por Deporte y Búsqueda */}
           <section
             className="portal-controls"
@@ -186,9 +190,13 @@ export function CompetitionsView({
 
             <div className="championships-grid">
               {filteredChampionships.map((champ) => (
-                <article key={champ.id} className="championship-card">
+                <article
+                  key={champ.id}
+                  className={`championship-card sport-${sportKey(champ.sport.code)}`}
+                >
                   <div className="card-top">
                     <span className="sport-tag">
+                      <SportArt sport={champ.sport.code} size={28} />
                       {champ.sport.name} · {champ.category.name}
                     </span>
                     <span className={`status-badge status-${champ.status}`}>

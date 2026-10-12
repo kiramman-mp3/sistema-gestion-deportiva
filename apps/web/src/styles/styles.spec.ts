@@ -52,9 +52,9 @@ function declarations(text: string): Map<string, string> {
   return map;
 }
 
-/** Bloque `:root { … }` (el primero) dentro de un texto. */
+/** Bloque `:root { … }` (el primero, admite `:root:not(…)`) dentro de un texto. */
 function rootBlock(text: string): string {
-  const start = text.indexOf(':root {');
+  const start = text.search(/:root[^{]*\{/);
   return text.slice(start, text.indexOf('\n}', start));
 }
 

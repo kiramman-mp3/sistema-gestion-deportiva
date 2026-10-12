@@ -313,6 +313,16 @@ describe('Verificación visual y semántica: Sin emojis en TSX fuera de .institu
         });
       }
 
+      // Excepción pedida por la Liga (D-103): los emojis de incidencias del detalle de partido,
+      // solo dentro del mapa EVENT_TYPES de PortalPages.tsx.
+      if (filePath.includes('PortalPages.tsx')) {
+        const start = lines.findIndex((l) => l.startsWith('const EVENT_TYPES'));
+        for (let i = start; start >= 0 && i < lines.length; i++) {
+          insideSheet.add(i);
+          if (lines[i]!.startsWith('};')) break;
+        }
+      }
+
       lines.forEach((lineText, idx) => {
         if (emojiRegex.test(lineText) && !insideSheet.has(idx)) {
           offendingOccurrences.push({

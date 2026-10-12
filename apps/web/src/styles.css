@@ -561,15 +561,11 @@ pre.json {
   min-width: 0;
 }
 
+/* Jornada de la semana: dos columnas de marcadores compactos (D-103). */
 .scoreboard-band {
-  background: var(--color-brand);
-  color: var(--color-on-brand);
-  padding: 1.25rem;
-  border-radius: var(--radius-lg, 14px);
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  box-shadow: var(--shadow-sm);
   min-width: 0;
   max-width: 100%;
   box-sizing: border-box;
@@ -578,93 +574,152 @@ pre.json {
 .scoreboard-band-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
   flex-wrap: wrap;
   gap: 0.5rem;
-  border-bottom: 1px solid
-    color-mix(in srgb, var(--color-on-brand) 15%, transparent);
-  padding-bottom: 0.75rem;
+  border-bottom: 3px solid var(--color-text);
+  padding-bottom: 0.5rem;
 }
 
 .scoreboard-band-title {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
   font-weight: 700;
-  color: var(--color-on-brand);
-  letter-spacing: 0.02em;
+  line-height: 1;
 }
 
 .scoreboard-calendar-link {
-  color: var(--color-accent);
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.scoreboard-calendar-link:hover,
-.scoreboard-calendar-link:focus-visible {
-  text-decoration: underline;
+  font-weight: 700;
 }
 
 .scoreboard-sections {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+  gap: 1.5rem 2.5rem;
   min-width: 0;
 }
 
 .scoreboard-sub-section {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
   min-width: 0;
 }
 
 .scoreboard-sub-title {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: var(--color-on-brand);
 }
 
 .scoreboard-empty {
-  color: var(--color-on-brand);
-  opacity: 0.85;
-  font-size: 0.9375rem;
   margin: 0;
+  color: var(--color-text-muted);
 }
 
 .scoreboard-band-loading,
 .scoreboard-band-error {
-  background: var(--color-brand);
-  color: var(--color-on-brand);
-  padding: 1.5rem;
-  border-radius: var(--radius-lg, 14px);
-  text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
-  box-sizing: border-box;
+  padding: 1.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  text-align: center;
 }
 
 .scoreboard-retry-btn {
+  min-height: var(--target-min);
+  padding: 0 1rem;
+  border: none;
+  border-radius: var(--radius-sm);
   background: var(--color-accent);
   color: var(--color-on-accent);
-  border: none;
-  border-radius: var(--radius-sm, 4px);
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
 }
 
-.scoreboard-band .match-card {
+.score-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   background: var(--color-surface);
+  overflow: hidden;
+}
+
+/* La fila entera es el enlace al partido: el enlace se estira sobre ella. */
+.score-row {
+  position: relative;
+  padding: 0.625rem 2.25rem 0.75rem 0.875rem;
+  border-left: 5px solid var(--sport, var(--color-border));
+}
+
+.score-row + .score-row {
+  border-top: 1px solid var(--color-border);
+}
+
+.score-row:hover {
+  background: var(--color-surface-sunken);
+}
+
+.score-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.375rem;
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+}
+
+.score-row-state {
+  margin-left: auto;
   color: var(--color-text);
-  border-color: var(--color-border);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.score-row-teams {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+.score-row-team {
+  overflow-wrap: anywhere;
+}
+
+.score-row-team.local {
+  text-align: right;
+}
+
+.score-row-team.winner {
+  font-weight: 800;
+}
+
+.score-row-link {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 0.5rem;
+  color: var(--color-text-muted);
+}
+
+.score-row-link:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: -3px;
 }
 
 .portal-controls {
@@ -3394,54 +3449,112 @@ pre.json {
   --sport-soft: var(--color-sport-otro-soft);
 }
 
-/* Portada del portal: encabezado con foto, deportes y noticias (D-102). */
+/* Portada del portal con lenguaje de portal deportivo (D-103): franja de marcadores,
+   portada a todo el ancho con el próximo partido, jornada, posiciones, noticias y deportes. */
+.public-portal:has(.home-page) {
+  gap: 0;
+}
+
+.portal-container:has(> .home-page) {
+  max-width: none;
+  padding: 0;
+}
+
+.home-body {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 3.5rem;
+  width: 100%;
+  min-width: 0;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 2.5rem 1rem 4rem;
+}
+
+.home-body > .portal-section {
+  margin: 0;
+}
+
+/* Portada: foto a todo el ancho, cortada en diagonal como la banda de una camiseta. */
 .home-hero {
+  --hero-cut: clamp(1.5rem, 4vw, 3.5rem);
   position: relative;
   isolation: isolate;
   overflow: hidden;
   display: flex;
-  align-items: flex-end;
-  min-height: 34rem;
-  margin-block: 0 2.5rem;
-  padding: clamp(1.25rem, 4vw, 3rem);
-  border-radius: 1.5rem;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: min(44rem, 90vh);
   background: var(--color-brand);
   color: var(--color-on-brand);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--hero-cut)), 0 100%);
 }
 
 .home-hero-photo {
   position: absolute;
   inset: 0;
-  z-index: -3;
+  z-index: -2;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 35%;
+  object-position: center 30%;
 }
 
 /* Velo de marca para que el texto se lea sobre cualquier foto. */
 .home-hero-shade {
   position: absolute;
   inset: 0;
-  z-index: -2;
-  background: linear-gradient(
-    to top,
-    color-mix(in srgb, var(--color-brand) 94%, transparent) 0%,
-    color-mix(in srgb, var(--color-brand) 72%, transparent) 45%,
-    color-mix(in srgb, var(--color-brand) 15%, transparent) 100%
-  );
+  z-index: -1;
+  background:
+    linear-gradient(
+      to top,
+      color-mix(in srgb, var(--color-brand) 85%, transparent) 0%,
+      transparent 40%
+    ),
+    linear-gradient(
+      100deg,
+      color-mix(in srgb, var(--color-brand) 90%, transparent) 0%,
+      color-mix(in srgb, var(--color-brand) 62%, transparent) 45%,
+      transparent 100%
+    );
 }
 
-.home-hero-confetti {
-  z-index: -1;
+.home-hero-credit {
+  position: absolute;
+  top: 0.75rem;
+  right: 1rem;
+  margin: 0;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-brand);
+  color: var(--color-on-brand);
+  font-size: 0.8125rem;
+}
+
+.home-hero-inner {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: end;
+  gap: 2rem;
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 4rem 1rem 2rem;
+}
+
+@media (min-width: 60rem) {
+  .home-hero-inner {
+    grid-template-columns: minmax(0, 1fr) 22rem;
+  }
 }
 
 .home-hero-content {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 1rem;
-  max-width: 40rem;
+  gap: 1.25rem;
   min-width: 0;
 }
 
@@ -3450,26 +3563,27 @@ pre.json {
   align-items: center;
   gap: 0.375rem;
   margin: 0;
-  padding: 0.25rem 0.875rem;
-  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-sm);
   background: var(--color-accent);
   color: var(--color-on-accent);
   font-weight: 700;
-  transform: rotate(-2deg);
 }
 
 .home-hero-title {
   margin: 0;
   color: inherit;
   font-family: var(--font-display);
-  font-size: clamp(2.5rem, 7vw, 4.5rem);
-  line-height: 0.95;
+  font-size: clamp(2.75rem, 8vw, 6rem);
+  font-weight: 700;
+  line-height: 0.9;
+  text-transform: uppercase;
   text-wrap: balance;
 }
 
 .home-hero-lead {
-  margin: 0;
   max-width: 46ch;
+  margin: 0;
   font-size: 1.125rem;
 }
 
@@ -3485,7 +3599,9 @@ pre.json {
   gap: 0.5rem;
   min-height: 48px;
   padding: 0 1.5rem;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-size: 1.1875rem;
   font-weight: 700;
   text-decoration: none;
   transition: filter var(--duration-fast) var(--ease-out);
@@ -3511,88 +3627,198 @@ pre.json {
 }
 
 .home-hero-stats {
+  box-sizing: border-box;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin: 0.25rem 0 0;
-  padding: 0;
+  gap: 0.5rem 2.5rem;
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 1rem calc(var(--hero-cut) + 1.5rem);
   list-style: none;
 }
 
 .home-hero-stats li {
-  padding: 0.25rem 0.875rem;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-brand) 85%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-on-brand) 35%, transparent);
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
   font-weight: 700;
 }
 
-.home-hero-stickers {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
+.home-hero-stats strong {
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
-.home-hero-sticker {
-  position: absolute;
-  width: clamp(56px, 10vw, 110px);
-  height: auto;
+/* Próximo partido */
+.next-match {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 1.25rem;
+  border-top: 6px solid var(--sport);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 16px 40px rgb(0 0 0 / 30%);
 }
 
-.home-hero-sticker-1 {
-  top: 6%;
-  right: 5%;
-  transform: rotate(12deg);
-}
-
-.home-hero-sticker-2 {
-  top: 26%;
-  right: 17%;
-  transform: rotate(-10deg);
-}
-
-.home-hero-sticker-3 {
-  top: 8%;
-  right: 29%;
-  transform: rotate(6deg);
-}
-
-.home-hero-sticker-4 {
-  top: 30%;
-  right: 3%;
-  transform: rotate(-14deg);
-}
-
-@media (max-width: 40rem) {
-  .home-hero {
-    min-height: 36rem;
-  }
-
-  .home-hero-sticker-3,
-  .home-hero-sticker-4 {
-    display: none;
-  }
-}
-
-.home-hero-credit {
-  position: absolute;
-  top: 0.75rem;
-  left: 1rem;
+.next-match-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+}
+
+.next-match-competition {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.next-match-teams {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.5rem 0;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+.next-match-teams > :first-child {
+  text-align: right;
+}
+
+.next-match-vs {
   padding: 0.125rem 0.5rem;
-  border-radius: 999px;
-  background: var(--color-brand);
-  color: var(--color-on-brand);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: 1rem;
+}
+
+.next-match-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.next-match-link {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: var(--target-min);
+  font-weight: 700;
+}
+
+/* Noticias y posiciones, lado a lado en pantallas anchas. */
+.home-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 3rem;
+}
+
+@media (min-width: 64rem) {
+  .home-split {
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  }
+
+  .home-split > :only-child {
+    grid-column: 1 / -1;
+  }
+}
+
+.home-split > .portal-section {
+  margin: 0;
+}
+
+@media (min-width: 40rem) {
+  .home-news .news-grid {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  }
+
+  .home-news .news-card:first-child {
+    grid-row: span 2;
+  }
+
+  .home-news .news-card:first-child img,
+  .home-news .news-card:first-child .news-card-placeholder {
+    height: 17rem;
+  }
+
+  .home-news .news-card:not(:first-child) img,
+  .home-news .news-card:not(:first-child) .news-card-placeholder {
+    height: 7rem;
+  }
+}
+
+/* Tabla de posiciones resumida */
+.home-standings {
+  min-width: 0;
+  padding: 1.25rem;
+  border: 1px solid var(--color-border);
+  border-top: 6px solid var(--sport);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.standings-mini {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.standings-mini caption {
+  padding-bottom: 0.5rem;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  text-align: left;
+}
+
+.standings-mini th,
+.standings-mini td {
+  padding: 0.5rem 0.375rem;
+  border-bottom: 1px solid var(--color-border);
+  text-align: center;
+}
+
+.standings-mini thead th {
+  color: var(--color-text-muted);
   font-size: 0.8125rem;
 }
 
-.home-sports {
-  margin-bottom: 2.5rem;
+.standings-mini tbody th {
+  font-weight: 600;
+  text-align: left;
+  overflow-wrap: anywhere;
 }
 
+.standings-mini tbody tr:first-child td:first-child {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-weight: 700;
+}
+
+.standings-mini abbr {
+  text-decoration: none;
+}
+
+/* Deportes: mosaico de fotos con el nombre encima. */
 .sport-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 10rem), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.5rem), 1fr));
   gap: 1rem;
   margin: 0;
   padding: 0;
@@ -3600,15 +3826,27 @@ pre.json {
 }
 
 .sport-card-link {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  justify-content: flex-end;
+  min-height: clamp(11rem, 32vw, 16rem);
   overflow: hidden;
-  border: 3px solid var(--sport);
-  border-radius: 1.25rem;
-  background: var(--sport-soft);
-  color: var(--color-text);
+  border-bottom: 6px solid var(--sport);
+  border-radius: var(--radius-md);
+  background: var(--sport);
+  /* Blanco fijo: el texto va siempre sobre la foto oscurecida, en ambos modos. */
+  color: #fff;
   text-decoration: none;
+}
+
+.sport-card-link::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(to top, rgb(0 0 0 / 82%), rgb(0 0 0 / 5%) 65%);
 }
 
 .sport-card-link:focus-visible {
@@ -3618,41 +3856,47 @@ pre.json {
 
 .sport-card-photo,
 .sport-card-pattern {
-  display: block;
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  object-fit: cover;
-}
-
-.sport-card-pattern {
-  background: var(--sport);
-}
-
-.sport-card-body {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-  padding: 2.5rem 1rem 1rem;
-}
-
-.sport-card-body .sport-art {
   position: absolute;
-  top: -2.25rem;
-  left: 0.75rem;
-  transform: rotate(-8deg);
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   transition: transform var(--duration-base) var(--ease-out);
 }
 
-.sport-card-link:hover .sport-art {
-  transform: rotate(6deg) scale(1.08);
+.sport-card-link:hover .sport-card-photo {
+  transform: scale(1.05);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sport-card-photo {
+    transition: none;
+  }
+
+  .sport-card-link:hover .sport-card-photo {
+    transform: none;
+  }
+}
+
+.sport-card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+  padding: 1rem;
+}
+
+.sport-card-body .sport-art {
+  margin-bottom: 0.5rem;
 }
 
 .sport-card-name {
   font-family: var(--font-display);
-  font-size: 1.625rem;
+  font-size: 2rem;
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .sport-card-count {
@@ -3679,4 +3923,547 @@ pre.json {
   height: 10rem;
   overflow: hidden;
   background: var(--color-accent);
+}
+
+/* ───────── Portal: siempre claro y con colores vivos (D-103) ───────── */
+:root:has(.public-portal) {
+  --color-bg: #f5f8f6;
+  --color-brand: #0b6b57;
+  --color-primary: #0b6b57;
+  --color-focus: #0b6b57;
+  --color-accent-soft: #fff3c4;
+}
+
+/* Encabezado de color de cada sección; el tono sale de la clase sport-*. */
+.page-banner {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding: clamp(1.5rem, 4vw, 2.75rem) clamp(1.25rem, 4vw, 2.5rem);
+  border-radius: var(--radius-lg);
+  background: var(--sport);
+  color: var(--color-on-sport);
+}
+
+/* Banda amarilla en diagonal, como en una camiseta. */
+.page-banner::after {
+  content: '';
+  position: absolute;
+  right: -3rem;
+  bottom: 1.25rem;
+  z-index: -1;
+  width: 55%;
+  height: 0.75rem;
+  background: var(--color-accent);
+  transform: rotate(-8deg);
+}
+
+.page-banner-icon {
+  position: absolute;
+  top: 50%;
+  right: clamp(-2rem, 2vw, 2rem);
+  z-index: -1;
+  width: clamp(7rem, 18vw, 10rem);
+  height: auto;
+  opacity: 0.2;
+  transform: translateY(-50%) rotate(-10deg);
+}
+
+@media (max-width: 40rem) {
+  .page-banner-icon {
+    display: none;
+  }
+}
+
+.page-banner-title {
+  max-width: 22ch;
+  margin: 0;
+  color: inherit;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-weight: 700;
+  line-height: 0.95;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.page-banner-lead {
+  max-width: 52ch;
+  margin: 0;
+  font-size: 1.0625rem;
+}
+
+/* Filtros del portal: una barra blanca con campos redondeados. */
+.public-portal .filters,
+.public-portal .portal-controls {
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.public-portal .filters .field label {
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.public-portal .filters input,
+.public-portal .filters select,
+.public-portal .search-box input {
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg);
+  font-weight: 600;
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.public-portal .filters input:hover,
+.public-portal .filters select:hover,
+.public-portal .search-box input:hover {
+  border-color: var(--color-control-border);
+}
+
+.public-portal .filters input:focus-visible,
+.public-portal .filters select:focus-visible,
+.public-portal .search-box input:focus-visible {
+  border-color: var(--color-primary);
+  outline: 3px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+/* Flecha propia del desplegable (la nativa no respeta el redondeo en todos los navegadores). */
+.public-portal .filters select {
+  appearance: none;
+  padding-right: 2.25rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230b6b57' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-position: right 0.75rem center;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.public-portal .search-box input {
+  min-height: var(--target-min);
+}
+
+@media (max-width: 40rem) {
+  .public-portal .search-box,
+  .public-portal .search-box input {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* Tarjetas de campeonato y resoluciones con el color de su deporte. */
+.public-portal .championship-card {
+  border-top: 6px solid var(--sport, var(--color-primary));
+}
+
+.public-portal .championship-card .sport-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+/* Clubes: escudo sobre un círculo de color. */
+.public-portal .club-pill {
+  min-height: 4.5rem;
+  border-left: 5px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  transition: box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.public-portal .club-pill:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.public-portal .club-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.public-portal .club-info strong {
+  font-size: 1rem;
+}
+
+.public-portal .club-info small {
+  font-size: 0.875rem;
+}
+
+/* La Liga: presentación y tarjeta de contacto. */
+.about-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 2rem;
+}
+
+@media (min-width: 56rem) {
+  .about-layout {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  }
+}
+
+.about-main {
+  min-width: 0;
+  font-size: 1.0625rem;
+}
+
+.about-card {
+  min-width: 0;
+  padding: 1.25rem;
+  border: 1px solid var(--color-border);
+  border-top: 6px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.about-card h2 {
+  margin-top: 0;
+}
+
+/* Jornada de la portada sobre un fondo amarillo suave. */
+.home-body .scoreboard-band {
+  padding: clamp(1rem, 3vw, 1.75rem);
+  border-radius: var(--radius-lg);
+  background: var(--color-accent-soft);
+}
+
+/* ───────── Detalle de partido: marcador, alineaciones, incidencias y escenario ───────── */
+.match-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: clamp(1.5rem, 4vw, 2.5rem) 1rem;
+  border-radius: var(--radius-lg);
+  background: var(--sport);
+  color: var(--color-on-sport);
+  text-align: center;
+}
+
+/* Línea de medio campo y círculo central, como una cancha vista desde arriba. */
+.match-hero::before,
+.match-hero::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  border: 2px solid rgb(255 255 255 / 22%);
+}
+
+.match-hero::before {
+  inset: 0 auto 0 50%;
+  border-width: 0 0 0 2px;
+}
+
+.match-hero::after {
+  top: 50%;
+  left: 50%;
+  width: 9rem;
+  height: 9rem;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.match-hero-meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.25rem 0.875rem;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 22%);
+  font-weight: 600;
+}
+
+.match-hero-teams {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(0.75rem, 3vw, 2rem);
+  width: 100%;
+  max-width: 52rem;
+  margin: 0;
+  color: inherit;
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 4.5vw, 2.75rem);
+  line-height: 1;
+  text-transform: uppercase;
+  overflow-wrap: break-word;
+}
+
+.match-hero-team:first-child {
+  text-align: right;
+}
+
+.match-hero-team:last-child {
+  text-align: left;
+}
+
+.match-hero-score,
+.match-hero-vs {
+  padding: 0.25rem 0.875rem;
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.match-hero-score {
+  font-size: 1.4em;
+}
+
+.match-hero-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0;
+  font-weight: 700;
+}
+
+.match-notice {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-left: 5px solid var(--color-warning);
+  border-radius: var(--radius-sm);
+  background: var(--color-warning-bg);
+}
+
+.match-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 2rem;
+}
+
+@media (min-width: 60rem) {
+  .match-layout {
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  }
+}
+
+/* En una columna, las incidencias y el escenario van antes de la nómina larga. */
+@media (max-width: 59.99rem) {
+  .match-side {
+    order: -1;
+  }
+}
+
+.match-main,
+.match-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+.match-main h2 {
+  margin: 0;
+}
+
+/* Alineaciones: una columna por equipo. */
+.lineups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.lineup {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.lineup-team {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  background: var(--color-brand);
+  color: var(--color-on-brand);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
+
+.lineup + .lineup .lineup-team {
+  background: var(--color-text);
+  color: var(--color-surface);
+}
+
+.lineup-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lineup-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+}
+
+.lineup-list li + li {
+  border-top: 1px solid var(--color-border);
+}
+
+.lineup-number {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.lineup-name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.lineup-marks {
+  display: inline-flex;
+  gap: 0.125rem;
+  font-size: 1.125rem;
+}
+
+/* Tarjetas de la columna derecha. */
+.match-card-panel {
+  padding: 1.25rem;
+  border: 1px solid var(--color-border);
+  border-top: 6px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.match-card-panel h2 {
+  margin: 0 0 1rem;
+  font-size: 1.375rem;
+}
+
+.incidents {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Línea de tiempo detrás de los minutos. */
+.incidents::before {
+  content: '';
+  position: absolute;
+  top: 0.75rem;
+  bottom: 0.75rem;
+  left: 1.25rem;
+  border-left: 2px dashed var(--color-border);
+}
+
+.incident {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.5rem 2rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.5rem 0.5rem 0;
+  border-radius: var(--radius-sm);
+}
+
+.incident-gol {
+  background: var(--color-success-bg);
+}
+
+.incident-tarjeta_amarilla {
+  background: var(--color-warning-bg);
+}
+
+.incident-tarjeta_roja {
+  background: var(--color-danger-bg);
+}
+
+.incident-minute {
+  justify-self: center;
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-text);
+  color: var(--color-surface);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.incident-emoji {
+  font-size: 1.375rem;
+  text-align: center;
+}
+
+.incident-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.incident-text small {
+  color: var(--color-text-muted);
+}
+
+.venue-name {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0 0 0.75rem;
+}
+
+.venue-name span {
+  display: flex;
+  flex-direction: column;
+}
+
+.venue-name small {
+  color: var(--color-text-muted);
+}
+
+.venue-map {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+}
+
+.venue-map-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+  font-weight: 700;
 }
