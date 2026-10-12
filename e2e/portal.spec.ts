@@ -21,7 +21,7 @@ test.describe('portal público (sin iniciar sesión)', () => {
     await expect(
       page.getByRole('heading', { name: 'Últimos resultados oficiales' }),
     ).toBeVisible();
-    await expect(page.locator('.match-card').first()).toBeVisible();
+    await expect(page.locator('.score-row').first()).toBeVisible();
     // Los resultados aprobados muestran el marcador.
     await expect(page.locator('.score-numbers').first()).toContainText('—');
     // Las imágenes tienen texto alternativo.
@@ -82,10 +82,10 @@ test.describe('portal público (sin iniciar sesión)', () => {
     page,
   }) => {
     await page.goto('/#/portal/calendario');
-    await expect(page.locator('.match-card').first()).toBeVisible();
+    await expect(page.locator('.score-row').first()).toBeVisible();
     await page.getByLabel('Deporte').selectOption({ label: 'Básquet' });
-    await expect(page.locator('.match-card').first()).toContainText('Básquet');
-    for (const card of await page.locator('.match-card').all()) {
+    await expect(page.locator('.score-row').first()).toContainText('Básquet');
+    for (const card of await page.locator('.score-row').all()) {
       await expect(card).toContainText('Básquet');
     }
 
