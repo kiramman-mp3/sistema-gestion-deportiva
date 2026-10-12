@@ -275,6 +275,9 @@ export function AnnouncementsPage({
   );
 }
 
+/** Opción del selector de portada que abre la subida de una imagen nueva. */
+const UPLOAD_COVER = '__subir__';
+
 function AnnouncementForm({
   announcement,
   onCancel,
@@ -297,6 +300,7 @@ function AnnouncementForm({
   const [media, reloadMedia] = useFetch<Page<MediaItem>>('/media?pageSize=100');
   const [newAlt, setNewAlt] = useState('');
   const [newFile, setNewFile] = useState<File | null>(null);
+  const [uploadMode, setUploadMode] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileId = useId();
@@ -320,6 +324,7 @@ function AnnouncementForm({
         body,
       });
       setCoverId(saved.id);
+      setUploadMode(false);
       setNewAlt('');
       setNewFile(null);
       reloadMedia();
@@ -425,59 +430,67 @@ function AnnouncementForm({
         />
         <SelectField
           label="Imagen de portada"
-          value={coverId}
-          onChange={setCoverId}
-          placeholder="Sin imagen"
-          options={
-            media.kind === 'ready'
+          value={uploadMode ? UPLOAD_COVER : coverId}
+          onChange={(v) => {
+            setUploadMode(v === UPLOAD_COVER);
+            setCoverId(v === UPLOAD_COVER ? '' : v);
+          }}
+          placeholder="Imagen predeterminada"
+          options={[
+            ...(media.kind === 'ready'
               ? media.data.items
                   .filter((m) => m.visibility === 'publico')
                   .map((m) => ({ value: m.id, label: m.altText }))
-              : []
-          }
+              : []),
+            { value: UPLOAD_COVER, label: 'Subir imagen…' },
+          ]}
           disabled={submitting}
         />
         {coverId && (
           <img
-            className="logo-preview"
+            className="logo-preview cover-choice-preview"
             src={`/api/public/media/${coverId}`}
             alt="Vista previa de la portada"
           />
         )}
-        <fieldset>
-          <legend>O suba una imagen nueva</legend>
-          <TextField
-            label="Descripción de la imagen"
-            value={newAlt}
-            onChange={setNewAlt}
-            maxLength={200}
-            hint="Texto alternativo para personas que no ven la imagen."
-            disabled={submitting || uploading}
-          />
-          <div className="field">
-            <label htmlFor={fileId}>Archivo (JPG, PNG o WEBP, máx. 5 MB)</label>
-            <input
-              key={newFile ? 'con-archivo' : 'sin-archivo'}
-              id={fileId}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={(e) => setNewFile(e.target.files?.[0] ?? null)}
+        {uploadMode && (
+          <fieldset>
+            <legend>Subir imagen</legend>
+            <TextField
+              label="Descripción de la imagen"
+              value={newAlt}
+              onChange={setNewAlt}
+              maxLength={200}
+              hint="Texto alternativo para personas que no ven la imagen."
               disabled={submitting || uploading}
             />
-          </div>
-          {uploadError && (
-            <p className="form-error" role="alert">
-              {uploadError}
-            </p>
-          )}
-          <button
-            type="button"
-            onClick={() => void uploadCover()}
-            disabled={submitting || uploading}
-          >
-            {uploading ? 'Subiendo…' : 'Subir y usar como portada'}
-          </button>
-        </fieldset>
+            <div className="field">
+              <label htmlFor={fileId}>
+                Archivo (JPG, PNG o WEBP, máx. 5 MB)
+              </label>
+              <input
+                key={newFile ? 'con-archivo' : 'sin-archivo'}
+                id={fileId}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(e) => setNewFile(e.target.files?.[0] ?? null)}
+                disabled={submitting || uploading}
+              />
+            </div>
+            {uploadError && (
+              <p className="form-error" role="alert">
+                {uploadError}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={() => void uploadCover()}
+              disabled={submitting || uploading}
+            >
+              {uploading ? 'Subiendo…' : 'Subir y usar como portada'}
+            </button>
+          </fieldset>
+        )}
       </fieldset>
       {formError && (
         <p className="form-error" role="alert">
