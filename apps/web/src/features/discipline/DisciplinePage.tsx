@@ -251,7 +251,7 @@ function ComplaintsTab({
 
   return (
     <>
-      {canSubmit && !creating && (
+      {canSubmit && (
         <p>
           <button
             type="button"
@@ -263,18 +263,20 @@ function ComplaintsTab({
         </p>
       )}
       {creating && (
-        <ComplaintForm
-          onCancel={() => setCreating(false)}
-          onSaved={(c) => {
-            setCreating(false);
-            onNotice({
-              type: 'success',
-              text: `Se presentó el reclamo «${c.subject}». Puede adjuntar evidencia desde su detalle.`,
-            });
-            setOpenId(c.id);
-            reload();
-          }}
-        />
+        <Modal onClose={() => setCreating(false)} className="dialog-complex">
+          <ComplaintForm
+            onCancel={() => setCreating(false)}
+            onSaved={(c) => {
+              setCreating(false);
+              onNotice({
+                type: 'success',
+                text: `Se presentó el reclamo «${c.subject}». Puede adjuntar evidencia desde su detalle.`,
+              });
+              setOpenId(c.id);
+              reload();
+            }}
+          />
+        </Modal>
       )}
       <div className="filters">
         <SelectField
@@ -681,7 +683,7 @@ function CasesTab({
 
   return (
     <>
-      {canManage && !showForm && (
+      {canManage && (
         <p>
           <button
             type="button"
@@ -693,23 +695,31 @@ function CasesTab({
         </p>
       )}
       {showForm && (
-        <CaseForm
-          prefill={prefill}
-          onCancel={() => {
+        <Modal
+          onClose={() => {
             setCreating(false);
             onClearPrefill();
           }}
-          onSaved={(created) => {
-            setCreating(false);
-            onClearPrefill();
-            onNotice({
-              type: 'success',
-              text: `Se abrió el expediente ${created.code}.`,
-            });
-            window.location.hash = `#/disciplina/${created.id}`;
-            reload();
-          }}
-        />
+          className="dialog-complex"
+        >
+          <CaseForm
+            prefill={prefill}
+            onCancel={() => {
+              setCreating(false);
+              onClearPrefill();
+            }}
+            onSaved={(created) => {
+              setCreating(false);
+              onClearPrefill();
+              onNotice({
+                type: 'success',
+                text: `Se abrió el expediente ${created.code}.`,
+              });
+              window.location.hash = `#/disciplina/${created.id}`;
+              reload();
+            }}
+          />
+        </Modal>
       )}
       <div className="filters">
         <TextField

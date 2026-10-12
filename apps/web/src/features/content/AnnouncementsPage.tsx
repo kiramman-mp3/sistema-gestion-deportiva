@@ -6,6 +6,7 @@ import {
   type NoticeState,
   describeError,
 } from '../../components/Notice.tsx';
+import { Modal } from '../../components/Modal.tsx';
 import { Pagination } from '../../components/Pagination.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import {
@@ -87,7 +88,7 @@ export function AnnouncementsPage({
           <button type="button" onClick={() => setShowMedia((v) => !v)}>
             {showMedia ? 'Ocultar imágenes' : 'Imágenes'}
           </button>
-          {canManage && !editing && (
+          {canManage && (
             <button
               type="button"
               className="primary"
@@ -103,22 +104,24 @@ export function AnnouncementsPage({
       {showMedia && <MediaLibrary canManage={canManage} onNotice={setNotice} />}
 
       {editing && (
-        <AnnouncementForm
-          announcement={editing === 'new' ? undefined : editing}
-          onCancel={() => setEditing(null)}
-          onSaved={(saved) => {
-            setNotice({
-              type: 'success',
-              text: saved.scheduled
-                ? `Se guardó «${saved.title}»: se publicará el día ${formatDay(saved.publishDate)}.`
-                : editing === 'new'
-                  ? `Se creó el borrador «${saved.title}».`
-                  : `Se guardó «${saved.title}».`,
-            });
-            setEditing(null);
-            reload();
-          }}
-        />
+        <Modal onClose={() => setEditing(null)} className="dialog-complex">
+          <AnnouncementForm
+            announcement={editing === 'new' ? undefined : editing}
+            onCancel={() => setEditing(null)}
+            onSaved={(saved) => {
+              setNotice({
+                type: 'success',
+                text: saved.scheduled
+                  ? `Se guardó «${saved.title}»: se publicará el día ${formatDay(saved.publishDate)}.`
+                  : editing === 'new'
+                    ? `Se creó el borrador «${saved.title}».`
+                    : `Se guardó «${saved.title}».`,
+              });
+              setEditing(null);
+              reload();
+            }}
+          />
+        </Modal>
       )}
 
       <div className="filters">
