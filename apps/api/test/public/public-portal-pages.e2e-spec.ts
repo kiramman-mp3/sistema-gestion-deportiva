@@ -83,6 +83,7 @@ describe('portal público: inicio, calendario, detalle y nombres', () => {
           content: 'Contenido de la noticia de bienvenida al portal.',
           status: 'publicado',
           publishedAt: new Date(),
+          publishDate: new Date(),
           authorId: admin.user.id,
         },
       });
@@ -92,6 +93,7 @@ describe('portal público: inicio, calendario, detalle y nombres', () => {
           slug: 'borrador-interno',
           summary: 'Resumen del borrador interno.',
           content: 'Contenido del borrador que no debe verse.',
+          publishDate: new Date(),
           authorId: admin.user.id,
         },
       });

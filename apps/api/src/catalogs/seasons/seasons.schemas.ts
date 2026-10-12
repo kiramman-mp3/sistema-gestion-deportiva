@@ -9,7 +9,7 @@ export const seasonStatusValues = [
   'archivada',
 ] as const;
 
-const dateSchema = z
+export const dateSchema = z
   .string('Fecha obligatoria')
   .refine(isValidCalendarDate, 'Use una fecha válida con formato AAAA-MM-DD');
 

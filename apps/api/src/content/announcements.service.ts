@@ -9,10 +9,12 @@ import { AuditService } from '../audit/audit.service.js';
 import type { AuthContext } from '../auth/auth.types.js';
 import { SecurityHashService } from '../auth/security-hash.service.js';
 import { changedFields, escapeLike, type Page } from '../catalogs/common.js';
+import { fromDate, toDate } from '../catalogs/seasons/seasons.rules.js';
 import { slugify } from '../common/keys.js';
 import { PrismaService } from '../database/prisma.service.js';
 import type { Prisma } from '../generated/prisma/client.js';
 import { InstitutionService } from '../institution/institution.service.js';
+import { todayInGuayaquil } from '../people/people.schemas.js';
 import type {
   AnnouncementListQuery,
   CreateAnnouncementInput,
@@ -25,6 +27,16 @@ const LIST_INCLUDE = {
 } satisfies Prisma.AnnouncementInclude;
 
 type Row = Prisma.AnnouncementGetPayload<{ include: typeof LIST_INCLUDE }>;
+
+/**
+ * Instante de publicación para la fecha elegida: hoy es «ahora»; otro día, las 00:00 de
+ * Ecuador (sin horario de verano). Una fecha futura deja la publicación programada.
+ */
+export function publicationInstant(date: string, now = new Date()): Date {
+  return date === todayInGuayaquil(now)
+    ? now
+    : new Date(`${date}T00:00:00.000-05:00`);
+}
 
 @Injectable()
 export class AnnouncementsService {
@@ -44,7 +56,13 @@ export class AnnouncementsService {
       slug: row.slug,
       summary: row.summary,
       status: row.status,
+      publishDate: fromDate(row.publishDate),
       publishedAt: row.publishedAt,
+      /** Publicada con fecha futura: aún no aparece en el portal. */
+      scheduled:
+        row.status === 'publicado' &&
+        row.publishedAt !== null &&
+        row.publishedAt > new Date(),
       updatedAt: row.updatedAt,
       author: row.author.displayName,
       cover: row.cover,
@@ -104,7 +122,11 @@ export class AnnouncementsService {
       this.prisma.client.announcement.findMany({
         where,
         include: LIST_INCLUDE,
-        orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }],
+        orderBy: [
+          { publishDate: 'desc' },
+          { updatedAt: 'desc' },
+          { id: 'desc' },
+        ],
         skip: (query.page - 1) * query.pageSize,
         take: query.pageSize,
       }),
@@ -137,6 +159,7 @@ export class AnnouncementsService {
           summary: input.summary,
           content: input.content,
           coverId: input.coverId ?? null,
+          publishDate: toDate(input.publishDate ?? todayInGuayaquil()),
           authorId: auth.user.id,
         },
         include: LIST_INCLUDE,
@@ -148,7 +171,12 @@ export class AnnouncementsService {
           entityId: row.id,
           userId: auth.user.id,
           ipHash: this.hash.hash('ip', ip),
-          after: { kind: row.kind, title: row.title, slug: row.slug },
+          after: {
+            kind: row.kind,
+            title: row.title,
+            slug: row.slug,
+            publishDate: fromDate(row.publishDate),
+          },
         },
         tx,
       );
@@ -174,6 +202,9 @@ export class AnnouncementsService {
     return this.prisma.client.$transaction(async (tx) => {
       if (input.coverId !== undefined)
         await this.assertCover(tx, input.coverId);
+      const dateChanged =
+        input.publishDate !== undefined &&
+        input.publishDate !== fromDate(current.publishDate);
       const row = await tx.announcement.update({
         where: { id },
         data: {
@@ -182,6 +213,13 @@ export class AnnouncementsService {
           ...(input.summary !== undefined && { summary: input.summary }),
           ...(input.content !== undefined && { content: input.content }),
           ...(input.coverId !== undefined && { coverId: input.coverId }),
+          ...(dateChanged && {
+            publishDate: toDate(input.publishDate!),
+            // Lo ya publicado pasa a la nueva fecha (y queda programado si es futura).
+            ...(current.status === 'publicado' && {
+              publishedAt: publicationInstant(input.publishDate!),
+            }),
+          }),
           updatedById: auth.user.id,
         },
         include: LIST_INCLUDE,
@@ -193,6 +231,7 @@ export class AnnouncementsService {
           summary: current.summary,
           contentLength: current.content.length,
           coverId: current.coverId,
+          publishDate: fromDate(current.publishDate),
         },
         {
           kind: row.kind,
@@ -200,6 +239,7 @@ export class AnnouncementsService {
           summary: row.summary,
           contentLength: row.content.length,
           coverId: row.coverId,
+          publishDate: fromDate(row.publishDate),
         },
       );
       if (diff) {
@@ -244,7 +284,7 @@ export class AnnouncementsService {
           status: to,
           publishedAt:
             to === 'publicado'
-              ? new Date()
+              ? publicationInstant(fromDate(current.publishDate))
               : to === 'borrador'
                 ? null
                 : current.publishedAt,
@@ -335,7 +375,8 @@ export class AnnouncementsService {
   ): Prisma.AnnouncementWhereInput {
     return {
       status: 'publicado',
-      publishedAt: { not: null },
+      // Lo programado no aparece hasta su fecha.
+      publishedAt: { lte: new Date() },
       ...(kind && { kind }),
     };
   }
