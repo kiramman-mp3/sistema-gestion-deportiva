@@ -152,7 +152,7 @@ describe('InstitutionBrand', () => {
     expect(screen.queryByRole('heading')).not.toBeInTheDocument();
   });
 
-  it('con hasLogo: false no muestra imagen, solo el nombre institucional sin encabezado', async () => {
+  it('con hasLogo: false muestra el escudo incluido y el nombre sin encabezado', async () => {
     mockApi({
       'GET /public/institution': () =>
         json({
@@ -168,7 +168,9 @@ describe('InstitutionBrand', () => {
     expect(
       await screen.findByText('Liga Cantonal de Quero'),
     ).toBeInTheDocument();
-    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('img', { name: 'Logotipo de Liga Cantonal de Quero' }),
+    ).not.toHaveAttribute('src', '/api/public/institution/logo');
     expect(screen.queryByRole('heading')).not.toBeInTheDocument();
   });
 });

@@ -100,7 +100,7 @@ Pendientes que ya existían en `develop`:
 - [x] Acta y nómina en pantallas estrechas: contenedor con desplazamiento horizontal propio solo en pantalla (`.printable-sheet-scroller`); la impresión es idéntica a la anterior al píxel, comprobado tras D-101 (D-53).
 - [x] Dos `h1` en las vistas imprimibles (cabecera de la aplicación y documento). Fase 2.
 - [ ] Objetivos táctiles por debajo de 44 px (spec §14): enlaces de texto en celdas de tabla y en el pie del portal (21–24 px), «Ver detalle del partido» (33 px) y casillas de permisos en la ficha de rol.
-- [ ] Sin favicon: el navegador pide `/favicon.ico` y recibe 404. Debe hacerse con el escudo oficial de la Liga, sin uno provisional.
+- [x] Favicon con el escudo oficial de la Liga (`apps/web/public/favicon.ico` y `apple-touch-icon.png`); el escudo también se muestra en la marca cuando no hay logotipo subido en la configuración.
 
 ## Pendiente institucional (Segunda etapa y preguntas abiertas)
 
