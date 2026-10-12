@@ -336,6 +336,41 @@ button.link {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  align-items: center;
+}
+
+/* Los enlaces de acción («Ver en el portal», «Ver ficha»…) con el aspecto y tamaño de un botón. */
+.row-actions > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min, 44px);
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-primary);
+  border-radius: 0.25rem;
+  color: var(--color-primary);
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+/*
+ * En tabla ancha, las acciones en una sola fila (el título cede el ancho). La celda sigue
+ * siendo `table-cell`: con `flex` su borde no llega al de la fila.
+ */
+@media (min-width: 60.01rem) {
+  .responsive-table td.row-actions {
+    display: table-cell;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+
+  .responsive-table td.row-actions > * {
+    margin: 0.25rem 0.5rem 0.25rem 0;
+    vertical-align: middle;
+  }
+
+  .responsive-table td.row-actions > :last-child {
+    margin-right: 0;
+  }
 }
 
 .notice.success {
