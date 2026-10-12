@@ -9,6 +9,7 @@ import {
 } from '../../components/Notice.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import { SelectField, TextField } from './fields.tsx';
+import { OriginLinksPanel } from './OriginLinks.tsx';
 import {
   type Athlete,
   type AthleteTeam,
@@ -292,6 +293,14 @@ export function AthleteDetailPage({
               ))}
           </div>
         </>
+      )}
+
+      {(can('athletes:read_full') || can('athletes:validate')) && (
+        <OriginLinksPanel
+          athleteId={athleteId}
+          athleteName={`${a.firstName} ${a.lastName}`}
+          canEdit={can('athletes:manage') && can('athletes:read_full')}
+        />
       )}
 
       {can('credentials:issue') && (

@@ -1297,6 +1297,14 @@ pre.json {
   grid-column: 2;
 }
 
+/* Un vínculo con Quero por bloque: casilla y, al marcarla, sus datos. */
+.origin-link {
+  margin: 0 0 0.75rem;
+  padding: 0.75rem 1rem 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
 .settings-form {
   max-width: 44rem;
 }
