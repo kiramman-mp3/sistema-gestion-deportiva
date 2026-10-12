@@ -172,7 +172,7 @@ export function PublicPortalPage({
                 <span>Acceso para dirigentes y árbitros</span>
               </button>
             ) : (
-              <a href="#/" className="portal-login-button">
+              <a href="#/ingresar" className="portal-login-button">
                 <Icon name="lock" size={16} />
                 <span>Acceso para dirigentes y árbitros</span>
               </a>

@@ -2,10 +2,25 @@ import { expect, test } from '@playwright/test';
 import { ACCOUNTS, goToSection, login, logout } from './support.ts';
 
 test.describe('inicio de sesión y permisos en la interfaz', () => {
+  test('sin sesión la raíz muestra la portada y lleva al inicio de sesión', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    const access = page.getByRole('button', {
+      name: 'Acceso para dirigentes y árbitros',
+    });
+    await expect(access).toBeVisible();
+    await access.click();
+    await expect(
+      page.getByRole('heading', { name: 'Iniciar sesión' }),
+    ).toBeVisible();
+    await expect(page).toHaveURL(/#\/ingresar$/);
+  });
+
   test('rechaza una contraseña incorrecta sin revelar si la cuenta existe', async ({
     page,
   }) => {
-    await page.goto('/#/');
+    await page.goto('/#/ingresar');
     await page.getByLabel('Correo electrónico').fill(ACCOUNTS.secretaria);
     await page
       .getByLabel('Contraseña', { exact: true })
