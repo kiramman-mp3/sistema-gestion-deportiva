@@ -536,8 +536,49 @@ model Athlete {
 
   issuedDocuments IssuedDocument[]
 
+  originLinks AthleteOriginLink[]
+
   @@index([clubId])
   @@map("athletes")
+}
+
+/// Motivo por el que el deportista puede jugar por Quero: nació en Quero, está casado/a
+/// con una persona de Quero o su padre o madre es de Quero.
+enum QueroLinkKind {
+  nacimiento
+  matrimonio
+  padre
+  madre
+
+  @@map("quero_link_kind")
+}
+
+/// De dónde salieron los datos del vínculo: declarados a mano o del Registro Civil.
+enum OriginLinkSource {
+  manual
+  registro_civil
+
+  @@map("origin_link_source")
+}
+
+/// Vínculo con Quero declarado para el deportista. Datos privados: nunca se publican.
+model AthleteOriginLink {
+  id              String           @id @default(uuid(7)) @db.Uuid
+  athleteId       String           @map("athlete_id") @db.Uuid
+  kind            QueroLinkKind
+  /// Cónyuge, padre o madre por quien existe el vínculo (vacío si es por nacimiento).
+  relatedName     String?          @map("related_name")
+  relatedIdNumber String?          @map("related_id_number")
+  /// Lugar de nacimiento (parroquia o cantón) de quien da el vínculo.
+  birthPlace      String?          @map("birth_place")
+  source          OriginLinkSource @default(manual)
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  athlete Athlete @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+
+  @@unique([athleteId, kind])
+  @@map("athlete_origin_links")
 }
 
 /// Consentimientos de tratamiento y publicación. Si el titular es menor, lo otorga su
