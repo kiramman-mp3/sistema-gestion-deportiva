@@ -205,4 +205,79 @@ describe('noticias y comunicados (administración)', () => {
     ).toBeVisible();
     expect(api.of('POST', '/media')).toHaveLength(1);
   });
+
+  it('sube una imagen desde el formulario y la deja como portada', async () => {
+    const MEDIA_ID = '0197aaaa-0000-7000-8000-0000000000b1';
+    let uploaded = false;
+    const api = mockApi({
+      'GET /announcements': () => page([]),
+      'GET /media': () =>
+        page(
+          uploaded
+            ? [
+                {
+                  id: MEDIA_ID,
+                  altText: 'Equipo campeón',
+                  visibility: 'publico',
+                  createdAt: '2026-06-20T12:00:00.000Z',
+                  sizeBytes: 1,
+                  mimeType: 'image/png',
+                  usedIn: 0,
+                },
+              ]
+            : [],
+        ),
+      'POST /media': () => {
+        uploaded = true;
+        return json({ id: MEDIA_ID }, 201);
+      },
+      'POST /announcements': () => json(DRAFT, 201),
+    });
+    render(<AnnouncementsPage permissions={FULL} />);
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Nueva publicación' }),
+    );
+    const subir = screen.getByRole('button', {
+      name: 'Subir y usar como portada',
+    });
+    await userEvent.click(subir);
+    expect(
+      screen.getByText(/Elija una imagen y describa su contenido/),
+    ).toBeVisible();
+    expect(api.of('POST', '/media')).toHaveLength(0);
+
+    await userEvent.type(
+      screen.getByLabelText(/Descripción de la imagen/),
+      'Equipo campeón',
+    );
+    await userEvent.upload(
+      screen.getByLabelText(/Archivo \(JPG, PNG o WEBP/),
+      new File(['x'], 'foto.png', { type: 'image/png' }),
+    );
+    await userEvent.click(subir);
+    expect(
+      await screen.findByAltText('Vista previa de la portada'),
+    ).toHaveAttribute('src', `/api/public/media/${MEDIA_ID}`);
+    expect(api.of('POST', '/media')[0]!.body).toMatchObject({
+      altText: 'Equipo campeón',
+    });
+
+    await userEvent.type(
+      screen.getByLabelText(/Título/),
+      'Arranca el campeonato',
+    );
+    await userEvent.type(
+      screen.getByLabelText(/Resumen/),
+      'La Liga inaugura la temporada.',
+    );
+    await userEvent.type(
+      screen.getByLabelText(/Contenido/),
+      'Primer párrafo de la noticia.',
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+    await screen.findByText('Se creó el borrador «Arranca el campeonato».');
+    expect(api.of('POST', '/announcements')[0]!.body).toMatchObject({
+      coverId: MEDIA_ID,
+    });
+  });
 });
