@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { apiGet } from '../api/client.ts';
+import escudoLiga from '../assets/escudo-liga.webp';
 import type { PublicInstitution } from '../features/public/types.ts';
 
 let cachedPromise: Promise<PublicInstitution> | null = null;
@@ -69,8 +70,8 @@ export interface InstitutionBrandProps {
 }
 
 /**
- * Marca institucional: muestra el logotipo oficial real solo si `hasLogo: true`.
- * Si no hay logotipo, solo muestra el nombre institucional. Nunca dibuja ni sustituye un escudo.
+ * Marca institucional: muestra el logotipo subido en la configuración si `hasLogo: true`;
+ * si no, el escudo oficial de la Liga incluido en la aplicación.
  * No utiliza rol de encabezado (spec §1, §6, §7).
  */
 export function InstitutionBrand({
@@ -88,13 +89,11 @@ export function InstitutionBrand({
 
   const content = (
     <div className={`institution-brand ${className}`.trim()}>
-      {institution?.hasLogo ? (
-        <img
-          src="/api/public/institution/logo"
-          alt={`Logotipo de ${institution.name}`}
-          className="institution-logo"
-        />
-      ) : null}
+      <img
+        src={institution?.hasLogo ? '/api/public/institution/logo' : escudoLiga}
+        alt={`Logotipo de ${institution?.name ?? 'Liga Cantonal de Quero'}`}
+        className="institution-logo"
+      />
       <div className="institution-brand-text">
         <span className="institution-name">{name}</span>
         {showSubtitle ? (
