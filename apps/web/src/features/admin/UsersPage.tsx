@@ -5,6 +5,7 @@ import {
   type NoticeState,
   describeError,
 } from '../../components/Notice.tsx';
+import { Modal } from '../../components/Modal.tsx';
 import { Pagination } from '../../components/Pagination.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import { CredentialLinkPanel } from './CredentialLinkPanel.tsx';
@@ -80,7 +81,7 @@ export function UsersPage({ permissions }: UsersPageProps) {
     <section aria-labelledby="users-title" className="catalog">
       <div className="catalog-header">
         <h1 id="users-title">Usuarios</h1>
-        {canCreate && !creating && (
+        {canCreate && (
           <button
             type="button"
             className="primary"
@@ -105,18 +106,20 @@ export function UsersPage({ permissions }: UsersPageProps) {
       )}
 
       {creating && (
-        <CreateUserForm
-          onCancel={() => setCreating(false)}
-          onCreated={(user, link) => {
-            setCreating(false);
-            setCreated({ user, link });
-            setNotice({
-              type: 'success',
-              text: `Se creó la cuenta de ${user.displayName}, pendiente de activación.`,
-            });
-            reload();
-          }}
-        />
+        <Modal onClose={() => setCreating(false)} className="dialog-complex">
+          <CreateUserForm
+            onCancel={() => setCreating(false)}
+            onCreated={(user, link) => {
+              setCreating(false);
+              setCreated({ user, link });
+              setNotice({
+                type: 'success',
+                text: `Se creó la cuenta de ${user.displayName}, pendiente de activación.`,
+              });
+              reload();
+            }}
+          />
+        </Modal>
       )}
 
       <search>

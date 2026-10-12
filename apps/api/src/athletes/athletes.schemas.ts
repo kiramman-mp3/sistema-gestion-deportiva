@@ -86,6 +86,45 @@ export const createConsentSchema = z.strictObject({
 
 export const revokeConsentSchema = z.strictObject({ reason: reasonSchema });
 
+/** Búsqueda por documento antes de registrar: ¿ya existe? ¿qué datos se pueden precargar? */
+export const athleteLookupSchema = z
+  .strictObject({
+    idType: personInputShape.idType.default('cedula'),
+    idNumber: personInputShape.idNumber.unwrap(),
+  })
+  .superRefine(idIssue);
+
+export const queroLinkKindValues = [
+  'nacimiento',
+  'matrimonio',
+  'padre',
+  'madre',
+] as const;
+
+/** Reemplaza todos los vínculos con Quero del deportista (lista vacía = ninguno). */
+export const originLinksSchema = z.strictObject({
+  links: z
+    .array(
+      z
+        .strictObject({
+          kind: z.enum(queroLinkKindValues),
+          relatedName: optionalText(160).optional(),
+          relatedIdNumber: optionalText(30).optional(),
+          birthPlace: optionalText(120).optional(),
+        })
+        .refine((l) => l.kind === 'nacimiento' || !!l.relatedName, {
+          path: ['relatedName'],
+          message: 'Indique el nombre de la persona de Quero',
+        }),
+    )
+    .max(queroLinkKindValues.length)
+    .refine((ls) => new Set(ls.map((l) => l.kind)).size === ls.length, {
+      message: 'Cada vínculo se indica una sola vez',
+    }),
+});
+
 export type CreateAthleteInput = z.infer<typeof createAthleteSchema>;
 export type UpdateAthleteInput = z.infer<typeof updateAthleteSchema>;
 export type CreateConsentInput = z.infer<typeof createConsentSchema>;
+export type AthleteLookupInput = z.infer<typeof athleteLookupSchema>;
+export type OriginLinksInput = z.infer<typeof originLinksSchema>;

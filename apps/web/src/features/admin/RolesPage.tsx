@@ -6,6 +6,7 @@ import {
   type NoticeState,
   describeError,
 } from '../../components/Notice.tsx';
+import { Modal } from '../../components/Modal.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import type { AdminRole } from './types.ts';
 
@@ -19,7 +20,7 @@ export function RolesPage({ permissions }: { permissions: readonly string[] }) {
     <section aria-labelledby="roles-title" className="catalog">
       <div className="catalog-header">
         <h1 id="roles-title">Roles y permisos</h1>
-        {canManage && !creating && (
+        {canManage && (
           <button
             type="button"
             className="primary"
@@ -40,17 +41,19 @@ export function RolesPage({ permissions }: { permissions: readonly string[] }) {
       <Notice notice={notice} onClose={() => setNotice(null)} />
 
       {creating && (
-        <CreateRoleForm
-          onCancel={() => setCreating(false)}
-          onCreated={(role) => {
-            setCreating(false);
-            setNotice({
-              type: 'success',
-              text: `Se creó el rol «${role.name}». Ahora puede asignarle permisos.`,
-            });
-            reload();
-          }}
-        />
+        <Modal onClose={() => setCreating(false)} className="dialog-complex">
+          <CreateRoleForm
+            onCancel={() => setCreating(false)}
+            onCreated={(role) => {
+              setCreating(false);
+              setNotice({
+                type: 'success',
+                text: `Se creó el rol «${role.name}». Ahora puede asignarle permisos.`,
+              });
+              reload();
+            }}
+          />
+        </Modal>
       )}
 
       {roles.kind === 'loading' && (

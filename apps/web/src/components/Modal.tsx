@@ -1,4 +1,10 @@
-import { type ReactNode, type RefObject, useEffect, useRef } from 'react';
+import {
+  type ReactNode,
+  type RefObject,
+  useEffect,
+  useId,
+  useRef,
+} from 'react';
 
 export interface ModalProps {
   isOpen?: boolean;
@@ -30,6 +36,16 @@ export function Modal({
   className = '',
 }: ModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const autoTitleId = useId();
+
+  // Sin titleId, el diálogo toma su nombre del primer encabezado (los formularios ya traen el suyo).
+  useEffect(() => {
+    if (!isOpen || titleId) return;
+    const heading = dialogRef.current?.querySelector('h2, h3, legend');
+    if (!heading) return;
+    if (!heading.id) heading.id = autoTitleId;
+    dialogRef.current?.setAttribute('aria-labelledby', heading.id);
+  }, [isOpen, titleId, autoTitleId]);
 
   // Guarda el elemento que abrió el modal para devolverle el foco al desmontar
   useEffect(() => {
