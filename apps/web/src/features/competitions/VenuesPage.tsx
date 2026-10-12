@@ -6,6 +6,7 @@ import {
   type NoticeState,
   describeError,
 } from '../../components/Notice.tsx';
+import { Modal } from '../../components/Modal.tsx';
 import { Pagination } from '../../components/Pagination.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import { LoadState, SelectField, TextField } from '../people/fields.tsx';
@@ -40,7 +41,7 @@ export function VenuesPage({
     <section aria-labelledby="venues-title" className="catalog">
       <div className="catalog-header">
         <h1 id="venues-title">Escenarios deportivos</h1>
-        {canManage && !creating && !editing && (
+        {canManage && (
           <button
             type="button"
             className="primary"
@@ -53,32 +54,36 @@ export function VenuesPage({
       <Notice notice={notice} onClose={() => setNotice(null)} />
 
       {creating && (
-        <VenueForm
-          onCancel={() => setCreating(false)}
-          onSaved={(venue) => {
-            setCreating(false);
-            setNotice({
-              type: 'success',
-              text: `Se creó el escenario «${venue.name}».`,
-            });
-            reload();
-          }}
-        />
+        <Modal onClose={() => setCreating(false)} className="dialog-complex">
+          <VenueForm
+            onCancel={() => setCreating(false)}
+            onSaved={(venue) => {
+              setCreating(false);
+              setNotice({
+                type: 'success',
+                text: `Se creó el escenario «${venue.name}».`,
+              });
+              reload();
+            }}
+          />
+        </Modal>
       )}
 
       {editing && (
-        <VenueForm
-          venue={editing}
-          onCancel={() => setEditing(null)}
-          onSaved={(venue) => {
-            setEditing(null);
-            setNotice({
-              type: 'success',
-              text: `Se actualizó el escenario «${venue.name}».`,
-            });
-            reload();
-          }}
-        />
+        <Modal onClose={() => setEditing(null)} className="dialog-complex">
+          <VenueForm
+            venue={editing}
+            onCancel={() => setEditing(null)}
+            onSaved={(venue) => {
+              setEditing(null);
+              setNotice({
+                type: 'success',
+                text: `Se actualizó el escenario «${venue.name}».`,
+              });
+              reload();
+            }}
+          />
+        </Modal>
       )}
 
       <div className="filters">

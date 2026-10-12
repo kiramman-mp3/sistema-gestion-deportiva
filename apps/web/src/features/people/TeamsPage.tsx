@@ -5,6 +5,7 @@ import {
   type NoticeState,
   describeError,
 } from '../../components/Notice.tsx';
+import { Modal } from '../../components/Modal.tsx';
 import { Pagination } from '../../components/Pagination.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import { LoadState, SelectField, TextField } from './fields.tsx';
@@ -23,7 +24,7 @@ export function TeamsPage({ permissions }: { permissions: readonly string[] }) {
     <section aria-labelledby="teams-title" className="catalog">
       <div className="catalog-header">
         <h1 id="teams-title">Equipos</h1>
-        {canCreate && !creating && (
+        {canCreate && (
           <button
             type="button"
             className="primary"
@@ -36,17 +37,19 @@ export function TeamsPage({ permissions }: { permissions: readonly string[] }) {
       <Notice notice={notice} onClose={() => setNotice(null)} />
 
       {creating && (
-        <CreateTeamForm
-          onCancel={() => setCreating(false)}
-          onCreated={(team) => {
-            setCreating(false);
-            setNotice({
-              type: 'success',
-              text: `Se creó el equipo ${team.name}.`,
-            });
-            reload();
-          }}
-        />
+        <Modal onClose={() => setCreating(false)} className="dialog-complex">
+          <CreateTeamForm
+            onCancel={() => setCreating(false)}
+            onCreated={(team) => {
+              setCreating(false);
+              setNotice({
+                type: 'success',
+                text: `Se creó el equipo ${team.name}.`,
+              });
+              reload();
+            }}
+          />
+        </Modal>
       )}
 
       <LoadState state={list} onRetry={reload} />

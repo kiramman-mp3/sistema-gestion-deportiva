@@ -2,6 +2,7 @@ import { type FormEvent, useEffect, useId, useState } from 'react';
 import { ApiError, apiRequest } from '../../api/client.ts';
 import { ConfirmDialog } from '../../components/ConfirmDialog.tsx';
 import { Notice, type NoticeState } from '../../components/Notice.tsx';
+import { Modal } from '../../components/Modal.tsx';
 import { CatalogForm } from './CatalogForm.tsx';
 import type {
   CatalogConfig,
@@ -144,7 +145,7 @@ export function CatalogAdmin<T extends CatalogItem>({
     <section aria-labelledby="catalog-title" className="catalog">
       <div className="catalog-header">
         <h1 id="catalog-title">{config.title}</h1>
-        {canManage && !editor && (
+        {canManage && (
           <button
             type="button"
             className="primary"
@@ -161,19 +162,21 @@ export function CatalogAdmin<T extends CatalogItem>({
       <Notice notice={notice} onClose={() => setNotice(null)} />
 
       {editor && (
-        <CatalogForm
-          key={editor.mode === 'edit' ? editor.item.id : 'create'}
-          config={config}
-          mode={editor.mode}
-          item={editor.mode === 'edit' ? editor.item : undefined}
-          title={
-            editor.mode === 'edit'
-              ? config.editTitle(editor.item)
-              : config.newLabel
-          }
-          onSubmit={save}
-          onCancel={() => setEditor(null)}
-        />
+        <Modal onClose={() => setEditor(null)} className="dialog-complex">
+          <CatalogForm
+            key={editor.mode === 'edit' ? editor.item.id : 'create'}
+            config={config}
+            mode={editor.mode}
+            item={editor.mode === 'edit' ? editor.item : undefined}
+            title={
+              editor.mode === 'edit'
+                ? config.editTitle(editor.item)
+                : config.newLabel
+            }
+            onSubmit={save}
+            onCancel={() => setEditor(null)}
+          />
+        </Modal>
       )}
 
       <search>
