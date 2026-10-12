@@ -132,14 +132,14 @@
   --z-toast: 200;
 }
 
-/* El portal público se ve siempre claro (D-103). */
-:root:has(.public-portal) {
+/* El portal público y el inicio de sesión se ven siempre claros (D-103). */
+:root:has(.public-portal, .login-main) {
   color-scheme: light;
 }
 
-/* Modo oscuro: sigue la preferencia del sistema, salvo en el portal público. Solo redefine colores. */
+/* Modo oscuro: sigue la preferencia del sistema, salvo en el portal público y el login. Solo redefine colores. */
 @media (prefers-color-scheme: dark) {
-  :root:not(:has(.public-portal)) {
+  :root:not(:has(.public-portal, .login-main)) {
     --color-bg: #0f1719;
     --color-surface: #172124;
     --color-surface-sunken: #223033;
