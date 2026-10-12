@@ -21,12 +21,9 @@ import {
   type MediaItem,
   type Page,
   STATUS_LABELS,
+  formatDay,
+  todayInEcuador,
 } from './types.ts';
-
-const dateFmt = new Intl.DateTimeFormat('es-EC', {
-  dateStyle: 'medium',
-  timeStyle: 'short',
-});
 
 /** Redacción de noticias y comunicados del portal, y biblioteca de imágenes. */
 export function AnnouncementsPage({
@@ -58,8 +55,16 @@ export function AnnouncementsPage({
 
   async function act(a: Announcement, action: string, success: string) {
     try {
-      await apiRequest(`/announcements/${a.id}/${action}`, { method: 'POST' });
-      setNotice({ type: 'success', text: success });
+      const saved = await apiRequest<Announcement>(
+        `/announcements/${a.id}/${action}`,
+        { method: 'POST' },
+      );
+      setNotice({
+        type: 'success',
+        text: saved.scheduled
+          ? `«${a.title}» se publicará el día ${formatDay(saved.publishDate)}.`
+          : success,
+      });
       reload();
     } catch (err) {
       setNotice({ type: 'error', text: describeError(err) });
@@ -104,8 +109,9 @@ export function AnnouncementsPage({
           onSaved={(saved) => {
             setNotice({
               type: 'success',
-              text:
-                editing === 'new'
+              text: saved.scheduled
+                ? `Se guardó «${saved.title}»: se publicará el día ${formatDay(saved.publishDate)}.`
+                : editing === 'new'
                   ? `Se creó el borrador «${saved.title}».`
                   : `Se guardó «${saved.title}».`,
             });
@@ -163,18 +169,15 @@ export function AnnouncementsPage({
                   <td data-label="Título">
                     <strong>{a.title}</strong>
                     <div className="hint">
-                      {a.author} ·{' '}
-                      {a.publishedAt
-                        ? `publicada el ${dateFmt.format(new Date(a.publishedAt))}`
-                        : `editada el ${dateFmt.format(new Date(a.updatedAt))}`}
+                      {a.author} · {formatDay(a.publishDate)}
                     </div>
                   </td>
                   <td data-label="Tipo">{KIND_LABELS[a.kind]}</td>
                   <td data-label="Estado">
                     <span
-                      className={`badge ${a.status === 'publicado' ? 'badge-ok' : ''}`}
+                      className={`badge ${a.status === 'publicado' && !a.scheduled ? 'badge-ok' : ''}`}
                     >
-                      {STATUS_LABELS[a.status]}
+                      {a.scheduled ? 'Programada' : STATUS_LABELS[a.status]}
                     </span>
                   </td>
                   <td data-label="Acciones" className="row-actions">
@@ -294,6 +297,9 @@ function AnnouncementForm({
   const [summary, setSummary] = useState(announcement?.summary ?? '');
   const [content, setContent] = useState(announcement?.content ?? '');
   const [coverId, setCoverId] = useState(announcement?.cover?.id ?? '');
+  const [publishDate, setPublishDate] = useState(
+    announcement?.publishDate ?? todayInEcuador(),
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -345,6 +351,7 @@ function AnnouncementForm({
       errs.summary = 'El resumen necesita al menos 10 caracteres.';
     if (content.trim().length < 20)
       errs.content = 'El contenido necesita al menos 20 caracteres.';
+    if (!publishDate) errs.publishDate = 'Elija la fecha de publicación.';
     setErrors(errs);
     setFormError(null);
     if (Object.keys(errs).length > 0) return;
@@ -357,6 +364,7 @@ function AnnouncementForm({
         summary: summary.trim(),
         content: content.trim(),
         coverId: coverId || null,
+        publishDate,
       };
       onSaved(
         announcement
@@ -426,6 +434,20 @@ function AnnouncementForm({
           maxLength={20000}
           rows={12}
           hint="Texto plano. Separe los párrafos con una línea en blanco. No use datos personales de menores."
+          disabled={submitting}
+        />
+        <TextField
+          label="Fecha de publicación"
+          type="date"
+          value={publishDate}
+          onChange={setPublishDate}
+          required
+          error={errors.publishDate}
+          hint={
+            publishDate > todayInEcuador()
+              ? `Se publicará el día ${formatDay(publishDate)}.`
+              : 'Puede ser hoy o una fecha pasada; una fecha futura la deja programada.'
+          }
           disabled={submitting}
         />
         <SelectField
