@@ -3,7 +3,16 @@ import { Icon } from '../../components/Icon.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import { Pagination } from '../../components/Pagination.tsx';
 import { Confetti, SportArt, sportKey } from '../../components/SportArt.tsx';
-import { groupBySport, HomeHero, SportsShowcase } from './HomeSections.tsx';
+import {
+  groupBySport,
+  HomeHero,
+  matchState,
+  pickStandingsChampionship,
+  ScoreTicker,
+  sides,
+  SportsShowcase,
+  StandingsSnapshot,
+} from './HomeSections.tsx';
 import { LoadState, SelectField, TextField } from '../people/fields.tsx';
 import type {
   PublicAnnouncement,
@@ -75,11 +84,7 @@ function CopyLink({ hash }: { hash: string }) {
 // ───────────────────── Partidos ─────────────────────
 
 export function MatchRow({ event }: { event: PublicEventSummary }) {
-  const a =
-    event.participants.find((p) => p.side === 'local') ?? event.participants[0];
-  const b =
-    event.participants.find((p) => p.side === 'visitante') ??
-    event.participants[1];
+  const [a, b] = sides(event);
   const sport = event.championship.sport;
   return (
     <article className={`match-card sport-${sportKey(sport.code)}`}>
@@ -170,6 +175,47 @@ export function NewsCard({
   );
 }
 
+/** Fila compacta de marcador: equipos, resultado u hora, y enlace al partido en toda la fila. */
+function ScoreRow({ event }: { event: PublicEventSummary }) {
+  const [a, b] = sides(event);
+  const sport = event.championship.sport;
+  const team = (p: typeof a, side: string) => (
+    <span
+      className={`score-row-team ${side} ${
+        event.hasResult && p?.outcome === 'victoria' ? 'winner' : ''
+      }`.trim()}
+    >
+      {p?.name ?? 'Por definir'}
+    </span>
+  );
+  return (
+    <li className={`score-row sport-${sportKey(sport.code)}`}>
+      <p className="score-row-meta">
+        <SportArt sport={sport.code} size={22} />
+        <span>
+          {sport.name}, {event.championship.category.name}
+        </span>
+        <span className="score-row-state">{matchState(event)}</span>
+      </p>
+      <p className="score-row-teams">
+        {team(a, 'local')}
+        {event.hasResult ? (
+          <span className="score-numbers">
+            {a?.score ?? 0} — {b?.score ?? 0}
+          </span>
+        ) : (
+          <span className="vs-badge">VS</span>
+        )}
+        {team(b, 'away')}
+      </p>
+      <a className="score-row-link" href={`#/portal/partido/${event.id}`}>
+        <span className="visually-hidden">Ver detalle del partido</span>
+        <Icon name="chevron-right" size={20} />
+      </a>
+    </li>
+  );
+}
+
 export interface ScoreboardBandProps {
   recent?: PublicEventSummary[];
   upcoming?: PublicEventSummary[];
@@ -250,11 +296,11 @@ export function ScoreboardBand({
               No hay partidos programados por ahora.
             </p>
           ) : (
-            <div className="events-list">
+            <ul className="score-list">
               {upcoming.map((e) => (
-                <MatchRow key={e.id} event={e} />
+                <ScoreRow key={e.id} event={e} />
               ))}
-            </div>
+            </ul>
           )}
         </div>
         <div className="scoreboard-sub-section">
@@ -264,11 +310,11 @@ export function ScoreboardBand({
           {recent.length === 0 ? (
             <p className="scoreboard-empty">Aún no hay resultados aprobados.</p>
           ) : (
-            <div className="events-list">
+            <ul className="score-list">
               {recent.map((e) => (
-                <MatchRow key={e.id} event={e} />
+                <ScoreRow key={e.id} event={e} />
               ))}
-            </div>
+            </ul>
           )}
         </div>
       </div>
@@ -291,9 +337,14 @@ export function HomePage({
   );
   const items = championships.kind === 'ready' ? championships.data.items : [];
   const sports = groupBySport(items);
+  const standings = pickStandingsChampionship(items);
+  const week =
+    home.kind === 'ready' ? [...home.data.recent, ...home.data.upcoming] : [];
   return (
-    <>
+    <div className="home-page">
+      <ScoreTicker events={week} />
       <HomeHero
+        next={home.kind === 'ready' ? home.data.upcoming[0] : undefined}
         institution={institution}
         season={items[0]?.season.name}
         sports={sports}
@@ -302,28 +353,36 @@ export function HomePage({
         }
         clubs={clubs.kind === 'ready' ? clubs.data.total : undefined}
       />
-      <SportsShowcase sports={sports} />
-      <ScoreboardBand
-        recent={home.kind === 'ready' ? home.data.recent : []}
-        upcoming={home.kind === 'ready' ? home.data.upcoming : []}
-        loading={home.kind === 'loading'}
-        error={home.kind === 'error' ? home.message : null}
-        onRetry={reload}
-      />
-      {home.kind === 'ready' && home.data.news.length > 0 && (
-        <section className="portal-section" aria-labelledby="home-news">
-          <div className="section-header">
-            <h2 id="home-news">Últimas noticias</h2>
-            <a href="#/portal/noticias">Ver todas</a>
-          </div>
-          <div className="news-grid">
-            {home.data.news.slice(0, 3).map((n) => (
-              <NewsCard key={n.slug} item={n} headingLevel="h3" />
-            ))}
-          </div>
-        </section>
-      )}
-    </>
+      <div className="home-body">
+        <ScoreboardBand
+          recent={home.kind === 'ready' ? home.data.recent : []}
+          upcoming={home.kind === 'ready' ? home.data.upcoming : []}
+          loading={home.kind === 'loading'}
+          error={home.kind === 'error' ? home.message : null}
+          onRetry={reload}
+        />
+        <div className="home-split">
+          {home.kind === 'ready' && home.data.news.length > 0 && (
+            <section
+              className="portal-section home-news"
+              aria-labelledby="home-news"
+            >
+              <div className="section-header">
+                <h2 id="home-news">Últimas noticias</h2>
+                <a href="#/portal/noticias">Ver todas</a>
+              </div>
+              <div className="news-grid">
+                {home.data.news.slice(0, 3).map((n) => (
+                  <NewsCard key={n.slug} item={n} headingLevel="h3" />
+                ))}
+              </div>
+            </section>
+          )}
+          {standings && <StandingsSnapshot championship={standings} />}
+        </div>
+        <SportsShowcase sports={sports} />
+      </div>
+    </div>
   );
 }
 

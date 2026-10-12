@@ -21,7 +21,7 @@ test.describe('portal público (sin iniciar sesión)', () => {
     await expect(
       page.getByRole('heading', { name: 'Últimos resultados oficiales' }),
     ).toBeVisible();
-    await expect(page.locator('.match-card').first()).toBeVisible();
+    await expect(page.locator('.score-row').first()).toBeVisible();
     // Los resultados aprobados muestran el marcador.
     await expect(page.locator('.score-numbers').first()).toContainText('—');
     // Las imágenes tienen texto alternativo.
