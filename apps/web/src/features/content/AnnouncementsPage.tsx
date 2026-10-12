@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useId, useState } from 'react';
 import { ApiError, apiRequest } from '../../api/client.ts';
 import { ConfirmDialog } from '../../components/ConfirmDialog.tsx';
 import {
@@ -294,7 +294,41 @@ function AnnouncementForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [media] = useFetch<Page<MediaItem>>('/media?pageSize=100');
+  const [media, reloadMedia] = useFetch<Page<MediaItem>>('/media?pageSize=100');
+  const [newAlt, setNewAlt] = useState('');
+  const [newFile, setNewFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileId = useId();
+
+  /** Sube la imagen a la biblioteca y la deja elegida como portada. */
+  async function uploadCover() {
+    if (!newFile || newAlt.trim().length < 3) {
+      setUploadError(
+        'Elija una imagen y describa su contenido (mínimo 3 caracteres).',
+      );
+      return;
+    }
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const body = new FormData();
+      body.append('altText', newAlt.trim());
+      body.append('file', newFile);
+      const saved = await apiRequest<{ id: string }>('/media', {
+        method: 'POST',
+        body,
+      });
+      setCoverId(saved.id);
+      setNewAlt('');
+      setNewFile(null);
+      reloadMedia();
+    } catch (err) {
+      setUploadError(describeError(err));
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -410,6 +444,40 @@ function AnnouncementForm({
             alt="Vista previa de la portada"
           />
         )}
+        <fieldset>
+          <legend>O suba una imagen nueva</legend>
+          <TextField
+            label="Descripción de la imagen"
+            value={newAlt}
+            onChange={setNewAlt}
+            maxLength={200}
+            hint="Texto alternativo para personas que no ven la imagen."
+            disabled={submitting || uploading}
+          />
+          <div className="field">
+            <label htmlFor={fileId}>Archivo (JPG, PNG o WEBP, máx. 5 MB)</label>
+            <input
+              key={newFile ? 'con-archivo' : 'sin-archivo'}
+              id={fileId}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={(e) => setNewFile(e.target.files?.[0] ?? null)}
+              disabled={submitting || uploading}
+            />
+          </div>
+          {uploadError && (
+            <p className="form-error" role="alert">
+              {uploadError}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={() => void uploadCover()}
+            disabled={submitting || uploading}
+          >
+            {uploading ? 'Subiendo…' : 'Subir y usar como portada'}
+          </button>
+        </fieldset>
       </fieldset>
       {formError && (
         <p className="form-error" role="alert">
