@@ -14,7 +14,9 @@ const DRAFT: Announcement = {
   slug: 'arranca-el-campeonato',
   summary: 'La Liga inaugura la temporada.',
   status: 'borrador',
+  publishDate: '2026-06-20',
   publishedAt: null,
+  scheduled: false,
   updatedAt: '2026-06-20T12:00:00.000Z',
   author: 'Editor Demo',
   cover: null,
@@ -290,5 +292,42 @@ describe('noticias y comunicados (administración)', () => {
     expect(api.of('POST', '/announcements')[0]!.body).toMatchObject({
       coverId: MEDIA_ID,
     });
+  });
+
+  it('una fecha futura avisa el día de publicación y queda programada', async () => {
+    let current: Announcement = { ...DRAFT, publishDate: '2099-01-15' };
+    mockApi({
+      'GET /announcements': () => page([current]),
+      'GET /media': () => page([]),
+      [`GET /announcements/${ID}`]: () => json({ ...current, content: 'x' }),
+      [`POST /announcements/${ID}/publish`]: () => {
+        current = {
+          ...current,
+          status: 'publicado',
+          publishedAt: '2099-01-15T05:00:00.000Z',
+          scheduled: true,
+        };
+        return json(current);
+      },
+    });
+    render(<AnnouncementsPage permissions={FULL} />);
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Editar' }),
+    );
+    expect(screen.getByLabelText(/Fecha de publicación/)).toHaveValue(
+      '2099-01-15',
+    );
+    expect(
+      screen.getByText('Se publicará el día 15 de enero de 2099.'),
+    ).toBeVisible();
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+    await userEvent.click(screen.getByRole('button', { name: 'Publicar' }));
+    expect(
+      await screen.findByText(
+        '«Arranca el campeonato» se publicará el día 15 de enero de 2099.',
+      ),
+    ).toBeVisible();
+    expect(await screen.findByText('Programada')).toBeVisible();
   });
 });
