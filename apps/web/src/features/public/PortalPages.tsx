@@ -25,6 +25,7 @@ import type {
   PublicPage,
   PublicResolution,
   PublicVerification,
+  ScoresheetPrintData,
 } from './types.ts';
 
 const dateTime = new Intl.DateTimeFormat('es-EC', {
@@ -81,61 +82,6 @@ function CopyLink({ hash }: { hash: string }) {
 }
 
 // ───────────────────── Partidos ─────────────────────
-
-export function MatchRow({ event }: { event: PublicEventSummary }) {
-  const [a, b] = sides(event);
-  const sport = event.championship.sport;
-  return (
-    <article className={`match-card sport-${sportKey(sport.code)}`}>
-      <div className="match-meta">
-        <span className="match-sport">
-          <SportArt sport={sport.code} size={28} />
-          {sport.name}
-        </span>
-        <span className="match-venue">
-          <Icon name="map-pin" size={14} />{' '}
-          {event.venue?.name ?? 'Por confirmar'}
-        </span>
-        <span className="match-date">
-          <Icon name="clock" size={14} />{' '}
-          {event.scheduledAt
-            ? dateTime.format(new Date(event.scheduledAt))
-            : 'Fecha por definir'}
-        </span>
-        <span className={`match-status-pill status-${event.status}`}>
-          {STATUS_LABELS[event.status] ?? event.status}
-        </span>
-      </div>
-      <div className="match-teams-row">
-        <div className="match-team local">
-          <span className="team-name">{a?.name ?? 'Por definir'}</span>
-          <small className="team-club">{a?.clubName}</small>
-        </div>
-        <div className="match-score">
-          {event.hasResult ? (
-            <span className="score-numbers">
-              {a?.score ?? 0} — {b?.score ?? 0}
-            </span>
-          ) : (
-            <span className="vs-badge">VS</span>
-          )}
-        </div>
-        <div className="match-team away">
-          <span className="team-name">{b?.name ?? 'Por definir'}</span>
-          <small className="team-club">{b?.clubName}</small>
-        </div>
-      </div>
-      <p className="hint">
-        {event.championship.name} · {event.round}
-      </p>
-      <div className="match-footer-actions">
-        <a className="print-link-button" href={`#/portal/partido/${event.id}`}>
-          Ver detalle del partido
-        </a>
-      </div>
-    </article>
-  );
-}
 
 // ───────────────────── Encabezado de sección ─────────────────────
 
@@ -532,12 +478,57 @@ export function CalendarPage() {
 
 // ───────────────────── Detalle de un partido ─────────────────────
 
-const EVENT_TYPE_LABELS: Record<string, string> = {
-  gol: 'Gol',
-  tarjeta_amarilla: 'Tarjeta amarilla',
-  tarjeta_roja: 'Tarjeta roja',
-  sustitucion: 'Sustitución',
+const EVENT_TYPES: Record<string, { label: string; emoji: string }> = {
+  gol: { label: 'Gol', emoji: '⚽' },
+  tarjeta_amarilla: { label: 'Tarjeta amarilla', emoji: '🟨' },
+  tarjeta_roja: { label: 'Tarjeta roja', emoji: '🟥' },
+  sustitucion: { label: 'Sustitución', emoji: '🔁' },
 };
+const eventType = (type: string) =>
+  EVENT_TYPES[type] ?? { label: type, emoji: '•' };
+
+type FootballEvent = NonNullable<
+  PublicEventDetail['result']
+>['footballEvents'][number];
+
+/** Nómina de un equipo con su número y lo que hizo cada jugador en el partido. */
+function Lineup({
+  team,
+  events,
+}: {
+  team: ScoresheetPrintData['participants'][number];
+  events: FootballEvent[];
+}) {
+  return (
+    <section className="lineup" aria-label={`Nómina de ${team.name}`}>
+      <h3 className="lineup-team">{team.name}</h3>
+      <ol className="lineup-list">
+        {team.roster.map((player) => (
+          <li key={player.code}>
+            <span className="lineup-number">{player.jerseyNumber ?? '–'}</span>
+            <span className="lineup-name">{player.name}</span>
+            <span className="lineup-marks">
+              {events
+                .filter(
+                  (e) => e.team === team.name && e.athleteName === player.name,
+                )
+                .map((e, i) => (
+                  <span
+                    key={i}
+                    role="img"
+                    aria-label={`${eventType(e.eventType).label}, minuto ${e.minute}`}
+                    title={`${eventType(e.eventType).label}, minuto ${e.minute}`}
+                  >
+                    {eventType(e.eventType).emoji}
+                  </span>
+                ))}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
 
 export function MatchPage({
   eventId,
@@ -549,74 +540,173 @@ export function MatchPage({
   const [event, reload] = useFetch<PublicEventDetail>(
     `/public/events/${eventId}`,
   );
+  // La nómina sale del acta pública, que ya oculta los nombres de menores (D-85).
+  const [sheet] = useFetch<ScoresheetPrintData>(
+    `/public/events/${eventId}/scoresheet`,
+  );
+  if (event.kind !== 'ready')
+    return (
+      <section className="portal-section">
+        <p>
+          <a href="#/portal/calendario">← Volver al calendario</a>
+        </p>
+        <LoadState state={event} onRetry={reload} />
+      </section>
+    );
+
+  const match = event.data;
+  const [a, b] = sides(match);
+  const sport = match.championship.sport;
+  const incidents = match.result?.footballEvents ?? [];
+  const teams =
+    sheet.kind === 'ready'
+      ? sheet.data.participants.filter((p) => p.roster.length > 1)
+      : [];
+  const venue = match.venue;
+  const mapQuery = venue
+    ? encodeURIComponent(
+        [venue.name, 'Quero, Tungurahua, Ecuador'].filter(Boolean).join(', '),
+      )
+    : '';
+
   return (
     <section className="portal-section" aria-labelledby="match-title">
       <p>
         <a href="#/portal/calendario">← Volver al calendario</a>
       </p>
-      <LoadState state={event} onRetry={reload} />
-      {event.kind === 'ready' && (
-        <>
-          <h1 id="match-title">
-            {event.data.participants.map((p) => p.name).join(' vs ')}
-          </h1>
-          <p className="hint">
-            {event.data.championship.name} ·{' '}
-            {event.data.championship.sport.name} ·{' '}
-            {event.data.championship.category.name} · {event.data.round}
+
+      <header className={`match-hero sport-${sportKey(sport.code)}`}>
+        <p className="match-hero-meta">
+          <SportArt sport={sport.code} size={28} />
+          {match.championship.name}, {match.championship.category.name},{' '}
+          {match.round}
+        </p>
+        <h1 id="match-title" className="match-hero-teams">
+          <span className="match-hero-team">{a?.name ?? 'Por definir'}</span>{' '}
+          {match.hasResult ? (
+            <span className="match-hero-score">
+              <span className="visually-hidden"> vs </span>
+              <span aria-hidden="true">
+                {a?.score ?? 0} – {b?.score ?? 0}
+              </span>
+            </span>
+          ) : (
+            <span className="match-hero-vs">vs</span>
+          )}{' '}
+          <span className="match-hero-team">{b?.name ?? 'Por definir'}</span>
+        </h1>
+        {match.hasResult && (
+          <p className="visually-hidden">
+            Resultado: {a?.name} {a?.score ?? 0}, {b?.name} {b?.score ?? 0}.
           </p>
-          <MatchRow event={event.data} />
-          {event.data.venue?.address && (
-            <p>
-              <strong>Escenario:</strong> {event.data.venue.name} —{' '}
-              {event.data.venue.address}
-            </p>
+        )}
+        <p className="match-hero-state">
+          <Icon name="clock" size={16} />
+          {matchState(match)}
+        </p>
+      </header>
+
+      {match.postponementReason && (
+        <p className="match-notice">
+          <strong>Motivo del cambio:</strong> {match.postponementReason}
+        </p>
+      )}
+
+      <div className="match-layout">
+        <div className="match-main">
+          {teams.length > 0 && (
+            <section aria-labelledby="lineups-title">
+              <h2 id="lineups-title">Alineaciones</h2>
+              <p className="hint">Jugadores inscritos por cada equipo.</p>
+              <div className="lineups">
+                {teams.map((t) => (
+                  <Lineup key={t.id} team={t} events={incidents} />
+                ))}
+              </div>
+            </section>
           )}
-          {event.data.postponementReason && (
+          {match.result && match.result.periodScores.length > 0 && (
             <p>
-              <strong>Motivo del cambio:</strong>{' '}
-              {event.data.postponementReason}
+              <strong>Puntuación por período:</strong>{' '}
+              {match.result.periodScores
+                .map((s) => `P${s.periodNumber}: ${s.score}`)
+                .join(', ')}
             </p>
-          )}
-          {event.data.result && (
-            <>
-              {event.data.result.footballEvents.length > 0 && (
-                <>
-                  <h2>Incidencias del partido</h2>
-                  <ul className="plain-list">
-                    {event.data.result.footballEvents.map((fe, i) => (
-                      <li key={i}>
-                        Min. {fe.minute}:{' '}
-                        {EVENT_TYPE_LABELS[fe.eventType] ?? fe.eventType}
-                        {fe.athleteName ? ` — ${fe.athleteName}` : ''}
-                        {fe.team ? ` (${fe.team})` : ''}
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
-              {event.data.result.periodScores.length > 0 && (
-                <p>
-                  <strong>Puntuación por período:</strong>{' '}
-                  {event.data.result.periodScores
-                    .map((s) => `P${s.periodNumber}: ${s.score}`)
-                    .join(' · ')}
-                </p>
-              )}
-            </>
           )}
           <p className="row-actions">
             <button
               type="button"
               className="link-button"
-              onClick={() => onOpenPrint('acta', event.data.id)}
+              onClick={() => onOpenPrint('acta', match.id)}
             >
               <Icon name="printer" /> Ver / imprimir acta oficial
             </button>
-            <CopyLink hash={`#/portal/partido/${event.data.id}`} />
+            <CopyLink hash={`#/portal/partido/${match.id}`} />
           </p>
-        </>
-      )}
+        </div>
+
+        <aside className="match-side">
+          {incidents.length > 0 && (
+            <section
+              className="match-card-panel"
+              aria-labelledby="incidents-title"
+            >
+              <h2 id="incidents-title">Incidencias del partido</h2>
+              <ol className="incidents">
+                {incidents.map((fe, i) => {
+                  const type = eventType(fe.eventType);
+                  return (
+                    <li key={i} className={`incident incident-${fe.eventType}`}>
+                      <span className="incident-minute">{fe.minute}'</span>
+                      <span className="incident-emoji" aria-hidden="true">
+                        {type.emoji}
+                      </span>
+                      <span className="incident-text">
+                        <strong>{type.label}</strong>
+                        {fe.athleteName && <span>{fe.athleteName}</span>}
+                        {fe.team && <small>{fe.team}</small>}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ol>
+            </section>
+          )}
+
+          {venue && (
+            <section className="match-card-panel" aria-labelledby="venue-title">
+              <h2 id="venue-title">Escenario</h2>
+              <p className="venue-name">
+                <Icon name="map-pin" size={18} />
+                <span>
+                  <strong>{venue.name}</strong>
+                  {venue.address && <small>{venue.address}</small>}
+                </span>
+              </p>
+              {/* shortcut: busca el escenario por nombre en Quero; con coordenadas guardadas en el escenario el punto sería exacto. */}
+              <iframe
+                className="venue-map"
+                title={`Mapa de ${venue.name}`}
+                src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
+                loading="lazy"
+                referrerPolicy="no-referrer"
+              />
+              <a
+                className="venue-map-link"
+                href={`https://www.google.com/maps/search/?api=1&query=${mapQuery}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Abrir en Google Maps
+                <span className="visually-hidden">
+                  {' '}
+                  (se abre en una pestaña nueva)
+                </span>
+              </a>
+            </section>
+          )}
+        </aside>
+      </div>
     </section>
   );
 }

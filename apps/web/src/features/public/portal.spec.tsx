@@ -320,12 +320,44 @@ describe('portal público', () => {
     mockApi({
       'GET /public/institution': () => json(INSTITUTION),
       [`GET /public/events/${EVENT.id}`]: () => json(detail),
+      [`GET /public/events/${EVENT.id}/scoresheet`]: () =>
+        json({
+          participants: [
+            {
+              id: 'ep1',
+              name: 'Real Quero',
+              roster: [
+                { jerseyNumber: 9, code: 'DEP-1', name: 'Carlos Morocho' },
+                { jerseyNumber: 10, code: 'DEP-2', name: 'Luis Pérez' },
+              ],
+            },
+            // Un participante individual no tiene nómina que mostrar.
+            { id: 'ep2', name: 'Atlético', roster: [] },
+          ],
+        }),
     });
     render(<PublicPortalPage onOpenPrintDocument={onPrint} />);
+    const incidents = await screen.findByRole('region', {
+      name: 'Incidencias del partido',
+    });
+    expect(within(incidents).getByText('Gol')).toBeVisible();
+    expect(within(incidents).getByText("15'")).toBeVisible();
+    expect(within(incidents).getByText('Carlos Morocho')).toBeVisible();
+    // La nómina marca al goleador con su incidencia.
+    const lineup = await screen.findByRole('region', {
+      name: 'Nómina de Real Quero',
+    });
     expect(
-      await screen.findByText(/Min\. 15: Gol — Carlos Morocho \(Real Quero\)/),
+      within(lineup).getByRole('img', { name: 'Gol, minuto 15' }),
     ).toBeVisible();
-    expect(screen.getByText(/Av\. Principal/)).toBeVisible();
+    expect(
+      screen.queryByRole('region', { name: 'Nómina de Atlético' }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText('Av. Principal')).toBeVisible();
+    expect(screen.getByTitle('Mapa de Estadio Cantonal')).toHaveAttribute(
+      'src',
+      expect.stringContaining('Estadio%20Cantonal'),
+    );
     await userEvent.click(
       screen.getByRole('button', { name: /Ver \/ imprimir acta oficial/ }),
     );
