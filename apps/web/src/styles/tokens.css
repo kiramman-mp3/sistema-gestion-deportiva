@@ -132,9 +132,14 @@
   --z-toast: 200;
 }
 
-/* Modo oscuro: sigue la preferencia del sistema, como antes. Solo redefine colores. */
+/* El portal público se ve siempre claro (D-103). */
+:root:has(.public-portal) {
+  color-scheme: light;
+}
+
+/* Modo oscuro: sigue la preferencia del sistema, salvo en el portal público. Solo redefine colores. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(:has(.public-portal)) {
     --color-bg: #0f1719;
     --color-surface: #172124;
     --color-surface-sunken: #223033;
