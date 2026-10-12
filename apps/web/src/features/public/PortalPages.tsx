@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Icon } from '../../components/Icon.tsx';
+import { Icon, type IconName } from '../../components/Icon.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import { Pagination } from '../../components/Pagination.tsx';
 import { Confetti, SportArt, sportKey } from '../../components/SportArt.tsx';
@@ -8,7 +8,6 @@ import {
   HomeHero,
   matchState,
   pickStandingsChampionship,
-  ScoreTicker,
   sides,
   SportsShowcase,
   StandingsSnapshot,
@@ -138,6 +137,36 @@ export function MatchRow({ event }: { event: PublicEventSummary }) {
   );
 }
 
+// ───────────────────── Encabezado de sección ─────────────────────
+
+/**
+ * Banda de color con el título de la página. El tono reutiliza los colores de deporte
+ * (clase `sport-*`) para que cada sección del portal tenga el suyo.
+ */
+export function PageBanner({
+  id,
+  title,
+  lead,
+  icon,
+  tone,
+}: {
+  id?: string;
+  title: string;
+  lead?: string | null;
+  icon: IconName;
+  tone: string;
+}) {
+  return (
+    <div className={`page-banner sport-${tone}`}>
+      <Icon name={icon} size={160} className="page-banner-icon" />
+      <h1 id={id} className="page-banner-title">
+        {title}
+      </h1>
+      {lead && <p className="page-banner-lead">{lead}</p>}
+    </div>
+  );
+}
+
 // ───────────────────── Inicio ─────────────────────
 
 export function NewsCard({
@@ -176,7 +205,7 @@ export function NewsCard({
 }
 
 /** Fila compacta de marcador: equipos, resultado u hora, y enlace al partido en toda la fila. */
-function ScoreRow({ event }: { event: PublicEventSummary }) {
+export function ScoreRow({ event }: { event: PublicEventSummary }) {
   const [a, b] = sides(event);
   const sport = event.championship.sport;
   const team = (p: typeof a, side: string) => (
@@ -338,11 +367,8 @@ export function HomePage({
   const items = championships.kind === 'ready' ? championships.data.items : [];
   const sports = groupBySport(items);
   const standings = pickStandingsChampionship(items);
-  const week =
-    home.kind === 'ready' ? [...home.data.recent, ...home.data.upcoming] : [];
   return (
     <div className="home-page">
-      <ScoreTicker events={week} />
       <HomeHero
         next={home.kind === 'ready' ? home.data.upcoming[0] : undefined}
         institution={institution}
@@ -430,9 +456,13 @@ export function CalendarPage() {
 
   return (
     <section className="portal-section" aria-labelledby="calendar-title">
-      <div className="section-header">
-        <h1 id="calendar-title">Calendario de partidos</h1>
-      </div>
+      <PageBanner
+        id="calendar-title"
+        title="Calendario de partidos"
+        lead="Todos los partidos de la Liga. Filtra por fecha, deporte, campeonato o estado."
+        icon="calendar"
+        tone="voley"
+      />
       <div className="filters">
         <TextField
           label="Desde"
@@ -483,11 +513,11 @@ export function CalendarPage() {
       )}
       {events.kind === 'ready' && events.data.items.length > 0 && (
         <>
-          <div className="events-list">
+          <ul className="score-list">
             {events.data.items.map((e) => (
-              <MatchRow key={e.id} event={e} />
+              <ScoreRow key={e.id} event={e} />
             ))}
-          </div>
+          </ul>
           <Pagination
             page={events.data.page}
             pageSize={events.data.pageSize}
@@ -606,9 +636,13 @@ export function NewsListPage() {
   );
   return (
     <section className="portal-section" aria-labelledby="news-title">
-      <div className="section-header">
-        <h1 id="news-title">Noticias y comunicados</h1>
-      </div>
+      <PageBanner
+        id="news-title"
+        title="Noticias y comunicados"
+        lead="Novedades y comunicados oficiales de la Liga."
+        icon="newspaper"
+        tone="basquet"
+      />
       <div className="filters">
         <SelectField
           label="Mostrar"
@@ -690,9 +724,13 @@ export function ClubsPage() {
   );
   return (
     <section className="portal-section" aria-labelledby="clubs-title">
-      <div className="section-header">
-        <h1 id="clubs-title">Organizaciones y clubes afiliados</h1>
-      </div>
+      <PageBanner
+        id="clubs-title"
+        title="Organizaciones y clubes afiliados"
+        lead="Clubes y organizaciones que compiten en la Liga."
+        icon="shield"
+        tone="ajedrez"
+      />
       <LoadState state={clubs} onRetry={reload} />
       {clubs.kind === 'ready' && clubs.data.items.length === 0 && (
         <p className="empty-state">No hay clubes para mostrar.</p>
@@ -727,13 +765,13 @@ export function ResolutionsPage() {
   );
   return (
     <section className="portal-section" aria-labelledby="resolutions-title">
-      <div className="section-header">
-        <h1 id="resolutions-title">Resoluciones disciplinarias</h1>
-      </div>
-      <p className="hint">
-        Solo se publican las resoluciones que la Liga decide hacer públicas, sin
-        nombres de personas.
-      </p>
+      <PageBanner
+        id="resolutions-title"
+        title="Resoluciones disciplinarias"
+        lead="Solo se publican las resoluciones que la Liga decide hacer públicas, sin nombres de personas."
+        icon="flag"
+        tone="taekwondo"
+      />
       <LoadState state={list} onRetry={reload} />
       {list.kind === 'ready' && list.data.items.length === 0 && (
         <p className="empty-state">No hay resoluciones publicadas.</p>
@@ -782,66 +820,80 @@ export function ResolutionsPage() {
 export function AboutPage({ institution }: { institution: PublicInstitution }) {
   return (
     <section className="portal-section" aria-labelledby="about-title">
-      <div className="section-header">
-        <h1 id="about-title">{institution.name}</h1>
+      <PageBanner
+        id="about-title"
+        title={institution.name}
+        lead={institution.affiliation}
+        icon="trophy"
+        tone="atletismo"
+      />
+      <div className="about-layout">
+        <div className="about-main">
+          {institution.about ? (
+            <Paragraphs text={institution.about} />
+          ) : (
+            <p className="empty-state">
+              La Liga aún no publicó su presentación.
+            </p>
+          )}
+          {(institution.presidentName || institution.secretaryName) && (
+            <dl className="detail-list">
+              {institution.presidentName && (
+                <>
+                  <dt>Presidente</dt>
+                  <dd>{institution.presidentName}</dd>
+                </>
+              )}
+              {institution.secretaryName && (
+                <>
+                  <dt>Secretario/a</dt>
+                  <dd>{institution.secretaryName}</dd>
+                </>
+              )}
+            </dl>
+          )}
+        </div>
+        <aside className="about-card" aria-labelledby="contact">
+          <h2 id="contact">Contacto</h2>
+          <dl className="detail-list">
+            {institution.address && (
+              <>
+                <dt>Dirección</dt>
+                <dd>{institution.address}</dd>
+              </>
+            )}
+            {institution.phone && (
+              <>
+                <dt>Teléfono</dt>
+                <dd>{institution.phone}</dd>
+              </>
+            )}
+            {institution.email && (
+              <>
+                <dt>Correo</dt>
+                <dd>
+                  <a href={`mailto:${institution.email}`}>
+                    {institution.email}
+                  </a>
+                </dd>
+              </>
+            )}
+            {institution.website && (
+              <>
+                <dt>Sitio web</dt>
+                <dd>
+                  <a href={institution.website} rel="noopener noreferrer">
+                    {institution.website}
+                  </a>
+                </dd>
+              </>
+            )}
+          </dl>
+          {institution.contactInfo && (
+            <Paragraphs text={institution.contactInfo} />
+          )}
+        </aside>
       </div>
-      {institution.affiliation && <p>{institution.affiliation}</p>}
-      {institution.about ? (
-        <Paragraphs text={institution.about} />
-      ) : (
-        <p className="empty-state">La Liga aún no publicó su presentación.</p>
-      )}
-      {(institution.presidentName || institution.secretaryName) && (
-        <dl className="detail-list">
-          {institution.presidentName && (
-            <>
-              <dt>Presidente</dt>
-              <dd>{institution.presidentName}</dd>
-            </>
-          )}
-          {institution.secretaryName && (
-            <>
-              <dt>Secretario/a</dt>
-              <dd>{institution.secretaryName}</dd>
-            </>
-          )}
-        </dl>
-      )}
-
-      <h2 id="contact">Contacto</h2>
-      <dl className="detail-list">
-        {institution.address && (
-          <>
-            <dt>Dirección</dt>
-            <dd>{institution.address}</dd>
-          </>
-        )}
-        {institution.phone && (
-          <>
-            <dt>Teléfono</dt>
-            <dd>{institution.phone}</dd>
-          </>
-        )}
-        {institution.email && (
-          <>
-            <dt>Correo</dt>
-            <dd>
-              <a href={`mailto:${institution.email}`}>{institution.email}</a>
-            </dd>
-          </>
-        )}
-        {institution.website && (
-          <>
-            <dt>Sitio web</dt>
-            <dd>
-              <a href={institution.website} rel="noopener noreferrer">
-                {institution.website}
-              </a>
-            </dd>
-          </>
-        )}
-      </dl>
-      {institution.contactInfo && <Paragraphs text={institution.contactInfo} />}
 
       <h2 id="privacy">Política de privacidad</h2>
       {institution.privacyPolicy ? (
@@ -870,9 +922,12 @@ export function VerifyPage({ code }: { code?: string }) {
   );
   return (
     <section className="portal-section" aria-labelledby="verify-title">
-      <div className="section-header">
-        <h1 id="verify-title">Verificar un documento</h1>
-      </div>
+      <PageBanner
+        id="verify-title"
+        title="Verificar un documento"
+        icon="check"
+        tone="otro"
+      />
       <p>
         Escriba el código de verificación impreso en el carné o certificado (o
         escanee su código QR) para comprobar que es auténtico y sigue vigente.

@@ -169,15 +169,10 @@ describe('portal público', () => {
     expect(
       screen.getAllByRole('link', { name: 'Ver detalle del partido' }),
     ).toHaveLength(3);
-    // El próximo partido se destaca en la portada y la franja resume la semana.
+    // El próximo partido se destaca en la portada.
     expect(
       screen.getByRole('heading', { name: 'Próximo partido' }),
     ).toBeVisible();
-    const ticker = screen.getByRole('navigation', {
-      name: 'Marcadores de la semana',
-    });
-    expect(within(ticker).getAllByRole('link')).toHaveLength(2);
-    expect(within(ticker).getByText('Final')).toBeVisible();
     expect(
       screen.getByRole('navigation', { name: 'Secciones del portal' }),
     ).toBeVisible();

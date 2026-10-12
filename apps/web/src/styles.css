@@ -3476,80 +3476,6 @@ pre.json {
   margin: 0;
 }
 
-/* Franja de marcadores */
-.score-ticker {
-  background: var(--color-brand);
-  color: var(--color-on-brand);
-  border-bottom: 3px solid var(--color-accent);
-}
-
-.score-ticker ul {
-  display: flex;
-  max-width: 100%;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  overflow-x: auto;
-  scrollbar-width: thin;
-}
-
-.score-ticker li {
-  flex: 0 0 auto;
-}
-
-.score-ticker a {
-  display: grid;
-  gap: 0.125rem;
-  width: 12rem;
-  min-height: var(--target-min);
-  padding: 0.5rem 0.875rem 0.625rem;
-  border-top: 4px solid var(--sport, transparent);
-  border-right: 1px solid
-    color-mix(in srgb, var(--color-on-brand) 18%, transparent);
-  color: inherit;
-  font-size: 0.875rem;
-  text-decoration: none;
-}
-
-.score-ticker a:hover {
-  background: color-mix(in srgb, var(--color-on-brand) 10%, transparent);
-}
-
-.score-ticker a:focus-visible {
-  outline: 3px solid var(--color-accent);
-  outline-offset: -3px;
-}
-
-.ticker-state {
-  color: var(--color-accent);
-  font-size: 0.8125rem;
-  font-weight: 700;
-}
-
-.ticker-team {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  min-width: 0;
-}
-
-.ticker-team span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.ticker-team b {
-  font-family: var(--font-display);
-  font-size: 1.0625rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.ticker-winner {
-  font-weight: 700;
-}
-
 /* Portada: foto a todo el ancho, cortada en diagonal como la banda de una camiseta. */
 .home-hero {
   --hero-cut: clamp(1.5rem, 4vw, 3.5rem);
@@ -3583,14 +3509,14 @@ pre.json {
   background:
     linear-gradient(
       to top,
-      color-mix(in srgb, var(--color-brand) 92%, transparent) 0%,
-      transparent 45%
+      color-mix(in srgb, var(--color-brand) 85%, transparent) 0%,
+      transparent 40%
     ),
     linear-gradient(
       100deg,
-      color-mix(in srgb, var(--color-brand) 95%, transparent) 0%,
-      color-mix(in srgb, var(--color-brand) 78%, transparent) 45%,
-      color-mix(in srgb, var(--color-brand) 20%, transparent) 100%
+      color-mix(in srgb, var(--color-brand) 90%, transparent) 0%,
+      color-mix(in srgb, var(--color-brand) 62%, transparent) 45%,
+      transparent 100%
     );
 }
 
@@ -3997,4 +3923,220 @@ pre.json {
   height: 10rem;
   overflow: hidden;
   background: var(--color-accent);
+}
+
+/* ───────── Portal: siempre claro y con colores vivos (D-103) ───────── */
+:root:has(.public-portal) {
+  --color-bg: #f5f8f6;
+  --color-brand: #0b6b57;
+  --color-primary: #0b6b57;
+  --color-focus: #0b6b57;
+  --color-accent-soft: #fff3c4;
+}
+
+/* Encabezado de color de cada sección; el tono sale de la clase sport-*. */
+.page-banner {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding: clamp(1.5rem, 4vw, 2.75rem) clamp(1.25rem, 4vw, 2.5rem);
+  border-radius: var(--radius-lg);
+  background: var(--sport);
+  color: var(--color-on-sport);
+}
+
+/* Banda amarilla en diagonal, como en una camiseta. */
+.page-banner::after {
+  content: '';
+  position: absolute;
+  right: -3rem;
+  bottom: 1.25rem;
+  z-index: -1;
+  width: 55%;
+  height: 0.75rem;
+  background: var(--color-accent);
+  transform: rotate(-8deg);
+}
+
+.page-banner-icon {
+  position: absolute;
+  top: 50%;
+  right: clamp(-2rem, 2vw, 2rem);
+  z-index: -1;
+  width: clamp(7rem, 18vw, 10rem);
+  height: auto;
+  opacity: 0.2;
+  transform: translateY(-50%) rotate(-10deg);
+}
+
+@media (max-width: 40rem) {
+  .page-banner-icon {
+    display: none;
+  }
+}
+
+.page-banner-title {
+  max-width: 22ch;
+  margin: 0;
+  color: inherit;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-weight: 700;
+  line-height: 0.95;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.page-banner-lead {
+  max-width: 52ch;
+  margin: 0;
+  font-size: 1.0625rem;
+}
+
+/* Filtros del portal: una barra blanca con campos redondeados. */
+.public-portal .filters,
+.public-portal .portal-controls {
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.public-portal .filters .field label {
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.public-portal .filters input,
+.public-portal .filters select,
+.public-portal .search-box input {
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg);
+  font-weight: 600;
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.public-portal .filters input:hover,
+.public-portal .filters select:hover,
+.public-portal .search-box input:hover {
+  border-color: var(--color-control-border);
+}
+
+.public-portal .filters input:focus-visible,
+.public-portal .filters select:focus-visible,
+.public-portal .search-box input:focus-visible {
+  border-color: var(--color-primary);
+  outline: 3px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+/* Flecha propia del desplegable (la nativa no respeta el redondeo en todos los navegadores). */
+.public-portal .filters select {
+  appearance: none;
+  padding-right: 2.25rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230b6b57' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-position: right 0.75rem center;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.public-portal .search-box input {
+  min-height: var(--target-min);
+}
+
+@media (max-width: 40rem) {
+  .public-portal .search-box,
+  .public-portal .search-box input {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* Tarjetas de campeonato y resoluciones con el color de su deporte. */
+.public-portal .championship-card {
+  border-top: 6px solid var(--sport, var(--color-primary));
+}
+
+.public-portal .championship-card .sport-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+/* Clubes: escudo sobre un círculo de color. */
+.public-portal .club-pill {
+  min-height: 4.5rem;
+  border-left: 5px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  transition: box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.public-portal .club-pill:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.public-portal .club-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.public-portal .club-info strong {
+  font-size: 1rem;
+}
+
+.public-portal .club-info small {
+  font-size: 0.875rem;
+}
+
+/* La Liga: presentación y tarjeta de contacto. */
+.about-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 2rem;
+}
+
+@media (min-width: 56rem) {
+  .about-layout {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  }
+}
+
+.about-main {
+  min-width: 0;
+  font-size: 1.0625rem;
+}
+
+.about-card {
+  min-width: 0;
+  padding: 1.25rem;
+  border: 1px solid var(--color-border);
+  border-top: 6px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.about-card h2 {
+  margin-top: 0;
+}
+
+/* Jornada de la portada sobre un fondo amarillo suave. */
+.home-body .scoreboard-band {
+  padding: clamp(1rem, 3vw, 1.75rem);
+  border-radius: var(--radius-lg);
+  background: var(--color-accent-soft);
 }

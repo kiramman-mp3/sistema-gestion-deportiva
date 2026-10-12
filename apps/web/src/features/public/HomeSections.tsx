@@ -76,49 +76,22 @@ const PLAIN_STATUS: Record<string, string> = {
   cancelado: 'Cancelado',
 };
 
-/** «Final», la hora del partido o su estado si no se juega como estaba previsto. */
+const matchDay = new Intl.DateTimeFormat('es-EC', {
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+});
+
+/** «Final» con el día, la hora del partido o su estado si no se juega como estaba previsto. */
 export function matchState(event: PublicEventSummary): string {
-  if (event.hasResult) return 'Final';
+  if (event.hasResult)
+    return event.scheduledAt
+      ? `Final, ${matchDay.format(new Date(event.scheduledAt))}`
+      : 'Final';
   if (PLAIN_STATUS[event.status]) return PLAIN_STATUS[event.status];
   return event.scheduledAt
     ? kickoff.format(new Date(event.scheduledAt))
     : 'Fecha por definir';
-}
-
-/** Franja de marcadores de la semana; se desplaza en horizontal sin mover la página. */
-export function ScoreTicker({ events }: { events: PublicEventSummary[] }) {
-  if (events.length === 0) return null;
-  return (
-    <nav className="score-ticker" aria-label="Marcadores de la semana">
-      <ul>
-        {events.map((e) => {
-          const [a, b] = sides(e);
-          const team = (p: typeof a) => (
-            <span
-              className={`ticker-team ${
-                e.hasResult && p?.outcome === 'victoria' ? 'ticker-winner' : ''
-              }`.trim()}
-            >
-              <span>{p?.name ?? 'Por definir'}</span>
-              {e.hasResult && <b>{p?.score ?? 0}</b>}
-            </span>
-          );
-          return (
-            <li key={e.id}>
-              <a
-                href={`#/portal/partido/${e.id}`}
-                className={`sport-${sportKey(e.championship.sport.code)}`}
-              >
-                <span className="ticker-state">{matchState(e)}</span>
-                {team(a)}
-                {team(b)}
-              </a>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
-  );
 }
 
 export interface HomeHeroProps {
