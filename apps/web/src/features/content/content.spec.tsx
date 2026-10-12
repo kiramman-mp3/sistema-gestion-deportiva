@@ -237,6 +237,13 @@ describe('noticias y comunicados (administración)', () => {
     await userEvent.click(
       await screen.findByRole('button', { name: 'Nueva publicación' }),
     );
+    expect(
+      screen.queryByLabelText(/Descripción de la imagen/),
+    ).not.toBeInTheDocument();
+    await userEvent.selectOptions(
+      screen.getByLabelText('Imagen de portada'),
+      'Subir imagen…',
+    );
     const subir = screen.getByRole('button', {
       name: 'Subir y usar como portada',
     });
@@ -258,6 +265,10 @@ describe('noticias y comunicados (administración)', () => {
     expect(
       await screen.findByAltText('Vista previa de la portada'),
     ).toHaveAttribute('src', `/api/public/media/${MEDIA_ID}`);
+    expect(screen.getByLabelText('Imagen de portada')).toHaveValue(MEDIA_ID);
+    expect(
+      screen.queryByLabelText(/Descripción de la imagen/),
+    ).not.toBeInTheDocument();
     expect(api.of('POST', '/media')[0]!.body).toMatchObject({
       altText: 'Equipo campeón',
     });

@@ -1289,6 +1289,11 @@ pre.json {
   background: #fff;
 }
 
+.cover-choice-preview {
+  display: block;
+  margin-inline: auto;
+}
+
 .cover-preview {
   display: block;
   width: 100%;
