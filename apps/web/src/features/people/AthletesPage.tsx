@@ -1,16 +1,14 @@
-import { type FormEvent, useId, useState } from 'react';
-import { ApiError, apiRequest } from '../../api/client.ts';
-import {
-  Notice,
-  type NoticeState,
-  describeError,
-} from '../../components/Notice.tsx';
+import { useId, useState } from 'react';
+import { Notice, type NoticeState } from '../../components/Notice.tsx';
+import { Modal } from '../../components/Modal.tsx';
 import { Pagination } from '../../components/Pagination.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
-import { LoadState, SelectField, TextField } from './fields.tsx';
+import { CreateAthleteForm } from './CreateAthleteForm.tsx';
+import { LoadState, SelectField } from './fields.tsx';
+import { OriginLinksForm } from './OriginLinks.tsx';
 import {
   type Athlete,
-  type Club,
+  type AthleteLookup,
   ELIGIBILITY_LABELS,
   type Eligibility,
   PERSON_STATUS_LABELS,
@@ -32,6 +30,10 @@ export function AthletesPage({
   });
   const [searchText, setSearchText] = useState('');
   const [creating, setCreating] = useState(false);
+  const [linking, setLinking] = useState<{
+    athlete: Athlete;
+    lookup: AthleteLookup | null;
+  } | null>(null);
   const [notice, setNotice] = useState<NoticeState | null>(null);
 
   const params = new URLSearchParams({
@@ -49,7 +51,7 @@ export function AthletesPage({
     <section aria-labelledby="athletes-title" className="catalog">
       <div className="catalog-header">
         <h1 id="athletes-title">Deportistas</h1>
-        {canCreate && !creating && (
+        {canCreate && (
           <button
             type="button"
             className="primary"
@@ -62,18 +64,41 @@ export function AthletesPage({
       <Notice notice={notice} onClose={() => setNotice(null)} />
 
       {creating && (
-        <CreateAthleteForm
-          canSeeFull={canSeeFull}
-          onCancel={() => setCreating(false)}
-          onCreated={(athlete) => {
-            setCreating(false);
-            setNotice({
-              type: 'success',
-              text: `Se registró a ${athlete.firstName} ${athlete.lastName} (${athlete.code}).`,
-            });
-            reload();
-          }}
-        />
+        <Modal onClose={() => setCreating(false)} className="dialog-complex">
+          <CreateAthleteForm
+            canSeeFull={canSeeFull}
+            onCancel={() => setCreating(false)}
+            onCreated={(athlete, lookup) => {
+              setCreating(false);
+              setNotice({
+                type: 'success',
+                text: `Se registró a ${athlete.firstName} ${athlete.lastName} (${athlete.code}).`,
+              });
+              if (canSeeFull) setLinking({ athlete, lookup });
+              reload();
+            }}
+          />
+        </Modal>
+      )}
+
+      {linking && (
+        <Modal onClose={() => setLinking(null)} className="dialog-complex">
+          <OriginLinksForm
+            athleteId={linking.athlete.id}
+            athleteName={`${linking.athlete.firstName} ${linking.athlete.lastName}`}
+            record={linking.lookup?.registry.record ?? null}
+            registryConfigured={linking.lookup?.registry.configured ?? false}
+            cancelLabel="Completar después"
+            onCancel={() => setLinking(null)}
+            onSaved={() => {
+              setNotice({
+                type: 'success',
+                text: `Se guardaron los vínculos con Quero de ${linking.athlete.firstName} ${linking.athlete.lastName}.`,
+              });
+              setLinking(null);
+            }}
+          />
+        </Modal>
       )}
 
       <search>
@@ -175,232 +200,5 @@ export function AthletesPage({
         </>
       )}
     </section>
-  );
-}
-
-const EMPTY = {
-  clubId: '',
-  firstName: '',
-  lastName: '',
-  birthDate: '',
-  idType: 'cedula',
-  idNumber: '',
-  phone: '',
-  guardianName: '',
-  guardianRelation: '',
-  guardianPhone: '',
-};
-
-function CreateAthleteForm({
-  canSeeFull,
-  onCreated,
-  onCancel,
-}: {
-  canSeeFull: boolean;
-  onCreated: (athlete: Athlete) => void;
-  onCancel: () => void;
-}) {
-  const [clubs] = useFetch<Page<Club>>('/clubs?pageSize=100');
-  const [v, setV] = useState(EMPTY);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [formError, setFormError] = useState<string | null>(null);
-  const [duplicate, setDuplicate] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const set = (key: keyof typeof EMPTY) => (value: string) =>
-    setV((c) => ({ ...c, [key]: value }));
-
-  async function submit(confirmDuplicate: boolean) {
-    if (submitting) return;
-    const found: Record<string, string> = {};
-    if (!v.clubId) found.clubId = 'Seleccione el club.';
-    if (!v.firstName.trim()) found.firstName = 'Ingrese los nombres.';
-    if (!v.lastName.trim()) found.lastName = 'Ingrese los apellidos.';
-    setErrors(found);
-    setFormError(null);
-    if (Object.keys(found).length) return;
-
-    const body: Record<string, unknown> = {
-      clubId: v.clubId,
-      firstName: v.firstName.trim(),
-      lastName: v.lastName.trim(),
-    };
-    if (v.birthDate) body.birthDate = v.birthDate;
-    if (canSeeFull) {
-      if (v.idNumber.trim()) {
-        body.idType = v.idType;
-        body.idNumber = v.idNumber.trim();
-      }
-      for (const key of [
-        'phone',
-        'guardianName',
-        'guardianRelation',
-        'guardianPhone',
-      ] as const) {
-        if (v[key].trim()) body[key] = v[key].trim();
-      }
-    }
-    if (confirmDuplicate) body.confirmDuplicate = true;
-
-    setSubmitting(true);
-    try {
-      onCreated(
-        await apiRequest<Athlete>('/athletes', { method: 'POST', body }),
-      );
-    } catch (error) {
-      if (error instanceof ApiError && error.fieldErrors)
-        setErrors(error.fieldErrors);
-      setDuplicate(
-        error instanceof ApiError &&
-          error.status === 409 &&
-          /mismo nombre y fecha de nacimiento/.test(error.message),
-      );
-      setFormError(describeError(error));
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    void submit(false);
-  };
-
-  return (
-    <form
-      className="catalog-form"
-      onSubmit={onSubmit}
-      noValidate
-      aria-label="Nuevo deportista"
-    >
-      <h3>Nuevo deportista</h3>
-      <SelectField
-        label="Club"
-        required
-        value={v.clubId}
-        onChange={set('clubId')}
-        placeholder="Seleccione…"
-        error={errors.clubId}
-        disabled={submitting}
-        options={
-          clubs.kind === 'ready'
-            ? clubs.data.items
-                .filter((c) => c.status === 'activo')
-                .map((c) => ({ value: c.id, label: c.name }))
-            : []
-        }
-      />
-      <TextField
-        label="Nombres"
-        required
-        value={v.firstName}
-        onChange={set('firstName')}
-        error={errors.firstName}
-        maxLength={80}
-        disabled={submitting}
-      />
-      <TextField
-        label="Apellidos"
-        required
-        value={v.lastName}
-        onChange={set('lastName')}
-        error={errors.lastName}
-        maxLength={80}
-        disabled={submitting}
-      />
-      <TextField
-        label="Fecha de nacimiento"
-        type="date"
-        value={v.birthDate}
-        onChange={set('birthDate')}
-        error={errors.birthDate}
-        disabled={submitting}
-        hint="Necesaria para validar la categoría y para habilitar al deportista."
-      />
-      {canSeeFull ? (
-        <>
-          <SelectField
-            label="Tipo de documento"
-            value={v.idType}
-            onChange={set('idType')}
-            disabled={submitting}
-            options={[
-              { value: 'cedula', label: 'Cédula' },
-              { value: 'pasaporte', label: 'Pasaporte' },
-              { value: 'otro', label: 'Otro' },
-            ]}
-          />
-          <TextField
-            label="Número de documento"
-            value={v.idNumber}
-            onChange={set('idNumber')}
-            error={errors.idNumber ?? errors.idType}
-            maxLength={30}
-            disabled={submitting}
-          />
-          <TextField
-            label="Teléfono"
-            type="tel"
-            value={v.phone}
-            onChange={set('phone')}
-            error={errors.phone}
-            maxLength={30}
-            disabled={submitting}
-          />
-          <TextField
-            label="Tutor (menores de edad)"
-            value={v.guardianName}
-            onChange={set('guardianName')}
-            error={errors.guardianName}
-            maxLength={120}
-            disabled={submitting}
-          />
-          <TextField
-            label="Parentesco del tutor"
-            value={v.guardianRelation}
-            onChange={set('guardianRelation')}
-            error={errors.guardianRelation}
-            maxLength={40}
-            disabled={submitting}
-          />
-          <TextField
-            label="Teléfono del tutor"
-            type="tel"
-            value={v.guardianPhone}
-            onChange={set('guardianPhone')}
-            error={errors.guardianPhone}
-            maxLength={30}
-            disabled={submitting}
-          />
-        </>
-      ) : (
-        <p className="hint">
-          Su cuenta no puede registrar documento, teléfono ni datos del tutor:
-          quien tenga el permiso de datos personales completos los completará en
-          la ficha.
-        </p>
-      )}
-      {formError && (
-        <p className="form-error" role="alert">
-          {formError}
-        </p>
-      )}
-      <div className="form-actions">
-        <button type="submit" className="primary" disabled={submitting}>
-          {submitting ? 'Registrando…' : 'Registrar deportista'}
-        </button>
-        {duplicate && (
-          <button
-            type="button"
-            disabled={submitting}
-            onClick={() => void submit(true)}
-          >
-            Es otra persona: registrar de todos modos
-          </button>
-        )}
-        <button type="button" onClick={onCancel} disabled={submitting}>
-          Cancelar
-        </button>
-      </div>
-    </form>
   );
 }

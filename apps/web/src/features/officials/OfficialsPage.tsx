@@ -6,6 +6,7 @@ import {
   type NoticeState,
   describeError,
 } from '../../components/Notice.tsx';
+import { Modal } from '../../components/Modal.tsx';
 import { Pagination } from '../../components/Pagination.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import {
@@ -61,7 +62,7 @@ export function OfficialsPage({
     <section aria-labelledby="officials-title" className="catalog">
       <div className="catalog-header">
         <h1 id="officials-title">Árbitros y jueces</h1>
-        {canManage && !creating && !editing && (
+        {canManage && (
           <button
             type="button"
             className="primary"
@@ -74,25 +75,33 @@ export function OfficialsPage({
       <Notice notice={notice} onClose={() => setNotice(null)} />
 
       {(creating || editing) && (
-        <OfficialForm
-          official={editing ?? undefined}
-          sports={sportOptions}
-          onCancel={() => {
+        <Modal
+          onClose={() => {
             setCreating(false);
             setEditing(null);
           }}
-          onSaved={(saved) => {
-            setNotice({
-              type: 'success',
-              text: editing
-                ? `Se actualizó a ${saved.firstName} ${saved.lastName}.`
-                : `Se registró a ${saved.firstName} ${saved.lastName}.`,
-            });
-            setCreating(false);
-            setEditing(null);
-            reload();
-          }}
-        />
+          className="dialog-complex"
+        >
+          <OfficialForm
+            official={editing ?? undefined}
+            sports={sportOptions}
+            onCancel={() => {
+              setCreating(false);
+              setEditing(null);
+            }}
+            onSaved={(saved) => {
+              setNotice({
+                type: 'success',
+                text: editing
+                  ? `Se actualizó a ${saved.firstName} ${saved.lastName}.`
+                  : `Se registró a ${saved.firstName} ${saved.lastName}.`,
+              });
+              setCreating(false);
+              setEditing(null);
+              reload();
+            }}
+          />
+        </Modal>
       )}
 
       <div className="filters">

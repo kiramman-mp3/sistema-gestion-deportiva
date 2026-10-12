@@ -51,6 +51,10 @@ test.describe('flujo disciplinario: reclamos, expedientes, resolución y publica
       `Se presentó el reclamo «${complaintSubject}».`,
     );
 
+    // Al presentarlo se abre su detalle en un modal; se cierra antes de salir.
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toBeHidden();
+
     await logout(page);
 
     // 2. Comisión disciplinaria tramita el reclamo y abre expediente

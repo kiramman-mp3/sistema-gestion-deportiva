@@ -627,4 +627,114 @@ describe('deportistas', () => {
       expect(await audits('athlete.update')).toHaveLength(0);
     });
   });
+
+  describe('búsqueda por cédula y vínculos con Quero', () => {
+    const lookup = (idNumber: string, a = api()) =>
+      a.get('/api/athletes/lookup').query({ idType: 'cedula', idNumber });
+
+    it('una cédula nueva no tiene coincidencias y el Registro Civil figura sin convenio', async () => {
+      const res = await lookup(cedula('171003406')).expect(200);
+      expect(res.body).toEqual({
+        existing: null,
+        registry: { configured: false, record: null },
+      });
+      const good = cedula('171003406');
+      const bad = good.slice(0, 9) + String((Number(good[9]) + 1) % 10);
+      await lookup(bad).expect(400);
+    });
+
+    it('encuentra al deportista ya registrado y oculta su nombre a quien no accede a su club', async () => {
+      const created = await create(adult()).expect(201);
+      const res = await lookup(cedula('171003406')).expect(200);
+      expect(res.body.existing).toEqual({
+        kind: 'athlete',
+        athlete: {
+          id: created.body.id,
+          code: 'DEP-000001',
+          firstName: 'María José',
+          lastName: 'Pérez Andrade',
+        },
+        club: { name: 'Club Uno' },
+      });
+
+      const other = await createClub(prisma, 'Club Dos');
+      const leader = await leaderWith(
+        t,
+        prisma,
+        ['athletes:read', 'athletes:read_full', 'athletes:manage'],
+        [other.id],
+      );
+      const hidden = await lookup(
+        cedula('171003406'),
+        authed(t, leader.session),
+      ).expect(200);
+      expect(hidden.body.existing).toEqual({
+        kind: 'athlete',
+        athlete: null,
+        club: { name: 'Club Uno' },
+      });
+    });
+
+    it('sin datos personales completos no se puede buscar por documento', async () => {
+      const leader = await leaderWith(t, prisma, SUMMARY, [club.id]);
+      await lookup(cedula('171003406'), authed(t, leader.session)).expect(403);
+    });
+
+    it('guarda, reemplaza y valida los vínculos sin registrar familiares en la auditoría', async () => {
+      const { body } = await create(adult()).expect(201);
+      const url = `/api/athletes/${body.id}/origin-links`;
+
+      await api()
+        .put(url)
+        .send({ links: [{ kind: 'matrimonio' }] })
+        .expect(400);
+      await api()
+        .put(url)
+        .send({ links: [{ kind: 'nacimiento' }, { kind: 'nacimiento' }] })
+        .expect(400);
+
+      const saved = await api()
+        .put(url)
+        .send({
+          links: [
+            {
+              kind: 'nacimiento',
+              birthPlace: 'Quero',
+              relatedName: 'Ignorado',
+            },
+            {
+              kind: 'madre',
+              relatedName: 'Rosa Andrade',
+              relatedIdNumber: '1800000000',
+              birthPlace: 'Yanayacu, Quero',
+            },
+          ],
+        })
+        .expect(200);
+      expect(saved.body).toMatchObject([
+        {
+          kind: 'nacimiento',
+          relatedName: null,
+          birthPlace: 'Quero',
+          source: 'manual',
+        },
+        {
+          kind: 'madre',
+          relatedName: 'Rosa Andrade',
+          relatedIdNumber: '1800000000',
+        },
+      ]);
+      expect((await api().get(url).expect(200)).body).toHaveLength(2);
+
+      const leader = await leaderWith(t, prisma, SUMMARY, [club.id]);
+      await authed(t, leader.session).get(url).expect(403);
+
+      await api().put(url).send({ links: [] }).expect(200);
+      expect((await api().get(url).expect(200)).body).toEqual([]);
+
+      const logged = JSON.stringify(await audits('athlete.origin_links'));
+      expect(logged).toContain('madre');
+      expect(logged).not.toContain('Rosa Andrade');
+    });
+  });
 });

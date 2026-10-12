@@ -85,10 +85,10 @@ test.describe('accesibilidad web (axe-core)', () => {
   });
 
   test.describe('panel de administración', () => {
-    test('la pantalla de inicio de sesión (#/) cumple las pautas de accesibilidad', async ({
+    test('la pantalla de inicio de sesión (#/ingresar) cumple las pautas de accesibilidad', async ({
       page,
     }) => {
-      await page.goto('/#/');
+      await page.goto('/#/ingresar');
       await expect(
         page.getByRole('heading', { name: 'Iniciar sesión' }),
       ).toBeVisible();
@@ -156,7 +156,7 @@ test.describe('accesibilidad web (axe-core)', () => {
       await expect(page.locator('h1')).toHaveCount(1);
 
       // Login
-      await page.goto('/#/');
+      await page.goto('/#/ingresar');
       await expect(page.locator('h1')).toHaveCount(1);
 
       // Panel con sesión
@@ -295,10 +295,10 @@ test.describe('accesibilidad web (axe-core)', () => {
     });
 
     test.describe('panel de administración', () => {
-      test('la pantalla de inicio de sesión (#/) cumple las pautas en modo oscuro', async ({
+      test('la pantalla de inicio de sesión (#/ingresar) cumple las pautas en modo oscuro', async ({
         page,
       }) => {
-        await page.goto('/#/');
+        await page.goto('/#/ingresar');
         await expect(
           page.getByRole('heading', { name: 'Iniciar sesión' }),
         ).toBeVisible();

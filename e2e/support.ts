@@ -22,7 +22,7 @@ export async function login(
   email: string,
   password: string = PASSWORD,
 ): Promise<void> {
-  await page.goto('/#/');
+  await page.goto('/#/ingresar');
   await page.getByLabel('Correo electrónico').fill(email);
   await page.getByLabel('Contraseña', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Ingresar' }).click();
