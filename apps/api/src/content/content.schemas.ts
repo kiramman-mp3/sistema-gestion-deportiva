@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { uuidSchema } from '../auth/schemas.js';
 import { listQuerySchema } from '../catalogs/common.js';
+import { dateSchema } from '../catalogs/seasons/seasons.schemas.js';
 
 export const announcementKindSchema = z.enum(['noticia', 'comunicado']);
 export const announcementStatusSchema = z.enum([
@@ -32,6 +33,8 @@ export const createAnnouncementSchema = z.strictObject({
   summary,
   content,
   coverId: uuidSchema.nullable().optional(),
+  /** Fecha de publicación (AAAA-MM-DD, hora de Ecuador); por defecto, hoy. */
+  publishDate: dateSchema.optional(),
 });
 
 export const updateAnnouncementSchema = z.strictObject({
@@ -40,6 +43,7 @@ export const updateAnnouncementSchema = z.strictObject({
   summary: summary.optional(),
   content: content.optional(),
   coverId: uuidSchema.nullable().optional(),
+  publishDate: dateSchema.optional(),
 });
 
 export const announcementListQuerySchema = listQuerySchema.extend({

@@ -307,6 +307,77 @@ describe('noticias, comunicados e imágenes del portal', () => {
     });
   });
 
+  describe('fecha de publicación', () => {
+    const today = () =>
+      new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Guayaquil',
+      }).format(new Date());
+
+    it('por defecto es hoy y una fecha pasada se publica con esa fecha', async () => {
+      const post = await create();
+      expect(post.publishDate).toBe(today());
+
+      const old = await create({
+        title: 'Crónica de la final del año pasado',
+        publishDate: '2025-11-20',
+      });
+      const published = (await publish(old.id)).body;
+      expect(published).toMatchObject({
+        status: 'publicado',
+        scheduled: false,
+      });
+      expect(new Date(published.publishedAt).toISOString()).toBe(
+        '2025-11-20T05:00:00.000Z',
+      );
+      await t.http().get(`/api/public/announcements/${old.slug}`).expect(200);
+    });
+
+    it('una fecha futura queda programada y no se ve en el portal hasta su día', async () => {
+      const post = await create({
+        title: 'Inauguración de la próxima temporada',
+        publishDate: '2099-01-15',
+      });
+      const published = (await publish(post.id)).body;
+      expect(published).toMatchObject({ status: 'publicado', scheduled: true });
+      await t.http().get(`/api/public/announcements/${post.slug}`).expect(404);
+      expect(
+        (await t.http().get('/api/public/announcements')).body.items,
+      ).toEqual([]);
+      expect((await t.http().get('/api/public/home')).body.news).toEqual([]);
+
+      // Al pasarla a hoy deja de estar programada.
+      const now = await api()
+        .patch(`/api/announcements/${post.id}`)
+        .send({ publishDate: today() })
+        .expect(200);
+      expect(now.body.scheduled).toBe(false);
+      await t.http().get(`/api/public/announcements/${post.slug}`).expect(200);
+    });
+
+    it('rechaza fechas inválidas y ordena la lista por fecha', async () => {
+      await api()
+        .post('/api/announcements')
+        .send(draft({ publishDate: '2026-02-30' }))
+        .expect(400);
+      await create({
+        title: 'Noticia de marzo de 2026',
+        publishDate: '2026-03-01',
+      });
+      await create({
+        title: 'Noticia de enero de 2026',
+        publishDate: '2026-01-01',
+      });
+      await create({
+        title: 'Noticia de 2099 programada',
+        publishDate: '2099-01-01',
+      });
+      const list = (await api().get('/api/announcements').expect(200)).body;
+      expect(
+        list.items.map((a: { publishDate: string }) => a.publishDate),
+      ).toEqual(['2099-01-01', '2026-03-01', '2026-01-01']);
+    });
+  });
+
   describe('imágenes', () => {
     const upload = (alt = 'Equipo campeón levantando la copa') =>
       api()
