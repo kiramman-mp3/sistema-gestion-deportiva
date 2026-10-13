@@ -286,3 +286,151 @@ export async function createSeason(
     },
   });
 }
+
+// ───────────────────── Escenario de un partido ─────────────────────
+
+let scenarioCounter = 0;
+
+/**
+ * Campeonato de fútbol en curso con dos equipos de dos clubes, sus inscripciones aprobadas y un
+ * partido programado entre ambos. Cada equipo tiene un deportista habilitado en su plantilla.
+ */
+export async function createMatchScenario(
+  prisma: PrismaClient,
+  over: { scheduledAt?: string; status?: 'programado' | 'en_curso' } = {},
+) {
+  const n = ++scenarioCounter;
+  const club1 = await createClub(prisma, `Club Local ${n}`);
+  const club2 = await createClub(prisma, `Club Visitante ${n}`);
+  const season = await createSeason(prisma, `Temporada ${n}`);
+  const sport = await prisma.sport.create({
+    data: { code: `futbol${n}`, name: `Fútbol ${n}` },
+  });
+  const category = await prisma.category.create({
+    data: { code: `libre${n}`, name: `Libre ${n}` },
+  });
+  const championship = await prisma.championship.create({
+    data: {
+      name: `Campeonato ${n}`,
+      seasonId: season.id,
+      sportId: sport.id,
+      categoryId: category.id,
+      format: 'todos_contra_todos',
+      status: 'en_curso',
+    },
+  });
+  await prisma.competitionRuleVersion.create({
+    data: {
+      championshipId: championship.id,
+      version: 1,
+      rulesJson: { pointsWin: 3, pointsDraw: 1, pointsLoss: 0 },
+    },
+  });
+
+  const sides = [] as {
+    club: typeof club1;
+    team: Awaited<ReturnType<typeof prisma.team.create>>;
+    teamSeason: Awaited<ReturnType<typeof prisma.teamSeason.create>>;
+    athlete: Awaited<ReturnType<typeof createAthlete>>;
+    registrationId: string;
+  }[];
+  for (const [i, club] of [club1, club2].entries()) {
+    const name = i === 0 ? `Local ${n}` : `Visitante ${n}`;
+    const team = await prisma.team.create({
+      data: { clubId: club.id, sportId: sport.id, name, nameKey: `eq ${name}` },
+    });
+    const teamSeason = await prisma.teamSeason.create({
+      data: {
+        teamId: team.id,
+        sportId: sport.id,
+        seasonId: season.id,
+        categoryId: category.id,
+        name,
+        nameKey: `eq ${name}`,
+      },
+    });
+    const athlete = await createAthlete(prisma, club.id);
+    const creator = await prisma.user.findFirstOrThrow();
+    await prisma.teamMembership.create({
+      data: {
+        teamSeasonId: teamSeason.id,
+        athleteId: athlete.id,
+        sportId: sport.id,
+        seasonId: season.id,
+        createdById: creator.id,
+        jerseyNumber: 10,
+      },
+    });
+    const participant = await prisma.participant.create({
+      data: { kind: 'equipo', team: { create: { teamId: team.id } } },
+    });
+    const registration = await prisma.registration.create({
+      data: {
+        championshipId: championship.id,
+        participantId: participant.id,
+        status: 'aprobada',
+      },
+    });
+    sides.push({
+      club,
+      team,
+      teamSeason,
+      athlete,
+      registrationId: registration.id,
+    });
+  }
+
+  const stage = await prisma.stage.create({
+    data: {
+      championshipId: championship.id,
+      name: 'Primera Etapa',
+      sequence: 1,
+    },
+  });
+  const round = await prisma.round.create({
+    data: { stageId: stage.id, name: 'Fecha 1', roundNumber: 1 },
+  });
+  const event = await prisma.event.create({
+    data: {
+      roundId: round.id,
+      scheduledAt: new Date(over.scheduledAt ?? '2026-06-25T15:00:00.000Z'),
+      status: over.status ?? 'programado',
+      participants: {
+        create: [
+          { registrationId: sides[0]!.registrationId, side: 'local' },
+          { registrationId: sides[1]!.registrationId, side: 'visitante' },
+        ],
+      },
+    },
+    include: { participants: true },
+  });
+
+  return {
+    season,
+    sport,
+    category,
+    championship,
+    stage,
+    round,
+    event,
+    home: sides[0]!,
+    away: sides[1]!,
+    eventParticipants: event.participants,
+  };
+}
+
+/**
+ * Permite que quien registra un acta también la apruebe (parámetro institucional). Las pruebas que
+ * recorren todo el flujo con un solo usuario lo activan; la separación de funciones se prueba aparte.
+ */
+export async function allowSelfApproval(prisma: PrismaClient): Promise<void> {
+  await prisma.institutionSettings.upsert({
+    where: { id: 1 },
+    update: { allowSelfApproval: true },
+    create: {
+      id: 1,
+      name: 'Liga Deportiva Cantonal de Quero',
+      allowSelfApproval: true,
+    },
+  });
+}

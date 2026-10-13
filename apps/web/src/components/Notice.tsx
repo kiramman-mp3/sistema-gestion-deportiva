@@ -1,9 +1,11 @@
+import { Icon } from './Icon.tsx';
+
 export interface NoticeState {
   type: 'success' | 'error';
   text: string;
 }
 
-/** Aviso de resultado: los éxitos se anuncian con cortesía; los errores como alerta. */
+/** Aviso de resultado: los éxitos se anuncian con cortesía; los errores como alerta (spec §8). */
 export function Notice({
   notice,
   onClose,
@@ -20,14 +22,14 @@ export function Notice({
   return notice.type === 'success' ? (
     <div aria-live="polite">
       <p className="notice success">
-        <span aria-hidden="true">✔ </span>
-        {notice.text} {close}
+        <Icon name="check" size={16} />
+        <span>{notice.text}</span> {close}
       </p>
     </div>
   ) : (
     <p className="notice error" role="alert">
-      <span aria-hidden="true">✖ </span>
-      {notice.text} {close}
+      <Icon name="x" size={16} />
+      <span>{notice.text}</span> {close}
     </p>
   );
 }

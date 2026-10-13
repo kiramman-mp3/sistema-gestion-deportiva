@@ -10,6 +10,7 @@ import { SecurityHashService } from '../../auth/security-hash.service.js';
 import { translateDbError } from '../../catalogs/common.js';
 import { ClubAccessService } from '../../clubs/club-access.service.js';
 import { PrismaService } from '../../database/prisma.service.js';
+import { NotificationsService } from '../../notifications/notifications.service.js';
 import type {
   CreateRegistrationInput,
   ReviewRegistrationInput,
@@ -22,6 +23,8 @@ export class RegistrationsService {
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(SecurityHashService) private readonly hash: SecurityHashService,
     @Inject(ClubAccessService) private readonly clubAccess: ClubAccessService,
+    @Inject(NotificationsService)
+    private readonly notifications: NotificationsService,
   ) {}
 
   async list(championshipId: string, auth: AuthContext) {
@@ -252,6 +255,15 @@ export class RegistrationsService {
   ) {
     const reg = await this.prisma.client.registration.findUnique({
       where: { id: registrationId },
+      include: {
+        championship: { select: { name: true } },
+        participant: {
+          include: {
+            team: { include: { team: true } },
+            individual: { include: { athlete: { include: { person: true } } } },
+          },
+        },
+      },
     });
     if (!reg || reg.championshipId !== championshipId) {
       throw new NotFoundException('Inscripción no encontrada');
@@ -281,6 +293,32 @@ export class RegistrationsService {
         },
         tx,
       );
+
+      if (updated.status !== reg.status) {
+        const team = reg.participant.team?.team;
+        const athlete = reg.participant.individual?.athlete;
+        const clubId = team?.clubId ?? athlete?.clubId;
+        await this.notifications.notify(tx, {
+          userIds: clubId
+            ? await this.notifications.clubUserIds(tx, [clubId])
+            : [],
+          template: 'registration.reviewed',
+          params: {
+            participant: team
+              ? team.name
+              : athlete
+                ? `${athlete.person.firstName} ${athlete.person.lastName}`
+                : 'Participante',
+            championship: reg.championship.name,
+            status: updated.status,
+            notes: input.reviewNotes,
+          },
+          entityType: 'registration',
+          entityId: registrationId,
+          link: `#/campeonatos/${championshipId}`,
+          excludeUserId: auth.user.id,
+        });
+      }
 
       return updated;
     });

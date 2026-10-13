@@ -1,0 +1,186 @@
+/*
+ * Tokens de diseño de la Liga (D-95). Identidad PROVISIONAL: cuando la Liga entregue
+ * sus colores oficiales, se cambian aquí y en ningún otro archivo.
+ *
+ * Capas: primitivas (--color-*, --font-*, escalas) → alias de compatibilidad con los
+ * nombres anteriores (--bg, --primary…), que se retiran en la fase 5.
+ */
+
+/* Fuentes alojadas en el proyecto (OFL-1.1, ver assets/fonts/README.md). */
+@font-face {
+  font-family: 'Atkinson Hyperlegible Next';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('../assets/fonts/atkinson-hyperlegible-next-latin-wght.woff2')
+    format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../assets/fonts/barlow-condensed-latin-600.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../assets/fonts/barlow-condensed-latin-700.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+
+  /* Tipografía */
+  --font-body:
+    'Atkinson Hyperlegible Next', 'Segoe UI', system-ui, -apple-system, Roboto,
+    sans-serif;
+  --font-display:
+    'Barlow Condensed', 'Arial Narrow', 'Roboto Condensed', 'Segoe UI',
+    sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  /* Color: modo claro (por defecto). Contraste verificado en styles.spec.ts. */
+  --color-bg: #f2f4f1;
+  --color-surface: #ffffff;
+  --color-surface-sunken: #e7ebe8;
+  --color-text: #15212b;
+  --color-text-muted: #4d5b63;
+  --color-border: #d3dad5;
+  --color-control-border: #7a8a88;
+  --color-brand: #0f3d3e;
+  --color-on-brand: #ffffff;
+  --color-primary: #0f3d3e;
+  --color-on-primary: #ffffff;
+  --color-accent: #ffc21a;
+  --color-on-accent: #15212b;
+  --color-focus: #0f3d3e;
+  --color-success: #18794e;
+  --color-success-bg: #e3f4ea;
+  --color-warning: #8a4b00;
+  --color-warning-bg: #fff1d6;
+  --color-danger: #b42318;
+  --color-danger-bg: #fdecea;
+  --color-danger-strong: #b42318;
+  --color-on-danger-strong: #ffffff;
+  --color-info: #1f5fa6;
+  --color-info-bg: #e6effa;
+  --color-backdrop: rgb(21 33 43 / 55%);
+
+  /* Deportes: cada deporte tiene su color en tarjetas, filtros, marcadores e ilustraciones.
+     Sólido con texto --color-on-sport; suave como fondo con --color-text. */
+  --color-on-sport: #ffffff;
+  --color-sport-futbol: #157a3f;
+  --color-sport-futbol-soft: #e3f4e8;
+  --color-sport-basquet: #b93f0a;
+  --color-sport-basquet-soft: #fdeee3;
+  --color-sport-taekwondo: #be123c;
+  --color-sport-taekwondo-soft: #fde7ec;
+  --color-sport-ajedrez: #6d28d9;
+  --color-sport-ajedrez-soft: #efe9fc;
+  --color-sport-voley: #1d4ed8;
+  --color-sport-voley-soft: #e6eefc;
+  --color-sport-atletismo: #0f766e;
+  --color-sport-atletismo-soft: #e0f4f1;
+  --color-sport-otro: #0f3d3e;
+  --color-sport-otro-soft: #e7ebe8;
+  /* Ilustraciones: papel y trazo fijos para que los dibujos se lean igual en ambos modos. */
+  --color-art-paper: #ffffff;
+  --color-art-ink: #15212b;
+
+  /* Escalas */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+  --shadow-sm: 0 1px 2px rgb(21 33 43 / 8%);
+  --shadow-md: 0 1px 2px rgb(21 33 43 / 8%), 0 8px 24px rgb(21 33 43 / 8%);
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --target-min: 44px;
+
+  /* Espaciado (múltiplos de 4px) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* Capas (z-index) */
+  --z-sticky: 10;
+  --z-drawer: 40;
+  --z-modal: 100;
+  --z-toast: 200;
+}
+
+/* El portal público y el inicio de sesión se ven siempre claros (D-103). */
+:root:has(.public-portal, .login-main) {
+  color-scheme: light;
+}
+
+/* Modo oscuro: sigue la preferencia del sistema, salvo en el portal público y el login. Solo redefine colores. */
+@media (prefers-color-scheme: dark) {
+  :root:not(:has(.public-portal, .login-main)) {
+    --color-bg: #0f1719;
+    --color-surface: #172124;
+    --color-surface-sunken: #223033;
+    --color-text: #e6ecea;
+    --color-text-muted: #a3b1b0;
+    --color-border: #2c3a3d;
+    --color-control-border: #6b7f80;
+    --color-brand: #0b2b2c;
+    --color-on-brand: #e6ecea;
+    --color-primary: #7cc4b8;
+    --color-on-primary: #0f1719;
+    --color-accent: #ffc93d;
+    --color-on-accent: #15212b;
+    --color-focus: #7cc4b8;
+    --color-success: #5bd08f;
+    --color-success-bg: #12301f;
+    --color-warning: #f5b451;
+    --color-warning-bg: #33250c;
+    --color-danger: #ff8a80;
+    --color-danger-bg: #3a1513;
+    --color-danger-strong: #b42318;
+    --color-on-danger-strong: #ffffff;
+    --color-info: #8db8f2;
+    --color-info-bg: #13253d;
+    --color-backdrop: rgb(0 0 0 / 65%);
+    --color-on-sport: #0f1719;
+    --color-sport-futbol: #4ade80;
+    --color-sport-futbol-soft: #12301f;
+    --color-sport-basquet: #fb923c;
+    --color-sport-basquet-soft: #3a2212;
+    --color-sport-taekwondo: #fb7185;
+    --color-sport-taekwondo-soft: #3a1520;
+    --color-sport-ajedrez: #c4b5fd;
+    --color-sport-ajedrez-soft: #251c3d;
+    --color-sport-voley: #93c5fd;
+    --color-sport-voley-soft: #13253d;
+    --color-sport-atletismo: #5eead4;
+    --color-sport-atletismo-soft: #10302c;
+    --color-sport-otro: #7cc4b8;
+    --color-sport-otro-soft: #223033;
+    --color-art-paper: #ffffff;
+    --color-art-ink: #15212b;
+  }
+}

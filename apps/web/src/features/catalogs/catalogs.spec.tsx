@@ -907,7 +907,13 @@ describe('aplicación autenticada', () => {
       within(nav)
         .getAllByRole('link')
         .map((l) => l.textContent),
-    ).toEqual(['Inicio', 'Deportes', 'Temporadas', 'Mi cuenta']);
+    ).toEqual([
+      'Inicio',
+      'Deportes',
+      'Temporadas',
+      'Notificaciones',
+      'Mi cuenta',
+    ]);
     expect(within(nav).queryByText('Categorías')).not.toBeInTheDocument();
   });
 

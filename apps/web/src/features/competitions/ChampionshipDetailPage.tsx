@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from 'react';
 import { ApiError, apiRequest } from '../../api/client.ts';
 import { ConfirmDialog } from '../../components/ConfirmDialog.tsx';
+import { Tabs } from '../../components/Tabs.tsx';
 import {
   Notice,
   type NoticeState,
@@ -66,7 +67,7 @@ export function ChampionshipDetailPage({
         <>
           <div className="catalog-header">
             <div>
-              <h2 id="champ-detail-title">{champState.data.name}</h2>
+              <h1 id="champ-detail-title">{champState.data.name}</h1>
               <p className="hint">
                 {champState.data.sport.name} · {champState.data.category.name} ·
                 Temporada {champState.data.season.name}
@@ -168,233 +169,233 @@ export function ChampionshipDetailPage({
             </div>
           )}
 
-          <div className="tab-buttons" role="tablist">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === 'registrations'}
-              className={activeTab === 'registrations' ? 'tab-active' : ''}
-              onClick={() => setActiveTab('registrations')}
-            >
-              Inscripciones
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === 'fixtures'}
-              className={activeTab === 'fixtures' ? 'tab-active' : ''}
-              onClick={() => setActiveTab('fixtures')}
-            >
-              Calendario y partidos
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === 'standings'}
-              className={activeTab === 'standings' ? 'tab-active' : ''}
-              onClick={() => setActiveTab('standings')}
-            >
-              Tabla de posiciones
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === 'rules'}
-              className={activeTab === 'rules' ? 'tab-active' : ''}
-              onClick={() => setActiveTab('rules')}
-            >
-              Reglamento y puntuación
-            </button>
-          </div>
+          <Tabs
+            activeId={activeTab}
+            onChange={(id) =>
+              setActiveTab(
+                id as 'registrations' | 'fixtures' | 'standings' | 'rules',
+              )
+            }
+            items={[
+              {
+                id: 'registrations',
+                label: 'Inscripciones',
+                content: (
+                  <div className="tab-panel">
+                    <div className="catalog-header">
+                      <h2>Participantes inscritos</h2>
+                      {canRegManage && !addingRegistration && (
+                        <button
+                          type="button"
+                          className="primary"
+                          onClick={() => setAddingRegistration(true)}
+                        >
+                          Inscribir participante
+                        </button>
+                      )}
+                    </div>
 
-          {activeTab === 'registrations' && (
-            <div className="tab-panel">
-              <div className="catalog-header">
-                <h3>Participantes inscritos</h3>
-                {canRegManage && !addingRegistration && (
-                  <button
-                    type="button"
-                    className="primary"
-                    onClick={() => setAddingRegistration(true)}
-                  >
-                    Inscribir participante
-                  </button>
-                )}
-              </div>
+                    {addingRegistration && (
+                      <RegisterParticipantForm
+                        championship={champState.data}
+                        onCancel={() => setAddingRegistration(false)}
+                        onSaved={() => {
+                          setAddingRegistration(false);
+                          setNotice({
+                            type: 'success',
+                            text: 'Participante inscrito con éxito.',
+                          });
+                          reloadRegs();
+                        }}
+                      />
+                    )}
 
-              {addingRegistration && (
-                <RegisterParticipantForm
-                  championship={champState.data}
-                  onCancel={() => setAddingRegistration(false)}
-                  onSaved={() => {
-                    setAddingRegistration(false);
-                    setNotice({
-                      type: 'success',
-                      text: 'Participante inscrito con éxito.',
-                    });
-                    reloadRegs();
-                  }}
-                />
-              )}
+                    <LoadState state={regsState} onRetry={reloadRegs} />
 
-              <LoadState state={regsState} onRetry={reloadRegs} />
-
-              {regsState.kind === 'ready' && regsState.data.length === 0 && (
-                <p className="empty">No hay participantes inscritos aún.</p>
-              )}
-
-              {regsState.kind === 'ready' && regsState.data.length > 0 && (
-                <table className="responsive-table">
-                  <caption className="visually-hidden">Inscripciones</caption>
-                  <thead>
-                    <tr>
-                      <th scope="col">Participante</th>
-                      <th scope="col">Tipo</th>
-                      <th scope="col">Club</th>
-                      <th scope="col">Fecha de registro</th>
-                      <th scope="col">Estado</th>
-                      {canRegManage && <th scope="col">Acciones</th>}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {regsState.data.map((r) => {
-                      const isTeam = r.participant.kind === 'equipo';
-                      const name = isTeam
-                        ? (r.participant.team?.team.name ?? 'Equipo')
-                        : `${r.participant.individual?.athlete.person.firstName ?? ''} ${r.participant.individual?.athlete.person.lastName ?? ''}`;
-                      const clubName = isTeam
-                        ? r.participant.team?.team.club.name
-                        : r.participant.individual?.athlete.club.name;
-
-                      return (
-                        <tr key={r.id}>
-                          <td data-label="Participante">
-                            <strong>{name}</strong>
-                            {r.notes && <p className="hint">{r.notes}</p>}
-                          </td>
-                          <td data-label="Tipo">
-                            {isTeam ? 'Equipo' : 'Individual'}
-                          </td>
-                          <td data-label="Club">{clubName ?? '—'}</td>
-                          <td data-label="Fecha de registro">
-                            {new Date(r.submittedAt).toLocaleDateString()}
-                          </td>
-                          <td data-label="Estado">
-                            <span
-                              className={`badge ${
-                                r.status === 'aprobada'
-                                  ? 'badge-ok'
-                                  : r.status === 'observada'
-                                    ? 'badge-alert'
-                                    : ''
-                              }`}
-                            >
-                              {REGISTRATION_STATUS_LABELS[r.status]}
-                            </span>
-                          </td>
-                          {canRegManage && (
-                            <td data-label="Acciones" className="row-actions">
-                              {r.status !== 'aprobada' && (
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setReviewingReg({
-                                      id: r.id,
-                                      status: 'aprobada',
-                                      label: name,
-                                    })
-                                  }
-                                >
-                                  Aprobar
-                                </button>
-                              )}
-                              {r.status !== 'observada' && (
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setReviewingReg({
-                                      id: r.id,
-                                      status: 'observada',
-                                      label: name,
-                                    })
-                                  }
-                                >
-                                  Observar
-                                </button>
-                              )}
-                              {r.status !== 'rechazada' && (
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setReviewingReg({
-                                      id: r.id,
-                                      status: 'rechazada',
-                                      label: name,
-                                    })
-                                  }
-                                >
-                                  Rechazar
-                                </button>
-                              )}
-                            </td>
-                          )}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'fixtures' && (
-            <FixturesTab
-              championship={champState.data}
-              registrations={regsState.kind === 'ready' ? regsState.data : []}
-              permissions={permissions}
-            />
-          )}
-
-          {activeTab === 'standings' && (
-            <StandingsTab championship={champState.data} />
-          )}
-
-          {activeTab === 'rules' && (
-            <div className="tab-panel">
-              <h3>Reglamento de competencia</h3>
-              <p className="hint">
-                Las reglas se encuentran versionadas y quedan asociadas al
-                historial de partidos y tablas de posiciones.
-              </p>
-
-              {champState.data.ruleVersions &&
-                champState.data.ruleVersions.length > 0 && (
-                  <div className="rules-display">
-                    {champState.data.ruleVersions.map((rv) => (
-                      <div key={rv.id} className="rule-card">
-                        <h4>
-                          Versión {rv.version}{' '}
-                          {rv.version ===
-                            champState.data.ruleVersions?.[0]?.version && (
-                            <span className="badge badge-ok">Vigente</span>
-                          )}
-                        </h4>
-                        <p className="hint">
-                          Aprobado por:{' '}
-                          {rv.approvedBy?.displayName ?? 'Oficial'} el{' '}
-                          {rv.approvedAt
-                            ? new Date(rv.approvedAt).toLocaleDateString()
-                            : '—'}
+                    {regsState.kind === 'ready' &&
+                      regsState.data.length === 0 && (
+                        <p className="empty">
+                          No hay participantes inscritos aún.
                         </p>
-                        <pre className="rules-json">
-                          {JSON.stringify(rv.rulesJson, null, 2)}
-                        </pre>
-                      </div>
-                    ))}
+                      )}
+
+                    {regsState.kind === 'ready' &&
+                      regsState.data.length > 0 && (
+                        <table className="responsive-table">
+                          <caption className="visually-hidden">
+                            Inscripciones
+                          </caption>
+                          <thead>
+                            <tr>
+                              <th scope="col">Participante</th>
+                              <th scope="col">Tipo</th>
+                              <th scope="col">Club</th>
+                              <th scope="col">Fecha de registro</th>
+                              <th scope="col">Estado</th>
+                              {canRegManage && <th scope="col">Acciones</th>}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {regsState.data.map((r) => {
+                              const isTeam = r.participant.kind === 'equipo';
+                              const name = isTeam
+                                ? (r.participant.team?.team.name ?? 'Equipo')
+                                : `${r.participant.individual?.athlete.person.firstName ?? ''} ${r.participant.individual?.athlete.person.lastName ?? ''}`;
+                              const clubName = isTeam
+                                ? r.participant.team?.team.club.name
+                                : r.participant.individual?.athlete.club.name;
+
+                              return (
+                                <tr key={r.id}>
+                                  <td data-label="Participante">
+                                    <strong>{name}</strong>
+                                    {r.notes && (
+                                      <p className="hint">{r.notes}</p>
+                                    )}
+                                  </td>
+                                  <td data-label="Tipo">
+                                    {isTeam ? 'Equipo' : 'Individual'}
+                                  </td>
+                                  <td data-label="Club">{clubName ?? '—'}</td>
+                                  <td data-label="Fecha de registro">
+                                    {new Date(
+                                      r.submittedAt,
+                                    ).toLocaleDateString()}
+                                  </td>
+                                  <td data-label="Estado">
+                                    <span
+                                      className={`badge ${
+                                        r.status === 'aprobada'
+                                          ? 'badge-ok'
+                                          : r.status === 'observada'
+                                            ? 'badge-alert'
+                                            : ''
+                                      }`}
+                                    >
+                                      {REGISTRATION_STATUS_LABELS[r.status]}
+                                    </span>
+                                  </td>
+                                  {canRegManage && (
+                                    <td
+                                      data-label="Acciones"
+                                      className="row-actions"
+                                    >
+                                      {r.status !== 'aprobada' && (
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            setReviewingReg({
+                                              id: r.id,
+                                              status: 'aprobada',
+                                              label: name,
+                                            })
+                                          }
+                                        >
+                                          Aprobar
+                                        </button>
+                                      )}
+                                      {r.status !== 'observada' && (
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            setReviewingReg({
+                                              id: r.id,
+                                              status: 'observada',
+                                              label: name,
+                                            })
+                                          }
+                                        >
+                                          Observar
+                                        </button>
+                                      )}
+                                      {r.status !== 'rechazada' && (
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            setReviewingReg({
+                                              id: r.id,
+                                              status: 'rechazada',
+                                              label: name,
+                                            })
+                                          }
+                                        >
+                                          Rechazar
+                                        </button>
+                                      )}
+                                    </td>
+                                  )}
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      )}
                   </div>
-                )}
-            </div>
-          )}
+                ),
+              },
+              {
+                id: 'fixtures',
+                label: 'Calendario y partidos',
+                content: (
+                  <FixturesTab
+                    championship={champState.data}
+                    registrations={
+                      regsState.kind === 'ready' ? regsState.data : []
+                    }
+                    permissions={permissions}
+                  />
+                ),
+              },
+              {
+                id: 'standings',
+                label: 'Tabla de posiciones',
+                content: <StandingsTab championship={champState.data} />,
+              },
+              {
+                id: 'rules',
+                label: 'Reglamento y puntuación',
+                content: (
+                  <div className="tab-panel">
+                    <h2>Reglamento de competencia</h2>
+                    <p className="hint">
+                      Las reglas se encuentran versionadas y quedan asociadas al
+                      historial de partidos y tablas de posiciones.
+                    </p>
+
+                    {champState.data.ruleVersions &&
+                      champState.data.ruleVersions.length > 0 && (
+                        <div className="rules-display">
+                          {champState.data.ruleVersions.map((rv) => (
+                            <div key={rv.id} className="rule-card">
+                              <h3>
+                                Versión {rv.version}{' '}
+                                {rv.version ===
+                                  champState.data.ruleVersions?.[0]
+                                    ?.version && (
+                                  <span className="badge badge-ok">
+                                    Vigente
+                                  </span>
+                                )}
+                              </h3>
+                              <p className="hint">
+                                Aprobado por:{' '}
+                                {rv.approvedBy?.displayName ?? 'Oficial'} el{' '}
+                                {rv.approvedAt
+                                  ? new Date(rv.approvedAt).toLocaleDateString()
+                                  : '—'}
+                              </p>
+                              <pre className="rules-json">
+                                {JSON.stringify(rv.rulesJson, null, 2)}
+                              </pre>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                  </div>
+                ),
+              },
+            ]}
+          />
 
           {transitioning && (
             <ConfirmDialog
@@ -549,7 +550,7 @@ function RegisterParticipantForm({
 
   return (
     <form className="catalog-form" onSubmit={submit} noValidate>
-      <h4>Inscribir {kind === 'equipo' ? 'equipo' : 'deportista'}</h4>
+      <h3>Inscribir {kind === 'equipo' ? 'equipo' : 'deportista'}</h3>
       {kind === 'equipo' ? (
         <SelectField
           label="Equipo"

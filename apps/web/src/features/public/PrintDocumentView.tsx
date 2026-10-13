@@ -1,3 +1,4 @@
+import { Icon } from '../../components/Icon.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import type { RosterPrintData, ScoresheetPrintData } from './types.ts';
 
@@ -30,7 +31,7 @@ export function PrintDocumentView({
           ← Volver al portal
         </button>
         <button type="button" onClick={handlePrint} className="primary-button">
-          🖨️ Imprimir / Guardar PDF
+          <Icon name="printer" /> Imprimir / Guardar PDF
         </button>
       </div>
 
@@ -48,17 +49,21 @@ export function PrintDocumentView({
       )}
 
       {state.kind === 'ready' && kind === 'acta' && (
-        <ScoresheetDocument
-          data={state.data as ScoresheetPrintData}
-          onPrint={handlePrint}
-        />
+        <div className="printable-sheet-scroller">
+          <ScoresheetDocument
+            data={state.data as ScoresheetPrintData}
+            onPrint={handlePrint}
+          />
+        </div>
       )}
 
       {state.kind === 'ready' && kind === 'nomina' && (
-        <RosterDocument
-          data={state.data as RosterPrintData}
-          onPrint={handlePrint}
-        />
+        <div className="printable-sheet-scroller">
+          <RosterDocument
+            data={state.data as RosterPrintData}
+            onPrint={handlePrint}
+          />
+        </div>
       )}
     </div>
   );
@@ -372,12 +377,12 @@ function RosterDocument({
         <table className="print-table">
           <thead>
             <tr>
-              <th style={{ width: '3rem' }}>N°</th>
-              <th style={{ width: '4rem' }}>Dorsal</th>
-              <th style={{ width: '8rem' }}>Cód. Registro</th>
+              <th className="col-num">N°</th>
+              <th className="col-jersey">Dorsal</th>
+              <th className="col-code">Cód. Registro</th>
               <th>Nombres y Apellidos Completos</th>
-              <th style={{ width: '6rem' }}>Estado</th>
-              <th style={{ width: '8rem' }}>Firma Deportista</th>
+              <th className="col-status">Estado</th>
+              <th className="col-signature">Firma Deportista</th>
             </tr>
           </thead>
           <tbody>
@@ -411,10 +416,7 @@ function RosterDocument({
       </section>
 
       <footer className="institutional-signatures">
-        <div
-          className="signatures-grid"
-          style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}
-        >
+        <div className="signatures-grid">
           {data.signatories.map((sig, idx) => (
             <div key={idx} className="signature-block">
               <div className="signature-line"></div>

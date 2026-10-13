@@ -6,6 +6,7 @@ import {
   type NoticeState,
   describeError,
 } from '../../components/Notice.tsx';
+import { Modal } from '../../components/Modal.tsx';
 import { Pagination } from '../../components/Pagination.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import { LoadState, TextField } from './fields.tsx';
@@ -35,8 +36,8 @@ export function ClubsPage({ permissions }: { permissions: readonly string[] }) {
   return (
     <section aria-labelledby="clubs-title" className="catalog">
       <div className="catalog-header">
-        <h2 id="clubs-title">Clubes</h2>
-        {isLeague && !creating && (
+        <h1 id="clubs-title">Clubes</h1>
+        {isLeague && (
           <button
             type="button"
             className="primary"
@@ -49,17 +50,19 @@ export function ClubsPage({ permissions }: { permissions: readonly string[] }) {
       <Notice notice={notice} onClose={() => setNotice(null)} />
 
       {creating && (
-        <CreateClubForm
-          onCancel={() => setCreating(false)}
-          onCreated={(club) => {
-            setCreating(false);
-            setNotice({
-              type: 'success',
-              text: `Se creó el club ${club.name}.`,
-            });
-            reload();
-          }}
-        />
+        <Modal onClose={() => setCreating(false)} className="dialog-complex">
+          <CreateClubForm
+            onCancel={() => setCreating(false)}
+            onCreated={(club) => {
+              setCreating(false);
+              setNotice({
+                type: 'success',
+                text: `Se creó el club ${club.name}.`,
+              });
+              reload();
+            }}
+          />
+        </Modal>
       )}
 
       <LoadState state={list} onRetry={reload} />

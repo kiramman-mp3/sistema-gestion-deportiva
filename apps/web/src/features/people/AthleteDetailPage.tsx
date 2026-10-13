@@ -1,3 +1,4 @@
+import { IssuedDocumentsPanel } from '../documents/IssuedDocumentsPanel.tsx';
 import { type FormEvent, useState } from 'react';
 import { ApiError, apiRequest } from '../../api/client.ts';
 import { ConfirmDialog } from '../../components/ConfirmDialog.tsx';
@@ -8,6 +9,7 @@ import {
 } from '../../components/Notice.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import { SelectField, TextField } from './fields.tsx';
+import { OriginLinksPanel } from './OriginLinks.tsx';
 import {
   type Athlete,
   type AthleteTeam,
@@ -105,9 +107,9 @@ export function AthleteDetailPage({
         <a href="#/deportistas">← Volver a deportistas</a>
       </p>
       <div className="catalog-header">
-        <h2 id="athlete-title">
+        <h1 id="athlete-title">
           {a.firstName} {a.lastName}
-        </h2>
+        </h1>
       </div>
       <Notice notice={notice} onClose={() => setNotice(null)} />
 
@@ -141,7 +143,7 @@ export function AthleteDetailPage({
           </div>
         )}
         <div>
-          <h4>Fotografía del deportista</h4>
+          <h2>Fotografía del deportista</h2>
           <p className="hint">
             Formatos admitidos: JPEG, PNG o WebP (máx. 5 MB).
           </p>
@@ -187,7 +189,7 @@ export function AthleteDetailPage({
 
       {a.full ? (
         <>
-          <h3>Datos personales</h3>
+          <h2>Datos personales</h2>
           <p className="hint">
             Información reservada: solo la ven quienes tienen permiso de datos
             personales completos.
@@ -274,7 +276,7 @@ export function AthleteDetailPage({
 
       {can('athletes:validate') && (
         <>
-          <h3>Habilitación</h3>
+          <h2>Habilitación</h2>
           <div className="form-actions">
             {(['habilitado', 'inhabilitado', 'pendiente'] as const)
               .filter((e) => e !== a.eligibility)
@@ -293,7 +295,22 @@ export function AthleteDetailPage({
         </>
       )}
 
-      <h3>Consentimientos</h3>
+      {(can('athletes:read_full') || can('athletes:validate')) && (
+        <OriginLinksPanel
+          athleteId={athleteId}
+          athleteName={`${a.firstName} ${a.lastName}`}
+          canEdit={can('athletes:manage') && can('athletes:read_full')}
+        />
+      )}
+
+      {can('credentials:issue') && (
+        <IssuedDocumentsPanel
+          athleteId={athleteId}
+          canRevoke={can('credentials:revoke')}
+        />
+      )}
+
+      <h2>Consentimientos</h2>
       {consents.kind === 'ready' && consents.data.length === 0 && (
         <p className="empty">No hay consentimientos registrados.</p>
       )}
@@ -366,7 +383,7 @@ export function AthleteDetailPage({
 
       {can('documents:read') && (
         <>
-          <h3>Documentos de respaldo</h3>
+          <h2>Documentos de respaldo</h2>
           {documents.kind === 'loading' && (
             <p className="loading">Cargando documentos…</p>
           )}
@@ -493,7 +510,7 @@ export function AthleteDetailPage({
 
       {can('teams:read') && (
         <>
-          <h3>Equipos</h3>
+          <h2>Equipos</h2>
           {teams.kind === 'ready' && teams.data.length === 0 && (
             <p className="empty">Sin inscripciones en equipos.</p>
           )}
@@ -637,7 +654,7 @@ function TransferPanel({
       : [];
   return (
     <>
-      <h3>Cambio de club</h3>
+      <h2>Cambio de club</h2>
       <p className="hint">
         Se habilita al terminar la temporada: no debe tener inscripciones en la
         temporada vigente.
@@ -721,7 +738,7 @@ function ConsentForm({
       noValidate
       aria-label="Nuevo consentimiento"
     >
-      <h4>Registrar consentimiento</h4>
+      <h3>Registrar consentimiento</h3>
       <p className="hint">
         Si la persona es menor de edad lo otorga su tutor (indique el
         parentesco); si es mayor, ella misma (escriba «propio»).
@@ -969,7 +986,7 @@ function DocumentUploadForm({
 
   return (
     <form onSubmit={handleSubmit} className="record-form">
-      <h4>Subir documento de respaldo</h4>
+      <h3>Subir documento de respaldo</h3>
       <TextField
         label="Título del documento"
         value={title}

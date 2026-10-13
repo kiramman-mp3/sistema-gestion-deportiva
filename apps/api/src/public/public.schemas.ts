@@ -12,6 +12,7 @@ export const publicChampionshipStatusSchema = z.enum([
 export const publicChampionshipsQuerySchema = listQuerySchema.extend({
   sportId: uuidSchema.optional(),
   seasonId: uuidSchema.optional(),
+  categoryId: uuidSchema.optional(),
   status: publicChampionshipStatusSchema.optional(),
   q: z.string().trim().max(100).optional(),
 });
@@ -19,3 +20,26 @@ export const publicChampionshipsQuerySchema = listQuerySchema.extend({
 export type PublicChampionshipsQuery = z.infer<
   typeof publicChampionshipsQuerySchema
 >;
+
+export const publicEventsQuerySchema = listQuerySchema
+  .pick({ page: true, pageSize: true })
+  .extend({
+    from: z.iso.date().optional(),
+    to: z.iso.date().optional(),
+    sportId: uuidSchema.optional(),
+    categoryId: uuidSchema.optional(),
+    seasonId: uuidSchema.optional(),
+    championshipId: uuidSchema.optional(),
+    clubId: uuidSchema.optional(),
+    status: z
+      .enum([
+        'programado',
+        'en_curso',
+        'finalizado',
+        'suspendido',
+        'postergado',
+        'cancelado',
+      ])
+      .optional(),
+    order: z.enum(['asc', 'desc']).default('asc'),
+  });

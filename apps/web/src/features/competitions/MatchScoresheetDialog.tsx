@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { apiRequest } from '../../api/client.ts';
+import { Modal } from '../../components/Modal.tsx';
 import { describeError } from '../../components/Notice.tsx';
 import type { CompetitionEvent, Registration } from './types.js';
 
@@ -23,7 +24,9 @@ export function MatchScoresheetDialog({
   onClose,
   onSaved,
 }: MatchScoresheetDialogProps) {
-  const canManage = permissions.includes('results:manage');
+  const canManage =
+    permissions.includes('results:manage') ||
+    permissions.includes('results:manage_assigned');
   const canApprove = permissions.includes('results:approve');
 
   const homeParticipant =
@@ -224,21 +227,12 @@ export function MatchScoresheetDialog({
   };
 
   return (
-    <dialog open className="dialog-backdrop" aria-modal="true">
-      <div
-        className="dialog-content"
-        style={{ maxWidth: '750px', maxHeight: '90vh', overflowY: 'auto' }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-          }}
-        >
+    <Modal onClose={onClose} className="dialog-complex">
+      <div className="dialog-content">
+        <div className="scoresheet-dialog-header">
           <div>
             <h4>Acta de Juego y Resultado Oficial</h4>
-            <p className="catalog-intro" style={{ margin: 0 }}>
+            <p className="catalog-intro m-0">
               {event.round.stage.name} · {event.round.name}
             </p>
           </div>
@@ -257,10 +251,9 @@ export function MatchScoresheetDialog({
 
         {notice && (
           <output
-            className={
+            className={`${
               notice.type === 'error' ? 'catalog-error' : 'catalog-notice'
-            }
-            style={{ marginTop: '1rem', display: 'block' }}
+            } mt-4 d-block`}
           >
             {notice.text}
           </output>
@@ -271,23 +264,11 @@ export function MatchScoresheetDialog({
         ) : (
           <div>
             {/* Marcador Principal */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr auto 1fr',
-                gap: '1rem',
-                alignItems: 'center',
-                textAlign: 'center',
-                margin: '1.5rem 0',
-                padding: '1rem',
-                background: 'var(--surface-sunken)',
-                borderRadius: '8px',
-              }}
-            >
+            <div className="scoresheet-scoreboard-box">
               <div>
                 <h5>{getName(homeParticipant?.registration)}</h5>
                 <span className="badge badge-neutral">Local</span>
-                <div style={{ marginTop: '0.75rem' }}>
+                <div className="mt-3">
                   <label htmlFor="home-score-input" className="visually-hidden">
                     Goles Local
                   </label>
@@ -300,30 +281,17 @@ export function MatchScoresheetDialog({
                     onChange={(e) =>
                       setHomeScore(Math.max(0, parseInt(e.target.value) || 0))
                     }
-                    style={{
-                      fontSize: '1.75rem',
-                      width: '5rem',
-                      textAlign: 'center',
-                      fontWeight: 'bold',
-                    }}
+                    className="scoresheet-score-input"
                   />
                 </div>
               </div>
 
-              <div
-                style={{
-                  fontSize: '2rem',
-                  fontWeight: 'bold',
-                  color: 'var(--text-muted)',
-                }}
-              >
-                —
-              </div>
+              <div className="scoresheet-score-separator">—</div>
 
               <div>
                 <h5>{getName(awayParticipant?.registration)}</h5>
                 <span className="badge badge-neutral">Visitante</span>
-                <div style={{ marginTop: '0.75rem' }}>
+                <div className="mt-3">
                   <label htmlFor="away-score-input" className="visually-hidden">
                     Goles Visitante
                   </label>
@@ -336,12 +304,7 @@ export function MatchScoresheetDialog({
                     onChange={(e) =>
                       setAwayScore(Math.max(0, parseInt(e.target.value) || 0))
                     }
-                    style={{
-                      fontSize: '1.75rem',
-                      width: '5rem',
-                      textAlign: 'center',
-                      fontWeight: 'bold',
-                    }}
+                    className="scoresheet-score-input"
                   />
                 </div>
               </div>
@@ -350,11 +313,11 @@ export function MatchScoresheetDialog({
             {/* Incidencias del partido */}
             <h5>Incidencias Registradas (Goles, Tarjetas, Sustituciones)</h5>
             {incidents.length === 0 ? (
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+              <p className="scoresheet-text-muted">
                 No se han registrado incidencias en el acta.
               </p>
             ) : (
-              <table className="catalog-table" style={{ marginBottom: '1rem' }}>
+              <table className="catalog-table mb-4">
                 <thead>
                   <tr>
                     <th scope="col">Min</th>
@@ -414,11 +377,7 @@ export function MatchScoresheetDialog({
 
             {/* Agregar incidencia */}
             {canManage && resultStatus !== 'aprobado' && (
-              <form
-                onSubmit={handleAddIncident}
-                className="catalog-form"
-                style={{ marginBottom: '1.5rem' }}
-              >
+              <form onSubmit={handleAddIncident} className="catalog-form mb-6">
                 <h6>Añadir incidencia</h6>
                 <div className="form-grid">
                   <div className="form-group">
@@ -489,21 +448,14 @@ export function MatchScoresheetDialog({
                     />
                   </div>
                 </div>
-                <button type="submit" style={{ marginTop: '0.5rem' }}>
+                <button type="submit" className="mt-2">
                   + Agregar al acta
                 </button>
               </form>
             )}
 
             {/* Acciones de vocalía */}
-            <div
-              style={{
-                display: 'flex',
-                gap: '0.75rem',
-                marginBottom: '1.5rem',
-                flexWrap: 'wrap',
-              }}
-            >
+            <div className="scoresheet-actions-bar">
               {canManage && resultStatus !== 'aprobado' && (
                 <>
                   <button type="button" onClick={handleSaveDraft}>
@@ -521,18 +473,10 @@ export function MatchScoresheetDialog({
             </div>
 
             {/* Panel de Aprobación Oficial */}
-            {canApprove && (
-              <div
-                style={{
-                  border: '1px solid var(--border)',
-                  padding: '1rem',
-                  borderRadius: '6px',
-                  background: 'var(--surface-sunken)',
-                  marginBottom: '1.5rem',
-                }}
-              >
+            {canApprove && resultStatus === 'pendiente_revision' && (
+              <div className="scoresheet-approval-box">
                 <h5>Dictamen y Aprobación Oficial (Comisión Técnica)</h5>
-                <p style={{ fontSize: '0.875rem' }}>
+                <p className="text-sm">
                   Al aprobar el acta, el resultado se consolida en la tabla de
                   posiciones y se genera un snapshot inmutable auditado.
                 </p>
@@ -571,7 +515,7 @@ export function MatchScoresheetDialog({
                   </button>
                   <button
                     type="button"
-                    style={{ color: 'var(--danger-text)' }}
+                    className="scoresheet-btn-danger"
                     onClick={() => handleApprove(false)}
                   >
                     Rechazar acta
@@ -582,9 +526,9 @@ export function MatchScoresheetDialog({
 
             {/* Historial de revisiones */}
             {revisions.length > 0 && (
-              <div style={{ marginTop: '1rem' }}>
+              <div className="scoresheet-revisions-box">
                 <h6>Historial de revisiones del acta</h6>
-                <ul style={{ fontSize: '0.875rem', paddingLeft: '1.25rem' }}>
+                <ul className="scoresheet-revisions-list">
                   {revisions.map((rev) => (
                     <li key={rev.id}>
                       <strong>{rev.reason}</strong> — Modificado por{' '}
@@ -598,12 +542,12 @@ export function MatchScoresheetDialog({
           </div>
         )}
 
-        <div className="form-actions" style={{ marginTop: '1.5rem' }}>
+        <div className="form-actions mt-6">
           <button type="button" onClick={onClose}>
             Cerrar
           </button>
         </div>
       </div>
-    </dialog>
+    </Modal>
   );
 }

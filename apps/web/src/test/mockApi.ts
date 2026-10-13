@@ -49,9 +49,11 @@ export function mockApi(routes: Record<string, Handler>) {
         path: parsed.pathname.replace(/^\/api/, ''),
         query: parsed.searchParams,
         headers: (init.headers ?? {}) as Record<string, string>,
-        body: init.body
-          ? (JSON.parse(init.body as string) as Record<string, unknown>)
-          : undefined,
+        body: !init.body
+          ? undefined
+          : init.body instanceof FormData
+            ? Object.fromEntries(init.body.entries())
+            : (JSON.parse(init.body as string) as Record<string, unknown>),
       };
       calls.push(call);
       const handler = routes[`${call.method} ${call.path}`];

@@ -15,6 +15,8 @@ import { parseOrThrow, uuidSchema } from '../auth/schemas.js';
 import { escapeLike, listQuerySchema } from '../catalogs/common.js';
 import { ResultsService } from '../competitions/results/results.service.js';
 import { PrismaService } from '../database/prisma.service.js';
+import { InstitutionService } from '../institution/institution.service.js';
+import { PublicNamesService } from './public-names.service.js';
 import { DocumentsService } from '../documents/documents.service.js';
 import type { ChampionshipStatus, Prisma } from '../generated/prisma/client.js';
 import { publicChampionshipsQuerySchema } from './public.schemas.js';
@@ -33,11 +35,15 @@ export class PublicController {
     @Inject(AthletesService) private readonly athletes: AthletesService,
     @Inject(DocumentsService) private readonly documents: DocumentsService,
     @Inject(ResultsService) private readonly results: ResultsService,
+    @Inject(InstitutionService)
+    private readonly institution: InstitutionService,
+    @Inject(PublicNamesService) private readonly names: PublicNamesService,
   ) {}
 
   /** Clubes activos: nombre, nombre corto, identificador y sector. */
   @Get('clubs')
   async clubs(@Query() query: unknown) {
+    await this.institution.assertPublished('publicClubs');
     const { page, pageSize } = parseOrThrow(listQuerySchema, query);
     const where = { status: 'activo' as const };
     const [items, total] = await this.prisma.client.$transaction([
@@ -55,6 +61,7 @@ export class PublicController {
 
   @Get('clubs/:slug')
   async club(@Param('slug') slug: string) {
+    await this.institution.assertPublished('publicClubs');
     const club = await this.prisma.client.club.findFirst({
       where: { slug, status: 'activo' },
       select: { name: true, shortName: true, slug: true, sector: true },
@@ -72,6 +79,7 @@ export class PublicController {
     @Param('id') id: string,
     @Res({ passthrough: true }) res: Response,
   ) {
+    await this.institution.assertPublished('publicAthletes');
     res.setHeader('X-Robots-Tag', 'noindex, nofollow');
     res.setHeader('Cache-Control', 'no-store');
     return this.athletes.publicProfile(parseOrThrow(uuidSchema, id));
@@ -83,6 +91,7 @@ export class PublicController {
    */
   @Get('athletes/:id/photo')
   async athletePhoto(@Param('id') id: string, @Res() res: Response) {
+    await this.institution.assertPublished('publicAthletes');
     const athleteId = parseOrThrow(uuidSchema, id);
     const result = await this.documents.getPublicPhoto(athleteId);
     res.setHeader('Content-Type', result.mimeType);
@@ -113,6 +122,7 @@ export class PublicController {
       status: { in: allowedStatuses },
       ...(parsed.sportId && { sportId: parsed.sportId }),
       ...(parsed.seasonId && { seasonId: parsed.seasonId }),
+      ...(parsed.categoryId && { categoryId: parsed.categoryId }),
       ...(parsed.q && {
         name: { contains: escapeLike(parsed.q), mode: 'insensitive' },
       }),
@@ -250,6 +260,23 @@ export class PublicController {
       },
     });
 
+    // Los menores sin consentimiento de publicación no se nombran (ver PublicNamesService).
+    const athleteIds = stages.flatMap((st) =>
+      st.rounds.flatMap((r) =>
+        r.events.flatMap((e) => [
+          ...e.participants.flatMap((ep) =>
+            ep.registration.participant.individual
+              ? [ep.registration.participant.individual.athlete.id]
+              : [],
+          ),
+          ...(e.result?.footballEvents ?? []).flatMap((fe) =>
+            fe.athlete ? [fe.athlete.id] : [],
+          ),
+        ]),
+      ),
+    );
+    const labels = await this.names.labels(athleteIds);
+
     return stages.map((stage) => ({
       id: stage.id,
       name: stage.name,
@@ -283,7 +310,7 @@ export class PublicController {
                 ep.registration.participant.individual
               ) {
                 const ind = ep.registration.participant.individual;
-                name = `${ind.athlete.person.firstName} ${ind.athlete.person.lastName}`;
+                name = labels.get(ind.athlete.id) ?? 'Deportista';
                 clubName = ind.athlete.club.name;
               }
 
@@ -315,7 +342,7 @@ export class PublicController {
                       eventType: fe.eventType,
                       minute: fe.minute,
                       athleteName: fe.athlete
-                        ? `${fe.athlete.person.firstName} ${fe.athlete.person.lastName}`
+                        ? (labels.get(fe.athlete.id) ?? 'Deportista')
                         : null,
                       notes: fe.notes,
                     })),
@@ -345,10 +372,18 @@ export class PublicController {
     }
 
     const calculated = await this.results.calculateStandings(champId);
+    const labels = await this.names.labels(
+      calculated.standings.flatMap((row) =>
+        row.athleteId ? [row.athleteId] : [],
+      ),
+    );
     return {
       championship: champ,
       rules: calculated.rules,
-      standings: calculated.standings,
+      standings: calculated.standings.map(({ athleteId, ...row }) => ({
+        ...row,
+        name: athleteId ? (labels.get(athleteId) ?? row.name) : row.name,
+      })),
     };
   }
 
@@ -431,6 +466,7 @@ export class PublicController {
     }
 
     const champ = event.round.stage.championship;
+    const header = await this.institution.documentHeader();
 
     const participantsWithRoster = await Promise.all(
       event.participants.map(async (ep) => {
@@ -473,10 +509,13 @@ export class PublicController {
           });
 
           if (teamSeason) {
+            const labels = await this.names.labels(
+              teamSeason.memberships.map((m) => m.athlete.id),
+            );
             roster = teamSeason.memberships.map((m) => ({
               jerseyNumber: m.jerseyNumber,
               code: athleteCode(m.athlete.codeNumber),
-              name: `${m.athlete.person.firstName} ${m.athlete.person.lastName}`,
+              name: labels.get(m.athlete.id) ?? 'Deportista',
             }));
           }
         } else if (
@@ -484,7 +523,9 @@ export class PublicController {
           ep.registration.participant.individual
         ) {
           const ind = ep.registration.participant.individual;
-          name = `${ind.athlete.person.firstName} ${ind.athlete.person.lastName}`;
+          name =
+            (await this.names.labels([ind.athlete.id])).get(ind.athlete.id) ??
+            'Deportista';
           clubName = ind.athlete.club.name;
           roster = [
             {
@@ -512,12 +553,19 @@ export class PublicController {
       }),
     );
 
+    const eventLabels = await this.names.labels(
+      (event.result?.footballEvents ?? []).flatMap((fe) =>
+        fe.athlete ? [fe.athlete.id] : [],
+      ),
+    );
+
     return {
       documentMetadata: {
         title: 'ACTA OFICIAL DE ENCUENTRO',
-        institution: 'LIGA DEPORTIVA CANTONAL DE QUERO',
-        affiliation: 'Afiliada a Federación Deportiva de Tungurahua',
-        canton: 'Quero - Tungurahua - Ecuador',
+        institution: header.institution,
+        affiliation: header.affiliation,
+        canton: header.canton,
+        footer: header.footer,
         generatedAt: new Date().toISOString(),
       },
       championship: {
@@ -548,7 +596,7 @@ export class PublicController {
                 minute: fe.minute,
                 eventType: fe.eventType,
                 athleteName: fe.athlete
-                  ? `${fe.athlete.person.firstName} ${fe.athlete.person.lastName}`
+                  ? (eventLabels.get(fe.athlete.id) ?? 'Jugador')
                   : 'Jugador',
                 notes: fe.notes,
               })),
@@ -631,6 +679,7 @@ export class PublicController {
     }
 
     const champ = reg.championship;
+    const header = await this.institution.documentHeader();
     let participantName = 'Desconocido';
     let clubName = '';
     let clubSector = '';
@@ -669,10 +718,13 @@ export class PublicController {
       });
 
       if (teamSeason) {
+        const labels = await this.names.labels(
+          teamSeason.memberships.map((m) => m.athlete.id),
+        );
         members = teamSeason.memberships.map((m) => ({
           jerseyNumber: m.jerseyNumber,
           code: athleteCode(m.athlete.codeNumber),
-          name: `${m.athlete.person.firstName} ${m.athlete.person.lastName}`,
+          name: labels.get(m.athlete.id) ?? 'Deportista',
           status: m.status,
         }));
       }
@@ -681,7 +733,9 @@ export class PublicController {
       reg.participant.individual
     ) {
       const ind = reg.participant.individual;
-      participantName = `${ind.athlete.person.firstName} ${ind.athlete.person.lastName}`;
+      participantName =
+        (await this.names.labels([ind.athlete.id])).get(ind.athlete.id) ??
+        'Deportista';
       clubName = ind.athlete.club.name;
       clubSector = ind.athlete.club.sector ?? '';
       members = [
@@ -697,9 +751,10 @@ export class PublicController {
     return {
       documentMetadata: {
         title: 'NÓMINA INSTITUCIONAL DE BUENA FE',
-        institution: 'LIGA DEPORTIVA CANTONAL DE QUERO',
-        affiliation: 'Afiliada a Federación Deportiva de Tungurahua',
-        canton: 'Quero - Tungurahua - Ecuador',
+        institution: header.institution,
+        affiliation: header.affiliation,
+        canton: header.canton,
+        footer: header.footer,
         generatedAt: new Date().toISOString(),
       },
       championship: {
