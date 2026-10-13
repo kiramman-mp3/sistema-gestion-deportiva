@@ -57,6 +57,64 @@ export interface Athlete {
   full?: AthleteFull;
 }
 
+export type QueroLinkKind = 'nacimiento' | 'matrimonio' | 'padre' | 'madre';
+export const QUERO_LINK_LABELS: Record<QueroLinkKind, string> = {
+  nacimiento: 'Nació en Quero',
+  matrimonio: 'Casado/a con una persona de Quero',
+  padre: 'Padre de Quero',
+  madre: 'Madre de Quero',
+};
+
+/** Vínculo con Quero (dato privado). */
+export interface OriginLink {
+  id: string;
+  kind: QueroLinkKind;
+  relatedName: string | null;
+  relatedIdNumber: string | null;
+  birthPlace: string | null;
+  source: 'manual' | 'registro_civil';
+}
+
+export interface RegistryRelative {
+  name: string;
+  idNumber: string | null;
+  birthPlace: string | null;
+}
+
+/** Datos del Registro Civil (solo con convenio). */
+export interface RegistryRecord {
+  firstName: string;
+  lastName: string;
+  birthDate: string | null;
+  birthPlace: string | null;
+  spouse: RegistryRelative | null;
+  father: RegistryRelative | null;
+  mother: RegistryRelative | null;
+}
+
+/** Respuesta de `GET /athletes/lookup`. */
+export interface AthleteLookup {
+  existing:
+    | {
+        kind: 'athlete';
+        athlete: {
+          id: string;
+          code: string;
+          firstName: string;
+          lastName: string;
+        } | null;
+        club: { name: string };
+      }
+    | {
+        kind: 'person';
+        firstName: string;
+        lastName: string;
+        birthDate: string | null;
+      }
+    | null;
+  registry: { configured: boolean; record: RegistryRecord | null };
+}
+
 export type ConsentType =
   'tratamiento_datos' | 'publicacion_perfil' | 'publicacion_foto';
 export const CONSENT_LABELS: Record<ConsentType, string> = {

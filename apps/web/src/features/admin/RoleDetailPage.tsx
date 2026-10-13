@@ -1,6 +1,7 @@
 import { type FormEvent, useId, useMemo, useState } from 'react';
 import { ApiError, apiRequest } from '../../api/client.ts';
 import { ConfirmDialog } from '../../components/ConfirmDialog.tsx';
+import { Icon } from '../../components/Icon.tsx';
 import {
   Notice,
   type NoticeState,
@@ -65,9 +66,11 @@ export function RoleDetailPage({ roleId, permissions }: Props) {
         <a href="#/roles">← Volver a roles</a>
       </p>
       <div className="catalog-header">
-        <h2 id="role-title">{r.name}</h2>
-        <span className={`badge badge-${r.isSystem ? 'neutral' : 'ok'}`}>
-          <span aria-hidden="true">{r.isSystem ? '🔒 ' : '✎ '}</span>
+        <h1 id="role-title">{r.name}</h1>
+        <span
+          className={`badge ${r.isSystem ? 'badge-neutral' : 'badge-success'}`}
+        >
+          <Icon name={r.isSystem ? 'lock' : 'pencil'} size={14} />{' '}
           {r.isSystem ? 'Rol de sistema' : 'Rol configurable'}
         </span>
       </div>
@@ -167,7 +170,7 @@ function PermissionsEditor({
 
   return (
     <>
-      <h3>Permisos</h3>
+      <h2>Permisos</h2>
       <p className="hint">
         Cada capacidad es independiente: <strong>Consultar</strong> permite ver
         información, <strong>Gestionar</strong> permite crear y modificar, y{' '}

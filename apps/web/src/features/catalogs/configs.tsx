@@ -24,7 +24,9 @@ function StatusBadge({
 }) {
   const symbol = tone === 'ok' ? '●' : tone === 'off' ? '○' : '◐';
   return (
-    <span className={`badge badge-${tone}`}>
+    <span
+      className={`badge ${tone === 'ok' ? 'badge-success' : tone === 'off' ? 'badge-neutral' : 'badge-warning'}`}
+    >
       <span aria-hidden="true">{symbol} </span>
       {label}
     </span>

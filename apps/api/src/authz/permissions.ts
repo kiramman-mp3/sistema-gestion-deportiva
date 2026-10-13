@@ -64,6 +64,50 @@ export const PERMISSIONS = {
   'results:read': 'Consultar resultados y actas',
   'results:manage': 'Registrar y corregir resultados y actas en borrador',
   'results:approve': 'Aprobar, rechazar o anular resultados oficiales',
+  'officials:read':
+    'Consultar árbitros, jueces y auxiliares, su disponibilidad e historial',
+  'officials:manage':
+    'Registrar y modificar oficiales, su disponibilidad y su cuenta vinculada',
+  'officials:delete': 'Eliminar oficiales sin designaciones',
+  'assignments:read':
+    'Consultar las designaciones de oficiales en los partidos',
+  'assignments:manage': 'Designar y retirar oficiales de un partido',
+  'assignments:read_own':
+    'Consultar y responder las propias designaciones (árbitro o juez)',
+  'results:manage_assigned':
+    'Registrar y enviar a revisión el acta de los partidos en que el usuario está designado',
+  'incidents:report':
+    'Reportar incidencias de los partidos en que se está designado (o de cualquiera con gestión de expedientes)',
+  'incidents:read': 'Consultar las incidencias reportadas',
+  'complaints:submit':
+    'Presentar reclamos en nombre de los clubes a los que se pertenece',
+  'complaints:read':
+    'Consultar reclamos (los de los clubes vinculados, o todos con «acceso a todos los clubes»)',
+  'cases:read': 'Consultar expedientes disciplinarios',
+  'cases:manage':
+    'Abrir expedientes, asignar revisores, anexar notas y recursos y desestimar reclamos',
+  'cases:resolve': 'Resolver, reabrir y archivar expedientes disciplinarios',
+  'cases:publish': 'Publicar o retirar resoluciones en el portal público',
+  'sanctions:read':
+    'Consultar sanciones (las de los clubes vinculados, o todas con «acceso a todos los clubes»)',
+  'sanctions:manage': 'Registrar, cumplir y anular sanciones',
+  'announcements:read': 'Consultar noticias, comunicados e imágenes del portal',
+  'announcements:manage':
+    'Redactar y editar noticias y comunicados y subir imágenes (no los publica)',
+  'announcements:publish':
+    'Publicar, retirar y archivar noticias y comunicados en el portal',
+  'announcements:delete':
+    'Eliminar borradores de noticias que nunca se publicaron',
+  'reports:read':
+    'Generar listados, tablas, actas, nóminas e informes en PDF o CSV (dentro del alcance por club)',
+  'credentials:issue':
+    'Emitir y descargar carnés y certificados de deportistas (dentro del alcance por club)',
+  'credentials:revoke': 'Anular carnés y certificados emitidos',
+  'notifications:manage':
+    'Consultar la cola de correos, reintentar envíos y enviar recordatorios de documentación',
+  'institution:read': 'Consultar la configuración institucional',
+  'institution:manage':
+    'Modificar los datos institucionales, el logotipo y los parámetros de publicación',
 } as const satisfies Record<string, string>;
 
 export type PermissionCode = keyof typeof PERMISSIONS;
@@ -92,6 +136,17 @@ export const PERMISSION_MODULES = {
   registrations: 'Inscripciones',
   fixtures: 'Calendario',
   results: 'Resultados',
+  institution: 'Institución',
+  notifications: 'Notificaciones',
+  officials: 'Árbitros y jueces',
+  assignments: 'Designaciones',
+  incidents: 'Incidencias',
+  complaints: 'Reclamos',
+  cases: 'Expedientes disciplinarios',
+  sanctions: 'Sanciones',
+  announcements: 'Noticias y comunicados',
+  reports: 'Reportes y documentos',
+  credentials: 'Carnés y certificados',
 } as const satisfies Record<string, string>;
 
 /**
@@ -110,6 +165,13 @@ export const PERMISSION_ACTIONS = {
   delete: 'Eliminar',
   access_all: 'Acceso a todos los clubes',
   approve: 'Aprobar',
+  read_own: 'Consultar y responder las propias',
+  manage_assigned: 'Gestionar los partidos designados',
+  report: 'Reportar',
+  submit: 'Presentar',
+  resolve: 'Resolver',
+  issue: 'Emitir',
+  revoke: 'Anular',
 } as const satisfies Record<string, string>;
 
 export interface PermissionInfo {

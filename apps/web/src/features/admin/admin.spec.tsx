@@ -1105,7 +1105,7 @@ describe('enlaces de activación y restablecimiento', () => {
       await screen.findByRole('heading', { name: 'Activar su cuenta' }),
     ).toBeInTheDocument();
     // El token ya no está en la dirección (ni en el historial)
-    expect(window.location.hash).toBe('#/');
+    expect(window.location.hash).toBe('#/ingresar');
     expect(window.location.href).not.toContain(TOKEN);
 
     await fillNew('mi-contraseña-segura-9');
@@ -1249,7 +1249,13 @@ describe('navegación de administración', () => {
       within(nav)
         .getAllByRole('link')
         .map((l) => l.textContent),
-    ).toEqual(['Inicio', 'Usuarios', 'Auditoría', 'Mi cuenta']);
+    ).toEqual([
+      'Inicio',
+      'Usuarios',
+      'Auditoría',
+      'Notificaciones',
+      'Mi cuenta',
+    ]);
   });
 
   it('una dirección de auditoría sin permiso no la muestra ni consulta la API', async () => {

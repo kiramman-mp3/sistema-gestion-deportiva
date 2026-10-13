@@ -133,7 +133,7 @@ export function UserDetailPage({ userId, selfId, permissions }: Props) {
         <a href="#/usuarios">← Volver a usuarios</a>
       </p>
       <div className="catalog-header">
-        <h2 id="user-title">{u.displayName}</h2>
+        <h1 id="user-title">{u.displayName}</h1>
         <StatusBadge status={u.status} />
       </div>
       {isSelf && (
@@ -152,7 +152,7 @@ export function UserDetailPage({ userId, selfId, permissions }: Props) {
         />
       )}
 
-      <h3>Datos</h3>
+      <h2>Datos</h2>
       {editing ? (
         <EditUserForm
           user={u}
@@ -202,7 +202,7 @@ export function UserDetailPage({ userId, selfId, permissions }: Props) {
         </div>
       )}
 
-      <h3>Roles</h3>
+      <h2>Roles</h2>
       {u.roles.length === 0 ? (
         <p className="muted">Esta cuenta no tiene roles ni permisos.</p>
       ) : (
@@ -277,7 +277,7 @@ export function UserDetailPage({ userId, selfId, permissions }: Props) {
 
       {canReadSessions && (
         <>
-          <h3>Sesiones activas</h3>
+          <h2>Sesiones activas</h2>
           {sessions.kind === 'loading' && (
             <output className="loading">Cargando…</output>
           )}

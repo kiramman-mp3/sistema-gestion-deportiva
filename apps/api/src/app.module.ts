@@ -6,10 +6,16 @@ import { AuthzModule } from './authz/authz.module.js';
 import { CatalogsModule } from './catalogs/catalogs.module.js';
 import { ConfigModule } from './config/config.module.js';
 import { PrismaModule } from './database/prisma.module.js';
+import { ContentModule } from './content/content.module.js';
+import { DisciplineModule } from './discipline/discipline.module.js';
 import { HealthController } from './health/health.controller.js';
+import { InstitutionModule } from './institution/institution.module.js';
+import { NotificationsModule } from './notifications/notifications.module.js';
+import { OfficialsModule } from './officials/officials.module.js';
 import { ClubsModule } from './clubs/clubs.module.js';
 import { PeopleModule } from './people/people.module.js';
 import { PublicModule } from './public/public.module.js';
+import { ReportsModule } from './reports/reports.module.js';
 import { StorageModule } from './storage/storage.module.js';
 import { DocumentsModule } from './documents/documents.module.js';
 import { CompetitionsModule } from './competitions/competitions.module.js';
@@ -32,7 +38,13 @@ import { UsersModule } from './users/users.module.js';
     StorageModule,
     DocumentsModule,
     CompetitionsModule,
+    InstitutionModule,
+    NotificationsModule,
+    OfficialsModule,
+    DisciplineModule,
+    ContentModule,
     PublicModule,
+    ReportsModule,
   ],
   controllers: [HealthController],
 })

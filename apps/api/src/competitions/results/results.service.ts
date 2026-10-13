@@ -1,10 +1,14 @@
 import {
   ConflictException,
+  ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import type { AuthContext } from '../../auth/auth.types.js';
 import { AuditService } from '../../audit/audit.service.js';
 import { PrismaService } from '../../database/prisma.service.js';
+import { NotificationsService } from '../../notifications/notifications.service.js';
 import type { Prisma } from '../../generated/prisma/client.js';
 import type {
   ApproveResultInput,
@@ -16,7 +20,29 @@ export class ResultsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    @Inject(NotificationsService)
+    private readonly notifications: NotificationsService,
   ) {}
+
+  /**
+   * Quién puede escribir el acta de un partido: `results:manage` en cualquiera, o
+   * `results:manage_assigned` solo si está designado en ese partido (y no rechazó la designación).
+   */
+  async assertCanWrite(auth: AuthContext, eventId: string): Promise<void> {
+    if (auth.permissions.has('results:manage')) return;
+    if (auth.permissions.has('results:manage_assigned')) {
+      const assignment = await this.prisma.client.eventAssignment.findFirst({
+        where: {
+          eventId,
+          status: { not: 'rechazado' },
+          official: { userId: auth.user.id },
+        },
+        select: { id: true },
+      });
+      if (assignment) return;
+    }
+    throw new ForbiddenException('No tiene permisos para esta operación');
+  }
 
   async getResult(eventId: string) {
     const event = await this.prisma.client.event.findUnique({
@@ -325,6 +351,20 @@ export class ResultsService {
         tx,
       );
 
+      const context = await this.notifications.eventContext(tx, eventId);
+      await this.notifications.notify(tx, {
+        userIds: await this.notifications.permissionUserIds(
+          tx,
+          'results:approve',
+        ),
+        template: 'result.pending_review',
+        params: { championship: context.championship, match: context.match },
+        entityType: 'result',
+        entityId: result.id,
+        link: '#/campeonatos',
+        excludeUserId: userId,
+      });
+
       return updated;
     });
   }
@@ -356,6 +396,26 @@ export class ResultsService {
 
     const previousResult = event.result;
     const newStatus = input.approved ? 'aprobado' : 'rechazado';
+
+    // Solo se revisa lo que alguien envió a revisión: un borrador, o un acta ya resuelta, no se aprueba.
+    if (previousResult.status !== 'pendiente_revision') {
+      throw new ConflictException(
+        'Solo se pueden aprobar o rechazar actas pendientes de revisión',
+      );
+    }
+    // Separación de funciones (§4.5): quien registró el acta no la aprueba, salvo decisión expresa de la Liga.
+    if (previousResult.submittedById === userId) {
+      const institution =
+        await this.prisma.client.institutionSettings.findUnique({
+          where: { id: 1 },
+          select: { allowSelfApproval: true },
+        });
+      if (!institution?.allowSelfApproval) {
+        throw new ForbiddenException(
+          'Quien registró el acta no puede aprobarla ni rechazarla. Solicite la revisión a otra persona',
+        );
+      }
+    }
 
     return this.prisma.client.$transaction(async (tx) => {
       const updated = await tx.result.update({
@@ -480,6 +540,10 @@ export class ResultsService {
         yellowCards: number;
         redCards: number;
         buchholz?: number;
+        /** Puntos descontados por sanciones (ya restados de `points`). */
+        pointsDeducted?: number;
+        /** Solo en participantes individuales: permite al portal público decidir cómo nombrarlos. */
+        athleteId?: string;
       }
     >();
 
@@ -503,6 +567,7 @@ export class ResultsService {
         participantId: reg.participantId,
         name,
         clubName,
+        athleteId: reg.participant.individual?.athlete.id,
         played: 0,
         won: 0,
         drawn: 0,
@@ -657,6 +722,27 @@ export class ResultsService {
             row.redCards += tb.penalties; // acumulamos penalizaciones
           }
         }
+      }
+    }
+
+    // Descuentos de puntos por sanciones vigentes (decididas por la autoridad disciplinaria).
+    const deductions = await this.prisma.client.sanction.findMany({
+      where: {
+        championshipId,
+        type: 'descuento_puntos',
+        status: 'vigente',
+        teamId: { not: null },
+      },
+      select: { teamId: true, points: true },
+    });
+    for (const d of deductions) {
+      const reg = registrations.find(
+        (r) => r.participant.team?.teamId === d.teamId,
+      );
+      const row = reg ? tableMap.get(reg.id) : undefined;
+      if (row && d.points) {
+        row.points -= d.points;
+        row.pointsDeducted = (row.pointsDeducted ?? 0) + d.points;
       }
     }
 

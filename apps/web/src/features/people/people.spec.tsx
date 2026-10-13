@@ -218,7 +218,9 @@ describe('deportistas: listado y alta', () => {
     await userEvent.click(
       screen.getByRole('button', { name: 'Registrar deportista' }),
     );
-    expect(await screen.findByText(/DEP-000001/)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/Se registró a María Pérez \(DEP-000001\)/),
+    ).toBeInTheDocument();
     expect(api.of('POST', '/athletes')[0]!.body).toEqual({
       clubId: CLUB_ID,
       firstName: 'María',
@@ -226,19 +228,40 @@ describe('deportistas: listado y alta', () => {
     });
   });
 
-  it('con permiso de datos completos envía el documento y valida los obligatorios', async () => {
-    const api = mockApi({
-      ...routes(),
-      'POST /athletes': () => json(FULL, 201),
-    });
-    render(
-      <AthletesPage
-        permissions={['athletes:read', 'athletes:manage', 'athletes:read_full']}
-      />,
-    );
+  const FULL_PERMS = ['athletes:read', 'athletes:manage', 'athletes:read_full'];
+  const NO_MATCH = {
+    existing: null,
+    registry: { configured: false, record: null },
+  };
+  const searchDocument = async (idNumber: string) => {
     await userEvent.click(
       await screen.findByRole('button', { name: 'Nuevo deportista' }),
     );
+    await userEvent.type(
+      screen.getByLabelText(/Número de documento/),
+      idNumber,
+    );
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Buscar documento' }),
+    );
+  };
+
+  it('con datos completos busca primero el documento, pide tutor al menor y luego los vínculos con Quero', async () => {
+    const api = mockApi({
+      ...routes(),
+      'GET /athletes/lookup': () => json(NO_MATCH),
+      'POST /athletes': () => json(FULL, 201),
+      [`PUT /athletes/${FULL.id}/origin-links`]: () => json([]),
+    });
+    render(<AthletesPage permissions={FULL_PERMS} />);
+    await searchDocument('1710034065');
+    expect(
+      Object.fromEntries(api.of('GET', '/athletes/lookup')[0]!.query),
+    ).toEqual({ idType: 'cedula', idNumber: '1710034065' });
+    expect(
+      await screen.findByText(/Sin convenio con el Registro Civil/),
+    ).toBeInTheDocument();
+
     await userEvent.click(
       screen.getByRole('button', { name: 'Registrar deportista' }),
     );
@@ -250,9 +273,17 @@ describe('deportistas: listado y alta', () => {
     await userEvent.selectOptions(screen.getByLabelText(/Club/), CLUB_ID);
     await userEvent.type(screen.getByLabelText(/Nombres/), 'María');
     await userEvent.type(screen.getByLabelText(/Apellidos/), 'Pérez');
+    expect(screen.queryByLabelText(/Nombre del tutor/)).not.toBeInTheDocument();
+    await userEvent.click(screen.getByLabelText('¿Es menor de edad?'));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Registrar deportista' }),
+    );
+    expect(
+      screen.getByText('Ingrese el nombre del tutor.'),
+    ).toBeInTheDocument();
     await userEvent.type(
-      screen.getByLabelText(/Número de documento/),
-      '1710034065',
+      screen.getByLabelText(/Nombre del tutor/),
+      'Rosa Pérez',
     );
     await userEvent.click(
       screen.getByRole('button', { name: 'Registrar deportista' }),
@@ -261,7 +292,88 @@ describe('deportistas: listado y alta', () => {
     expect(api.of('POST', '/athletes')[0]!.body).toMatchObject({
       idType: 'cedula',
       idNumber: '1710034065',
+      guardianName: 'Rosa Pérez',
     });
+
+    const links = await screen.findByRole('form', {
+      name: 'Vínculos con Quero',
+    });
+    await userEvent.click(within(links).getByLabelText('Madre de Quero'));
+    await userEvent.click(
+      within(links).getByRole('button', { name: 'Guardar vínculos' }),
+    );
+    expect(
+      within(links).getByText('Indique el nombre de la persona de Quero.'),
+    ).toBeInTheDocument();
+    await userEvent.type(
+      within(links).getByLabelText(/Nombre completo de la persona de Quero/),
+      'Rosa Andrade',
+    );
+    await userEvent.click(
+      within(links).getByRole('button', { name: 'Guardar vínculos' }),
+    );
+    await screen.findByText(/Se guardaron los vínculos con Quero/);
+    expect(api.of('PUT', `/athletes/${FULL.id}/origin-links`)[0]!.body).toEqual(
+      {
+        links: [
+          {
+            kind: 'madre',
+            relatedName: 'Rosa Andrade',
+            relatedIdNumber: '',
+            birthPlace: '',
+          },
+        ],
+      },
+    );
+  });
+
+  it('si el documento ya es de un deportista no abre el formulario y enlaza su ficha', async () => {
+    const api = mockApi({
+      ...routes(),
+      'GET /athletes/lookup': () =>
+        json({
+          existing: {
+            kind: 'athlete',
+            athlete: {
+              id: ATH_ID,
+              code: 'DEP-000001',
+              firstName: 'María',
+              lastName: 'Pérez',
+            },
+            club: { name: 'Deportivo Quero' },
+          },
+          registry: { configured: false, record: null },
+        }),
+    });
+    render(<AthletesPage permissions={FULL_PERMS} />);
+    await searchDocument('1710034065');
+    expect(
+      await screen.findByRole('link', { name: 'Ver ficha' }),
+    ).toHaveAttribute('href', `#/deportistas/${ATH_ID}`);
+    expect(screen.queryByLabelText(/Nombres/)).not.toBeInTheDocument();
+    expect(api.of('POST', '/athletes')).toHaveLength(0);
+  });
+
+  it('precarga y bloquea los datos de una persona ya registrada', async () => {
+    mockApi({
+      ...routes(),
+      'GET /athletes/lookup': () =>
+        json({
+          existing: {
+            kind: 'person',
+            firstName: 'Luis',
+            lastName: 'Gavilanes',
+            birthDate: '1990-05-01',
+          },
+          registry: { configured: false, record: null },
+        }),
+    });
+    render(<AthletesPage permissions={FULL_PERMS} />);
+    await searchDocument('1710034065');
+    const names = await screen.findByLabelText(/Nombres/);
+    expect(names).toHaveValue('Luis');
+    expect(names).toBeDisabled();
+    expect(screen.getByLabelText('¿Es menor de edad?')).not.toBeChecked();
   });
 
   it('ante un posible duplicado ofrece confirmar y reenvía con confirmDuplicate', async () => {
@@ -301,6 +413,7 @@ describe('ficha del deportista', () => {
   const routes = (athlete: Athlete = ATHLETE) => ({
     [`GET /athletes/${ATH_ID}`]: () => json(athlete),
     [`GET /athletes/${ATH_ID}/consents`]: () => json([CONSENT]),
+    [`GET /athletes/${ATH_ID}/origin-links`]: () => json([]),
     [`GET /athletes/${ATH_ID}/teams`]: () => json([]),
     'GET /clubs': () => page([CLUB, { ...CLUB, id: 'otro', name: 'Club Dos' }]),
   });
@@ -595,7 +708,12 @@ describe('navegación', () => {
   it('muestra Clubes, Deportistas y Equipos solo con el permiso de lectura correspondiente', () => {
     mockApi({});
     const { unmount } = render(
-      <CatalogsApp permissions={['athletes:read']} selfId="yo" />,
+      <CatalogsApp
+        permissions={['athletes:read']}
+        selfId="yo"
+        userName="Usuaria de prueba"
+        onLogout={() => undefined}
+      />,
     );
     const nav = screen.getByRole('navigation', { name: 'Secciones' });
     expect(

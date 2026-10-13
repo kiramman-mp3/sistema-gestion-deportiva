@@ -5,6 +5,7 @@ import {
   type NoticeState,
   describeError,
 } from '../../components/Notice.tsx';
+import { Modal } from '../../components/Modal.tsx';
 import { Pagination } from '../../components/Pagination.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import { CredentialLinkPanel } from './CredentialLinkPanel.tsx';
@@ -24,7 +25,7 @@ export function StatusBadge({ status }: { status: UserStatus }) {
   const symbol = status === 'activo' ? '●' : status === 'pendiente' ? '◐' : '○';
   return (
     <span
-      className={`badge badge-${status === 'activo' ? 'ok' : status === 'pendiente' ? 'neutral' : 'off'}`}
+      className={`badge ${status === 'activo' ? 'badge-success' : status === 'pendiente' ? 'badge-warning' : 'badge-neutral'}`}
     >
       <span aria-hidden="true">{symbol} </span>
       {USER_STATUS_LABELS[status]}
@@ -79,8 +80,8 @@ export function UsersPage({ permissions }: UsersPageProps) {
   return (
     <section aria-labelledby="users-title" className="catalog">
       <div className="catalog-header">
-        <h2 id="users-title">Usuarios</h2>
-        {canCreate && !creating && (
+        <h1 id="users-title">Usuarios</h1>
+        {canCreate && (
           <button
             type="button"
             className="primary"
@@ -105,18 +106,20 @@ export function UsersPage({ permissions }: UsersPageProps) {
       )}
 
       {creating && (
-        <CreateUserForm
-          onCancel={() => setCreating(false)}
-          onCreated={(user, link) => {
-            setCreating(false);
-            setCreated({ user, link });
-            setNotice({
-              type: 'success',
-              text: `Se creó la cuenta de ${user.displayName}, pendiente de activación.`,
-            });
-            reload();
-          }}
-        />
+        <Modal onClose={() => setCreating(false)} className="dialog-complex">
+          <CreateUserForm
+            onCancel={() => setCreating(false)}
+            onCreated={(user, link) => {
+              setCreating(false);
+              setCreated({ user, link });
+              setNotice({
+                type: 'success',
+                text: `Se creó la cuenta de ${user.displayName}, pendiente de activación.`,
+              });
+              reload();
+            }}
+          />
+        </Modal>
       )}
 
       <search>

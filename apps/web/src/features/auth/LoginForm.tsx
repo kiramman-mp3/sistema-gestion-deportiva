@@ -1,5 +1,7 @@
 import { type FormEvent, useId, useState } from 'react';
 import { ApiError } from '../../api/client.ts';
+import { Icon } from '../../components/Icon.tsx';
+import { InstitutionBrand } from '../../components/InstitutionBrand.tsx';
 import { useAuth } from './AuthContext.tsx';
 
 interface FieldErrors {
@@ -40,6 +42,7 @@ export function LoginForm({ sessionExpired }: { sessionExpired: boolean }) {
   const passwordId = useId();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -65,71 +68,112 @@ export function LoginForm({ sessionExpired }: { sessionExpired: boolean }) {
   }
 
   return (
-    <form
-      className="login-form"
-      onSubmit={onSubmit}
-      noValidate
-      aria-labelledby="login-title"
-    >
-      <h2 id="login-title">Iniciar sesión</h2>
-
-      {sessionExpired && (
-        <output className="notice">
-          Su sesión expiró o fue cerrada. Inicie sesión de nuevo.
-        </output>
-      )}
-
-      <div className="field">
-        <label htmlFor={emailId}>Correo electrónico</label>
-        <input
-          id={emailId}
-          type="email"
-          name="email"
-          autoComplete="username"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          aria-invalid={fieldErrors.email ? true : undefined}
-          aria-describedby={fieldErrors.email ? `${emailId}-error` : undefined}
-          disabled={submitting}
-        />
-        {fieldErrors.email && (
-          <p className="field-error" id={`${emailId}-error`}>
-            {fieldErrors.email}
-          </p>
-        )}
-      </div>
-
-      <div className="field">
-        <label htmlFor={passwordId}>Contraseña</label>
-        <input
-          id={passwordId}
-          type="password"
-          name="password"
-          autoComplete="current-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          aria-invalid={fieldErrors.password ? true : undefined}
-          aria-describedby={
-            fieldErrors.password ? `${passwordId}-error` : undefined
-          }
-          disabled={submitting}
-        />
-        {fieldErrors.password && (
-          <p className="field-error" id={`${passwordId}-error`}>
-            {fieldErrors.password}
-          </p>
-        )}
-      </div>
-
-      {formError && (
-        <p className="form-error" role="alert">
-          {formError}
+    <div className="login-page-container">
+      {/* Panel lateral en escritorio (≥ 64rem): marca e identidad */}
+      <aside className="login-brand-panel">
+        <div className="login-brand-header">
+          <InstitutionBrand showSubtitle />
+        </div>
+        <p className="login-motto">
+          Gestión deportiva cantonal, resultados transparentes y actas
+          oficiales.
         </p>
-      )}
+      </aside>
 
-      <button type="submit" disabled={submitting}>
-        {submitting ? 'Ingresando…' : 'Ingresar'}
-      </button>
-    </form>
+      {/* Formulario de inicio de sesión */}
+      <div className="login-form-wrapper">
+        <form
+          className="login-form"
+          onSubmit={onSubmit}
+          noValidate
+          aria-labelledby="login-title"
+        >
+          {/* Marca visible en pantallas estrechas (< 64rem) encima del formulario */}
+          <div className="login-mobile-brand">
+            <InstitutionBrand showSubtitle />
+          </div>
+
+          <h1 id="login-title">Iniciar sesión</h1>
+
+          {sessionExpired && (
+            <output className="notice">
+              Su sesión expiró o fue cerrada. Inicie sesión de nuevo.
+            </output>
+          )}
+
+          <div className="field">
+            <label htmlFor={emailId}>Correo electrónico</label>
+            <input
+              id={emailId}
+              type="email"
+              name="email"
+              autoComplete="username"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              aria-invalid={fieldErrors.email ? true : undefined}
+              aria-describedby={
+                fieldErrors.email ? `${emailId}-error` : undefined
+              }
+              disabled={submitting}
+            />
+            {fieldErrors.email && (
+              <p className="field-error" id={`${emailId}-error`}>
+                {fieldErrors.email}
+              </p>
+            )}
+          </div>
+
+          <div className="field">
+            <label htmlFor={passwordId}>Contraseña</label>
+            <div className="password-input-container">
+              <input
+                id={passwordId}
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                aria-invalid={fieldErrors.password ? true : undefined}
+                aria-describedby={
+                  fieldErrors.password ? `${passwordId}-error` : undefined
+                }
+                disabled={submitting}
+              />
+              <button
+                type="button"
+                className="password-toggle-button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-pressed={showPassword}
+                aria-label="Mostrar contraseña"
+                title={
+                  showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                }
+              >
+                <Icon name={showPassword ? 'eye-off' : 'eye'} size={18} />
+              </button>
+            </div>
+            {fieldErrors.password && (
+              <p className="field-error" id={`${passwordId}-error`}>
+                {fieldErrors.password}
+              </p>
+            )}
+          </div>
+
+          {formError && (
+            <p className="form-error" role="alert">
+              {formError}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="primary login-submit-button"
+          >
+            {submitting ? 'Ingresando…' : 'Ingresar'}
+          </button>
+        </form>
+      </div>
+    </div>
   );
 }

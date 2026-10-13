@@ -5,6 +5,7 @@ import {
   type NoticeState,
   describeError,
 } from '../../components/Notice.tsx';
+import { Modal } from '../../components/Modal.tsx';
 import { Pagination } from '../../components/Pagination.tsx';
 import { useFetch } from '../../hooks/useFetch.ts';
 import { LoadState, SelectField, TextField } from '../people/fields.tsx';
@@ -47,8 +48,8 @@ export function ChampionshipsPage({
   return (
     <section aria-labelledby="championships-title" className="catalog">
       <div className="catalog-header">
-        <h2 id="championships-title">Campeonatos</h2>
-        {canManage && !creating && (
+        <h1 id="championships-title">Campeonatos</h1>
+        {canManage && (
           <button
             type="button"
             className="primary"
@@ -61,17 +62,19 @@ export function ChampionshipsPage({
       <Notice notice={notice} onClose={() => setNotice(null)} />
 
       {creating && (
-        <CreateChampionshipForm
-          onCancel={() => setCreating(false)}
-          onCreated={(champ) => {
-            setCreating(false);
-            setNotice({
-              type: 'success',
-              text: `Se creó el campeonato «${champ.name}».`,
-            });
-            reload();
-          }}
-        />
+        <Modal onClose={() => setCreating(false)} className="dialog-complex">
+          <CreateChampionshipForm
+            onCancel={() => setCreating(false)}
+            onCreated={(champ) => {
+              setCreating(false);
+              setNotice({
+                type: 'success',
+                text: `Se creó el campeonato «${champ.name}».`,
+              });
+              reload();
+            }}
+          />
+        </Modal>
       )}
 
       <div className="filters">
@@ -267,7 +270,7 @@ function CreateChampionshipForm({
 
   return (
     <form className="catalog-form" onSubmit={submit} noValidate>
-      <h3>Nuevo campeonato deportivo</h3>
+      <h2>Nuevo campeonato deportivo</h2>
       <SelectField
         label="Temporada deportiva"
         value={seasonId}

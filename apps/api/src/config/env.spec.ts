@@ -89,4 +89,19 @@ describe('loadEnv', () => {
     expect(message).not.toContain('secreta');
     expect(message).not.toContain('clave-muy');
   });
+
+  it('el correo está desactivado por defecto y SMTP exige servidor y remitente', () => {
+    expect(loadEnv(base).MAIL_TRANSPORT).toBe('none');
+    expect(() => loadEnv({ ...base, MAIL_TRANSPORT: 'smtp' })).toThrow(
+      /SMTP_HOST: es obligatorio.*MAIL_FROM: es obligatorio/,
+    );
+    const env = loadEnv({
+      ...base,
+      MAIL_TRANSPORT: 'smtp',
+      SMTP_HOST: 'smtp.liga.example',
+      MAIL_FROM: 'Liga <no-responder@liga.example>',
+      SMTP_SECURE: 'true',
+    });
+    expect(env).toMatchObject({ SMTP_PORT: 587, SMTP_SECURE: true });
+  });
 });

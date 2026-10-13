@@ -1,4 +1,10 @@
 import { useEffect, useState } from 'react';
+import {
+  AppShell,
+  filterNavGroups,
+  isSectionActive,
+  PANEL_NAV_GROUPS,
+} from '../../components/AppShell.tsx';
 import { AuditPage } from '../admin/AuditPage.tsx';
 import { ChangePasswordForm } from '../admin/PasswordForms.tsx';
 import { RoleDetailPage } from '../admin/RoleDetailPage.tsx';
@@ -13,52 +19,19 @@ import { TeamsPage } from '../people/TeamsPage.tsx';
 import { ChampionshipDetailPage } from '../competitions/ChampionshipDetailPage.tsx';
 import { ChampionshipsPage } from '../competitions/ChampionshipsPage.tsx';
 import { VenuesPage } from '../competitions/VenuesPage.tsx';
-import { ApiStatus } from '../health/ApiStatus.tsx';
+import { AnnouncementsPage } from '../content/AnnouncementsPage.tsx';
+import { CaseDetailPage } from '../discipline/CaseDetailPage.tsx';
+import { DocumentsPage } from '../documents/DocumentsPage.tsx';
+import { DisciplinePage } from '../discipline/DisciplinePage.tsx';
+import { InstitutionPage } from '../institution/InstitutionPage.tsx';
+import { AdminHome } from '../home/AdminHome.tsx';
+import { NotificationsPage } from '../notifications/NotificationsPage.tsx';
+import { MyAssignmentsPage } from '../officials/MyAssignmentsPage.tsx';
+import { OfficialDetailPage } from '../officials/OfficialDetailPage.tsx';
+import { OfficialsPage } from '../officials/OfficialsPage.tsx';
+import { useUnreadCount } from '../notifications/useUnreadCount.ts';
 import { CatalogAdmin } from './CatalogAdmin.tsx';
 import { categoriesConfig, seasonsConfig, sportsConfig } from './configs.tsx';
-
-interface Section {
-  hash: string;
-  label: string;
-  /** Permiso de lectura que habilita la sección (la API lo vuelve a comprobar). */
-  permission?: string;
-}
-
-const SECTIONS: Section[] = [
-  { hash: '#/', label: 'Inicio' },
-  { hash: '#/usuarios', label: 'Usuarios', permission: 'users:read' },
-  { hash: '#/roles', label: 'Roles y permisos', permission: 'roles:read' },
-  {
-    hash: '#/deportes',
-    label: 'Deportes',
-    permission: sportsConfig.permissions.read,
-  },
-  {
-    hash: '#/categorias',
-    label: 'Categorías',
-    permission: categoriesConfig.permissions.read,
-  },
-  {
-    hash: '#/temporadas',
-    label: 'Temporadas',
-    permission: seasonsConfig.permissions.read,
-  },
-  { hash: '#/clubes', label: 'Clubes', permission: 'clubs:read' },
-  { hash: '#/deportistas', label: 'Deportistas', permission: 'athletes:read' },
-  { hash: '#/equipos', label: 'Equipos', permission: 'teams:read' },
-  {
-    hash: '#/campeonatos',
-    label: 'Campeonatos',
-    permission: 'championships:read',
-  },
-  {
-    hash: '#/escenarios',
-    label: 'Escenarios',
-    permission: 'venues:read',
-  },
-  { hash: '#/auditoria', label: 'Auditoría', permission: 'audit:read' },
-  { hash: '#/cuenta', label: 'Mi cuenta' },
-];
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -66,20 +39,20 @@ function currentHash(): string {
   return window.location.hash || '#/';
 }
 
-const matches = (section: Section, hash: string) =>
-  section.hash === '#/'
-    ? hash === '#/'
-    : hash === section.hash || hash.startsWith(`${section.hash}/`);
-
 /** Navegación y secciones de administración, visibles según los permisos del usuario. */
 export function CatalogsApp({
   permissions,
   selfId,
+  userName,
+  onLogout,
 }: {
   permissions: readonly string[];
   selfId: string;
+  userName: string;
+  onLogout: () => void | Promise<void>;
 }) {
   const [hash, setHash] = useState(currentHash);
+  const unread = useUnreadCount();
 
   useEffect(() => {
     const onChange = () => setHash(currentHash());
@@ -87,42 +60,25 @@ export function CatalogsApp({
     return () => window.removeEventListener('hashchange', onChange);
   }, []);
 
-  const visible = SECTIONS.filter(
-    (s) => !s.permission || permissions.includes(s.permission),
+  // Las secciones salen del mismo menú que se muestra (una sola definición).
+  const visible = filterNavGroups(PANEL_NAV_GROUPS, permissions).flatMap(
+    (group) => group.items,
   );
   // Una dirección sin permiso (o desconocida) vuelve a Inicio.
-  const active = visible.find((s) => matches(s, hash)) ?? visible[0]!;
+  const active =
+    visible.find((s) => isSectionActive(s.hash, hash)) ?? visible[0]!;
   const detailId = hash.split('/')[2];
-  const hasAdminAccess = visible.some((s) => s.permission);
 
   return (
-    <>
-      <nav className="main-nav" aria-label="Secciones">
-        <ul>
-          {visible.map((s) => (
-            <li key={s.hash}>
-              <a href={s.hash} aria-current={s === active ? 'page' : undefined}>
-                {s.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-
+    <AppShell
+      user={{ displayName: userName }}
+      permissions={permissions}
+      unreadCount={unread}
+      logout={onLogout}
+      activeHash={hash}
+    >
       {active.hash === '#/' && (
-        <section aria-labelledby="home-title">
-          <h2 id="home-title">Inicio</h2>
-          {hasAdminAccess ? (
-            <p>Seleccione una sección para administrar la Liga.</p>
-          ) : (
-            <p>
-              Su cuenta no tiene permisos de administración. Solicite acceso a
-              un administrador de la Liga. Mientras tanto puede cambiar su
-              contraseña en «Mi cuenta».
-            </p>
-          )}
-          <ApiStatus />
-        </section>
+        <AdminHome permissions={permissions} unreadCount={unread} />
       )}
       {active.hash === '#/usuarios' &&
         (detailId && UUID.test(detailId) ? (
@@ -185,11 +141,46 @@ export function CatalogsApp({
         ) : (
           <ChampionshipsPage permissions={permissions} />
         ))}
+      {active.hash === '#/arbitros' &&
+        (detailId && UUID.test(detailId) ? (
+          <OfficialDetailPage
+            key={detailId}
+            officialId={detailId}
+            permissions={permissions}
+          />
+        ) : (
+          <OfficialsPage permissions={permissions} />
+        ))}
+      {active.hash === '#/mis-designaciones' && (
+        <MyAssignmentsPage permissions={permissions} />
+      )}
+      {active.hash === '#/disciplina' &&
+        (detailId && UUID.test(detailId) ? (
+          <CaseDetailPage
+            key={detailId}
+            caseId={detailId}
+            permissions={permissions}
+          />
+        ) : (
+          <DisciplinePage permissions={permissions} />
+        ))}
+      {active.hash === '#/documentos' && (
+        <DocumentsPage permissions={permissions} />
+      )}
+      {active.hash === '#/noticias' && (
+        <AnnouncementsPage permissions={permissions} />
+      )}
       {active.hash === '#/escenarios' && (
         <VenuesPage permissions={permissions} />
       )}
+      {active.hash === '#/institucion' && (
+        <InstitutionPage permissions={permissions} />
+      )}
       {active.hash === '#/auditoria' && <AuditPage />}
+      {active.hash === '#/notificaciones' && (
+        <NotificationsPage permissions={permissions} />
+      )}
       {active.hash === '#/cuenta' && <ChangePasswordForm />}
-    </>
+    </AppShell>
   );
 }
