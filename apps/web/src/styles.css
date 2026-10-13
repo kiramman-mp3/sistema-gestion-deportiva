@@ -2874,13 +2874,12 @@ pre.json {
   align-items: center;
   justify-content: center;
   padding: 2rem 1rem;
-  background:
-    linear-gradient(
-      to bottom,
-      var(--color-brand) 0,
-      var(--color-brand) 14rem,
-      var(--color-bg) 14rem
-    );
+  background: linear-gradient(
+    to bottom,
+    var(--color-brand) 0,
+    var(--color-brand) 14rem,
+    var(--color-bg) 14rem
+  );
 }
 .login-main .login-page-container {
   min-height: 0;
@@ -2913,12 +2912,11 @@ pre.json {
     width: 26rem;
     text-align: center;
     padding: 2.5rem 4rem 2.5rem 2.5rem;
-    background:
-      linear-gradient(
-        160deg,
-        var(--color-brand) 0%,
-        color-mix(in srgb, var(--color-brand) 82%, #000) 100%
-      );
+    background: linear-gradient(
+      160deg,
+      var(--color-brand) 0%,
+      color-mix(in srgb, var(--color-brand) 82%, #000) 100%
+    );
     color: var(--color-on-brand);
     clip-path: polygon(0 0, 100% 0, calc(100% - 2.5rem) 100%, 0 100%);
   }
