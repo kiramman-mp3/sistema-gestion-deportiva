@@ -43,10 +43,16 @@ function sniffMimeType(buffer: Buffer): { mime: string; ext: string } | null {
   ) {
     return { mime: 'image/png', ext: 'png' };
   }
-  if (buffer.length >= 3 && buffer.subarray(0, 3).equals(Buffer.from('ffd8ff', 'hex'))) {
+  if (
+    buffer.length >= 3 &&
+    buffer.subarray(0, 3).equals(Buffer.from('ffd8ff', 'hex'))
+  ) {
     return { mime: 'image/jpeg', ext: 'jpg' };
   }
-  if (buffer.length >= 5 && buffer.subarray(0, 5).toString('latin1') === '%PDF-') {
+  if (
+    buffer.length >= 5 &&
+    buffer.subarray(0, 5).toString('latin1') === '%PDF-'
+  ) {
     return { mime: 'application/pdf', ext: 'pdf' };
   }
   return null;
