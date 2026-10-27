@@ -20,6 +20,10 @@ docs/    Requisitos, decisiones técnicas y hoja de ruta
 
 ## Puesta en marcha
 
+**Demostración con un solo comando:** `node start.js` (requiere Node >= 22.12 y Docker). Crea `.env` si falta, instala
+dependencias, levanta PostgreSQL, migra, carga los datos de demostración si no están y arranca la API (3000) y la web (5173).
+Se puede repetir sin riesgo; `Ctrl+C` detiene la API y la web. Pasos manuales:
+
 ```bash
 npm install
 cp .env.example .env              # reemplazar cambiar-… (contraseña de PostgreSQL y SECURITY_HASH_KEY)
