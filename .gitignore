@@ -11,8 +11,9 @@ coverage/
 !.env.example
 
 # Almacenamiento local de archivos privados
-storage/
-uploads/
+/storage/
+/uploads/
+apps/api/uploads/
 backups/
 
 # Logs, editores y sistema operativo
